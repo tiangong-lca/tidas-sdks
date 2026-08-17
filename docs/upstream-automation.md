@@ -17,9 +17,9 @@ checkPaths:
   - .github/workflows/sync-from-tidas-tools.yml
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
-lastReviewedAt: 2026-07-27
-lastReviewedCommit: 228923af473cc36bf6721f447857c84fb22215e3
-lastReviewedNote: "Reviewed for issue #92: refresh PRs record governed-doc review metadata and release detection recovers merged versions whose tag is absent."
+lastReviewedAt: "2026-08-09"
+lastReviewedCommit: "b2efc269c8bad61dea95705eddf2c59a5c9ad450"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 89e2df17cb55a626052e69059dc0c16a18afd798; generated package surfaces and current guidance remain aligned."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

@@ -19,9 +19,9 @@ checkPaths:
   - sdks/typescript/**
   - sdks/python/**
   - scripts/ci/**
-lastReviewedAt: 2026-07-27
-lastReviewedCommit: 228923af473cc36bf6721f447857c84fb22215e3
-lastReviewedNote: "Reviewed for issue #92: automated SDK refresh PRs include Docpact review records and release recovery handles merged versions whose tag is still absent."
+lastReviewedAt: "2026-08-09"
+lastReviewedCommit: "b2efc269c8bad61dea95705eddf2c59a5c9ad450"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 89e2df17cb55a626052e69059dc0c16a18afd798; generated package surfaces and current guidance remain aligned."
 ---
 
 # TIDAS SDKs
