@@ -19,8 +19,8 @@ checkPaths:
   - sdks/typescript/**
   - sdks/python/**
   - scripts/ci/**
-lastReviewedAt: 2026-07-27
-lastReviewedCommit: 228923af473cc36bf6721f447857c84fb22215e3
+lastReviewedAt: 2026-08-17
+lastReviewedCommit: b2efc269c8bad61dea95705eddf2c59a5c9ad450
 lastReviewedNote: "Reviewed for issue #92: automated SDK refresh PRs include Docpact review records and release recovery handles merged versions whose tag is still absent."
 ---
 
