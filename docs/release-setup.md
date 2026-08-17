@@ -17,7 +17,7 @@ checkPaths:
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-17
-lastReviewedCommit: b2efc269c8bad61dea95705eddf2c59a5c9ad450
+lastReviewedCommit: 2432a3e011d406a70544e51fc1ca77160e67e0e2
 lastReviewedNote: "Reviewed for issue #92: tag automation can recover a merged package version when its expected release tag is absent."
 related:
   - ../AGENTS.md
