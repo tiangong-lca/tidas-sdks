@@ -10,6 +10,7 @@ export interface JsonSchemaObject {
   allOf?: JsonSchema[];
   anyOf?: JsonSchema[];
   const?: unknown;
+  dependencies?: Record<string, JsonSchema | string[]>;
   description?: string;
   else?: JsonSchema;
   enum?: unknown[];
@@ -74,6 +75,7 @@ const SCHEMA_EXTENSION = '.json';
  */
 export class JsonSchemaToZod {
   private readonly imports = new Map<string, ExternalImport>();
+  private readonly validationHelpers = new Set<string>();
 
   constructor(
     private readonly fileName: string,
@@ -81,6 +83,7 @@ export class JsonSchemaToZod {
   ) {}
 
   renderModule(): RenderedModule {
+    validateSchemaTree(this.schema, '#', this.fileName);
     const bodies: string[] = [];
     const exportNames: string[] = [];
 
@@ -116,6 +119,13 @@ export class JsonSchemaToZod {
     }
 
     const importBlocks = ["import { z } from 'zod';"];
+    if (this.validationHelpers.size > 0) {
+      importBlocks.push(
+        `import { ${[...this.validationHelpers]
+          .sort()
+          .join(', ')} } from './../core/validation/json-schema';`
+      );
+    }
     for (const { modulePath, names } of [...this.imports.values()].sort(
       (left, right) => left.modulePath.localeCompare(right.modulePath)
     )) {
@@ -140,64 +150,95 @@ export class JsonSchemaToZod {
       return 'z.never()';
     }
 
+    const fragments: string[] = [];
     if (Object.prototype.hasOwnProperty.call(schema, 'const')) {
-      return `z.literal(${renderLiteral(schema.const)})`;
+      fragments.push(`z.literal(${renderLiteral(schema.const)})`);
     }
 
     if (schema.enum) {
-      if (schema.enum.length === 0) {
-        return 'z.never()';
-      }
-      return renderUnion(
-        schema.enum.map((value) => `z.literal(${renderLiteral(value)})`)
+      fragments.push(
+        schema.enum.length === 0
+          ? 'z.never()'
+          : renderUnion(
+              schema.enum.map((value) => `z.literal(${renderLiteral(value)})`)
+            )
       );
     }
 
-    const fragments: string[] = [];
     if (schema.$ref) {
       fragments.push(this.renderReference(schema.$ref, location));
     }
 
-    const alternatives = schema.anyOf ?? schema.oneOf;
     const base =
-      alternatives && schema.properties
+      schema.$ref && !hasIndependentRefSiblingConstraints(schema)
         ? null
-        : schema.$ref && !hasIndependentRefSiblingConstraints(schema)
-          ? null
-          : this.renderBaseSchema(schema, location);
+        : this.renderBaseSchema(schema, location);
     if (base) {
       fragments.push(base);
     }
 
-    if (alternatives) {
-      if (alternatives.length === 0) {
+    if (schema.anyOf) {
+      if (schema.anyOf.length === 0) {
         fragments.push('z.never()');
       } else {
         fragments.push(
           renderUnion(
-            alternatives.map((entry, index) =>
-              this.renderSchema(entry, `${location}/alternative/${index}`)
+            schema.anyOf.map((entry, index) =>
+              this.renderSchema(entry, `${location}/anyOf/${index}`)
             )
           )
         );
       }
     }
 
+    if (schema.oneOf) {
+      this.validationHelpers.add('jsonSchemaOneOf');
+      const discriminator = findOneOfDiscriminator(schema.oneOf);
+      fragments.push(
+        `jsonSchemaOneOf([${schema.oneOf
+          .map(
+            (entry, index) =>
+              `(${this.renderSchema(
+                entry,
+                `${location}/oneOf/${index}`
+              )}) as z.ZodType`
+          )
+          .join(', ')}] as z.ZodType[]${
+          discriminator ? `, ${JSON.stringify(discriminator)}` : ''
+        })`
+      );
+    }
+
+    const conditionals: Array<{
+      schema: JsonSchemaObject;
+      location: string;
+    }> = [];
+
     if (schema.allOf) {
       for (const [index, entry] of schema.allOf.entries()) {
-        if (isConditionalSchema(entry)) {
-          // Existing SDK behavior implements the observable conditional rules
-          // as named domain refinements after structural generation. Keeping
-          // them out of this structural renderer avoids anonymous, duplicated
-          // refinements and preserves stable validation codes and paths.
+        const entryLocation = `${location}/allOf/${index}`;
+        if (
+          isConditionalSchema(entry) &&
+          isDomainOverlayConditional(this.fileName, entryLocation)
+        ) {
           continue;
         }
-        fragments.push(this.renderSchema(entry, `${location}/allOf/${index}`));
+        if (isConditionalSchema(entry)) {
+          conditionals.push({ schema: entry, location: entryLocation });
+          continue;
+        }
+        fragments.push(this.renderSchema(entry, entryLocation));
+      }
+    }
+
+    if (schema.if) {
+      if (!isDomainOverlayConditional(this.fileName, location)) {
+        conditionals.push({ schema, location });
       }
     }
 
     const meaningfulFragments = deduplicate(fragments);
-    if (meaningfulFragments.length === 0) {
+    if (meaningfulFragments.length === 0 && conditionals.length === 0) {
       if (isExplicitEmptySchema(schema)) {
         return 'z.unknown()';
       }
@@ -208,7 +249,37 @@ export class JsonSchemaToZod {
       );
     }
 
-    return renderIntersection(meaningfulFragments);
+    let rendered =
+      meaningfulFragments.length > 0
+        ? renderIntersection(meaningfulFragments)
+        : 'z.unknown()';
+    for (const conditional of conditionals) {
+      rendered = this.renderConditional(
+        rendered,
+        conditional.schema,
+        conditional.location
+      );
+    }
+    return rendered;
+  }
+
+  private renderConditional(
+    base: string,
+    schema: JsonSchemaObject,
+    location: string
+  ): string {
+    if (!schema.if) {
+      return base;
+    }
+    this.validationHelpers.add('withJsonSchemaConditional');
+    const condition = this.renderSchema(schema.if, `${location}/if`);
+    const whenTrue = schema.then
+      ? this.renderSchema(schema.then, `${location}/then`)
+      : 'undefined';
+    const whenFalse = schema.else
+      ? this.renderSchema(schema.else, `${location}/else`)
+      : 'undefined';
+    return `withJsonSchemaConditional(${base}, ${condition}, ${whenTrue}, ${whenFalse})`;
   }
 
   private renderReference(reference: string, location: string): string {
@@ -290,6 +361,7 @@ export class JsonSchemaToZod {
       case 'boolean':
         return 'z.boolean()';
       case 'integer':
+        return applyNumericConstraints('z.number().int()', schema);
       case 'number':
         return applyNumericConstraints('z.number()', schema);
       case 'null':
@@ -297,7 +369,12 @@ export class JsonSchemaToZod {
       case 'object':
         return this.renderObject(schema, location);
       case 'string':
-        return applyStringConstraints('z.string()', schema);
+        return applyStringConstraints(
+          'z.string()',
+          schema,
+          this.fileName,
+          location
+        );
       case null:
         return null;
       default:
@@ -319,7 +396,32 @@ export class JsonSchemaToZod {
       const itemSchemas = schema.items.map((item, index) =>
         this.renderSchema(item, `${location}/items/${index}`)
       );
-      rendered = `z.tuple([${itemSchemas.join(', ')}])`;
+      this.validationHelpers.add('jsonSchemaTuple');
+      const options: string[] = [];
+      if (schema.additionalItems !== undefined) {
+        options.push(
+          `additionalItems: ${
+            typeof schema.additionalItems === 'boolean'
+              ? String(schema.additionalItems)
+              : this.renderSchema(
+                  schema.additionalItems,
+                  `${location}/additionalItems`
+                )
+          }`
+        );
+      }
+      if (schema.minItems !== undefined) {
+        options.push(`minItems: ${schema.minItems}`);
+      }
+      if (schema.maxItems !== undefined) {
+        options.push(`maxItems: ${schema.maxItems}`);
+      }
+      if (schema.uniqueItems) {
+        options.push('uniqueItems: true');
+      }
+      rendered = `jsonSchemaTuple([${itemSchemas.join(', ')}], { ${options.join(
+        ', '
+      )} })`;
     } else {
       rendered = `z.array(${this.renderSchema(
         schema.items,
@@ -331,28 +433,24 @@ export class JsonSchemaToZod {
       if (schema.maxItems !== undefined) {
         rendered += `.max(${schema.maxItems})`;
       }
+      if (schema.uniqueItems) {
+        this.validationHelpers.add('withJsonSchemaUniqueItems');
+        rendered = `withJsonSchemaUniqueItems(${rendered})`;
+      }
     }
 
     return rendered;
   }
 
   private renderObject(schema: JsonSchemaObject, location: string): string {
+    if (isCommonOtherOverlay(this.fileName, location)) {
+      return 'z.object({}).strict()';
+    }
     const properties = schema.properties ?? {};
     const required = new Set(schema.required ?? []);
     const propertyNames = new Set([...Object.keys(properties), ...required]);
 
     if (propertyNames.size === 0) {
-      if (schema.patternProperties) {
-        const patternValueSchemas = Object.entries(
-          schema.patternProperties
-        ).map(([pattern, valueSchema]) =>
-          this.renderSchema(
-            valueSchema,
-            `${location}/patternProperties/${escapeReferenceSegment(pattern)}`
-          )
-        );
-        return `z.record(z.string(), ${renderUnion(patternValueSchemas)})`;
-      }
       if (
         schema.additionalProperties &&
         typeof schema.additionalProperties === 'object'
@@ -365,7 +463,9 @@ export class JsonSchemaToZod {
       if (schema.additionalProperties === true) {
         return 'z.record(z.string(), z.unknown())';
       }
-      return 'z.object({})';
+      return schema.additionalProperties === false
+        ? 'z.object({}).strict()'
+        : 'z.object({})';
     }
 
     const renderedProperties = [...propertyNames].map((propertyName) => {
@@ -381,7 +481,40 @@ export class JsonSchemaToZod {
       }`;
     });
 
-    return `z.object({${renderedProperties.join(', ')}})`;
+    let rendered = `z.object({${renderedProperties.join(', ')}})`;
+    if (schema.additionalProperties === false) {
+      rendered += '.strict()';
+    } else if (
+      schema.additionalProperties &&
+      typeof schema.additionalProperties === 'object'
+    ) {
+      rendered += `.catchall(${this.renderSchema(
+        schema.additionalProperties,
+        `${location}/additionalProperties`
+      )})`;
+    }
+
+    if (schema.dependencies) {
+      this.validationHelpers.add('withJsonSchemaDependencies');
+      const dependencies = Object.entries(schema.dependencies).map(
+        ([property, dependency]) =>
+          Array.isArray(dependency)
+            ? `{ property: ${JSON.stringify(property)}, required: ${JSON.stringify(
+                dependency
+              )} }`
+            : `{ property: ${JSON.stringify(
+                property
+              )}, schema: ${this.renderSchema(
+                dependency,
+                `${location}/dependencies/${escapeReferenceSegment(property)}`
+              )} }`
+      );
+      rendered = `withJsonSchemaDependencies(${rendered}, [${dependencies.join(
+        ', '
+      )}])`;
+    }
+
+    return rendered;
   }
 }
 
@@ -400,7 +533,9 @@ function withoutDefinitions(schema: JsonSchemaObject): JsonSchemaObject {
   return root;
 }
 
-function isConditionalSchema(schema: JsonSchema): boolean {
+function isConditionalSchema(
+  schema: JsonSchema
+): schema is JsonSchemaObject & { if: JsonSchema } {
   return typeof schema === 'object' && schema !== null && Boolean(schema.if);
 }
 
@@ -434,9 +569,29 @@ function renderIntersection(schemas: string[]): string {
 
 function applyStringConstraints(
   base: string,
-  schema: JsonSchemaObject
+  schema: JsonSchemaObject,
+  fileName: string,
+  location: string
 ): string {
-  let rendered = schema.format === 'date-time' ? 'z.iso.datetime()' : base;
+  let rendered = base;
+  switch (schema.format) {
+    case undefined:
+    case 'cas-number':
+      break;
+    case 'date-time':
+      rendered = 'z.iso.datetime({ offset: true })';
+      break;
+    case 'email':
+      rendered = 'z.email()';
+      break;
+    case 'uri':
+      rendered = 'z.url()';
+      break;
+    default:
+      throw new Error(
+        `${fileName}${location}: unsupported JSON Schema format ${schema.format}`
+      );
+  }
   if (schema.minLength !== undefined) {
     rendered += `.min(${schema.minLength})`;
   }
@@ -452,14 +607,21 @@ function applyStringConstraints(
 function inferTypeFromKeywords(
   schema: JsonSchemaObject
 ): 'array' | 'number' | 'object' | 'string' | null {
-  if (schema.properties || schema.required || schema.patternProperties) {
+  if (
+    schema.properties ||
+    schema.required ||
+    schema.patternProperties ||
+    schema.additionalProperties !== undefined ||
+    schema.dependencies
+  ) {
     return 'object';
   }
   if (
     schema.items ||
     schema.minItems !== undefined ||
     schema.maxItems !== undefined ||
-    schema.uniqueItems !== undefined
+    schema.uniqueItems !== undefined ||
+    schema.additionalItems !== undefined
   ) {
     return 'array';
   }
@@ -467,7 +629,7 @@ function inferTypeFromKeywords(
     schema.minLength !== undefined ||
     schema.maxLength !== undefined ||
     schema.pattern !== undefined ||
-    schema.format === 'date-time'
+    schema.format !== undefined
   ) {
     return 'string';
   }
@@ -553,6 +715,85 @@ function deduplicate(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+function findOneOfDiscriminator(
+  branches: JsonSchema[]
+): { property?: string; values: unknown[] } | null {
+  if (branches.length === 0) {
+    return null;
+  }
+
+  if (
+    branches.every(
+      (branch) =>
+        typeof branch === 'object' &&
+        Object.prototype.hasOwnProperty.call(branch, 'const') &&
+        isPrimitiveLiteral(branch.const)
+    )
+  ) {
+    return {
+      values: branches.map((branch) =>
+        typeof branch === 'object' ? branch.const : undefined
+      ),
+    };
+  }
+
+  const objects = branches.filter(
+    (branch): branch is JsonSchemaObject =>
+      typeof branch === 'object' && branch !== null
+  );
+  if (objects.length !== branches.length) {
+    return null;
+  }
+
+  const candidates = Object.keys(objects[0].properties ?? {}).filter(
+    (property) =>
+      objects.every((branch) => {
+        const propertySchema = branch.properties?.[property];
+        return (
+          typeof propertySchema === 'object' &&
+          propertySchema !== null &&
+          Object.prototype.hasOwnProperty.call(propertySchema, 'const') &&
+          isPrimitiveLiteral(propertySchema.const)
+        );
+      })
+  );
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  const property = candidates.sort((left, right) => {
+    const distinct = (name: string) =>
+      new Set(
+        objects.map((branch) => {
+          const propertySchema = branch.properties?.[name];
+          return typeof propertySchema === 'object' && propertySchema !== null
+            ? propertySchema.const
+            : undefined;
+        })
+      ).size;
+    return distinct(right) - distinct(left) || left.localeCompare(right);
+  })[0];
+
+  return {
+    property,
+    values: objects.map((branch) => {
+      const propertySchema = branch.properties?.[property];
+      return typeof propertySchema === 'object' && propertySchema !== null
+        ? propertySchema.const
+        : undefined;
+    }),
+  };
+}
+
+function isPrimitiveLiteral(value: unknown): boolean {
+  return (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
 function hasIndependentRefSiblingConstraints(
   schema: JsonSchemaObject
 ): boolean {
@@ -574,7 +815,225 @@ function hasIndependentRefSiblingConstraints(
     schema.exclusiveMinimum !== undefined ||
     schema.exclusiveMaximum !== undefined ||
     schema.multipleOf !== undefined ||
-    schema.format === 'date-time'
+    schema.format === 'date-time' ||
+    schema.format === 'email' ||
+    schema.format === 'uri' ||
+    schema.uniqueItems !== undefined ||
+    schema.additionalItems !== undefined ||
+    schema.additionalProperties !== undefined ||
+    schema.dependencies !== undefined
+  );
+}
+
+const SUPPORTED_SCHEMA_KEYWORDS = new Set([
+  '$defs',
+  '$ref',
+  '$schema',
+  'additionalItems',
+  'additionalProperties',
+  'allOf',
+  'anyOf',
+  'const',
+  'dependencies',
+  'description',
+  'else',
+  'enum',
+  'exclusiveMaximum',
+  'exclusiveMinimum',
+  'format',
+  'if',
+  'items',
+  'maxItems',
+  'maxLength',
+  'maximum',
+  'minItems',
+  'minLength',
+  'minimum',
+  'multipleOf',
+  'not',
+  'oneOf',
+  'pattern',
+  'patternProperties',
+  'properties',
+  'propertyNames',
+  'required',
+  'then',
+  'type',
+  'uniqueItems',
+]);
+
+function validateSchemaTree(
+  schema: JsonSchema,
+  location: string,
+  fileName: string
+): void {
+  if (typeof schema === 'boolean') {
+    return;
+  }
+
+  for (const keyword of Object.keys(schema)) {
+    if (!SUPPORTED_SCHEMA_KEYWORDS.has(keyword)) {
+      throw new Error(
+        `${fileName}${location}: unsupported JSON Schema keyword ${keyword}`
+      );
+    }
+  }
+
+  if (schema.format) {
+    const supported = ['date-time', 'email', 'uri'].includes(schema.format);
+    if (!supported && !isCASNumberOverlay(fileName, location, schema.format)) {
+      throw new Error(
+        `${fileName}${location}: unsupported JSON Schema format ${schema.format}`
+      );
+    }
+  }
+
+  if (schema.patternProperties && !isCommonOtherOverlay(fileName, location)) {
+    throw new Error(
+      `${fileName}${location}: patternProperties is only supported by the CommonOther domain overlay`
+    );
+  }
+  if (schema.not && !isAllowedNotOverlay(fileName, location)) {
+    throw new Error(
+      `${fileName}${location}: not is only supported by the CommonOther or LocalizedText domain overlay`
+    );
+  }
+  if (
+    schema.propertyNames &&
+    !(
+      fileName === 'tidas_data_types.json' &&
+      location === '#/$defs/CommonOther/not'
+    )
+  ) {
+    throw new Error(
+      `${fileName}${location}: propertyNames is only supported by the CommonOther domain overlay`
+    );
+  }
+
+  for (const [name, definition] of Object.entries(schema.$defs ?? {})) {
+    validateSchemaTree(
+      definition,
+      `${location}/$defs/${escapeReferenceSegment(name)}`,
+      fileName
+    );
+  }
+  for (const [name, property] of Object.entries(schema.properties ?? {})) {
+    validateSchemaTree(
+      property,
+      `${location}/properties/${escapeReferenceSegment(name)}`,
+      fileName
+    );
+  }
+  for (const [pattern, property] of Object.entries(
+    schema.patternProperties ?? {}
+  )) {
+    validateSchemaTree(
+      property,
+      `${location}/patternProperties/${escapeReferenceSegment(pattern)}`,
+      fileName
+    );
+  }
+  for (const [property, dependency] of Object.entries(
+    schema.dependencies ?? {}
+  )) {
+    if (Array.isArray(dependency)) {
+      if (!dependency.every((entry) => typeof entry === 'string')) {
+        throw new Error(
+          `${fileName}${location}/dependencies/${escapeReferenceSegment(
+            property
+          )}: property dependency must contain only property names`
+        );
+      }
+    } else {
+      validateSchemaTree(
+        dependency,
+        `${location}/dependencies/${escapeReferenceSegment(property)}`,
+        fileName
+      );
+    }
+  }
+
+  const arrays: Array<[string, JsonSchema[] | undefined]> = [
+    ['allOf', schema.allOf],
+    ['anyOf', schema.anyOf],
+    ['oneOf', schema.oneOf],
+  ];
+  for (const [keyword, entries] of arrays) {
+    entries?.forEach((entry, index) =>
+      validateSchemaTree(entry, `${location}/${keyword}/${index}`, fileName)
+    );
+  }
+
+  if (Array.isArray(schema.items)) {
+    schema.items.forEach((entry, index) =>
+      validateSchemaTree(entry, `${location}/items/${index}`, fileName)
+    );
+  } else if (schema.items) {
+    validateSchemaTree(schema.items, `${location}/items`, fileName);
+  }
+
+  const children: Array<[string, JsonSchema | undefined]> = [
+    [
+      'additionalItems',
+      typeof schema.additionalItems === 'object'
+        ? schema.additionalItems
+        : undefined,
+    ],
+    [
+      'additionalProperties',
+      typeof schema.additionalProperties === 'object'
+        ? schema.additionalProperties
+        : undefined,
+    ],
+    ['else', schema.else],
+    ['if', schema.if],
+    ['not', schema.not],
+    ['propertyNames', schema.propertyNames],
+    ['then', schema.then],
+  ];
+  for (const [keyword, child] of children) {
+    if (child !== undefined) {
+      validateSchemaTree(child, `${location}/${keyword}`, fileName);
+    }
+  }
+}
+
+function isCommonOtherOverlay(fileName: string, location: string): boolean {
+  return (
+    fileName === 'tidas_data_types.json' && location === '#/$defs/CommonOther'
+  );
+}
+
+function isAllowedNotOverlay(fileName: string, location: string): boolean {
+  return (
+    fileName === 'tidas_data_types.json' &&
+    (location === '#/$defs/CommonOther' ||
+      location === '#/$defs/LocalizedTextItem/allOf/1/then/properties/#text')
+  );
+}
+
+function isCASNumberOverlay(
+  fileName: string,
+  location: string,
+  format: string
+): boolean {
+  return (
+    format === 'cas-number' &&
+    fileName === 'tidas_data_types.json' &&
+    location === '#/$defs/CASNumber'
+  );
+}
+
+function isDomainOverlayConditional(
+  fileName: string,
+  location: string
+): boolean {
+  return (
+    (fileName === 'tidas_data_types.json' &&
+      (location === '#/$defs/LocalizedTextItem/allOf/0' ||
+        location === '#/$defs/LocalizedTextItem/allOf/1')) ||
+    (fileName === 'tidas_flows.json' &&
+      location === '#/properties/flowDataSet/allOf/0')
   );
 }
 

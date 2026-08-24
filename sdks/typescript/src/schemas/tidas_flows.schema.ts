@@ -1,11 +1,17 @@
 // Generated directly from TIDAS JSON Schema: tidas_flows.json
 import { z } from 'zod';
 import {
+  jsonSchemaOneOf,
+  jsonSchemaTuple,
+  withJsonSchemaDependencies,
+} from './../core/validation/json-schema';
+import {
   CASNumberSchema,
   CommonOtherSchema,
   FTMultiLangSchema,
   GlobalReferenceTypeSchema,
   Int5Schema,
+  LevelTypeSchema,
   PercSchema,
   RealSchema,
   StringMultiLangSchema,
@@ -15,6 +21,8 @@ import {
   VersionSchema,
   dateTimeSchema,
 } from './tidas_data_types.schema';
+import { FlowsElementaryCategorySchema } from './tidas_flows_elementary_category.schema';
+import { FlowsProductCategorySchema } from './tidas_flows_product_category.schema';
 import { LocationsCategorySchema } from './tidas_locations_category.schema';
 
 const FLOW_NAME_CONDITIONAL_FIELDS = [
@@ -25,16 +33,34 @@ const FLOW_NAME_CONDITIONAL_FIELDS = [
 export const FlowsSchema = z
   .object({
     flowDataSet: z.object({
-      '@xmlns': z.literal('http://lca.jrc.it/ILCD/Flow'),
-      '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common'),
-      '@xmlns:ecn': z.literal(
-        'http://eplca.jrc.ec.europa.eu/ILCD/Extensions/2018/ECNumber',
+      '@xmlns': z.intersection(
+        z.literal('http://lca.jrc.it/ILCD/Flow'),
+        z.string(),
       ),
-      '@xmlns:xsi': z.literal('http://www.w3.org/2001/XMLSchema-instance'),
-      '@version': z.literal('1.1'),
-      '@locations': z.literal('../ILCDLocations.xml'),
-      '@xsi:schemaLocation': z.literal(
-        'http://lca.jrc.it/ILCD/Flow ../../schemas/ILCD_FlowDataSet.xsd',
+      '@xmlns:common': z.intersection(
+        z.literal('http://lca.jrc.it/ILCD/Common'),
+        z.string(),
+      ),
+      '@xmlns:ecn': z.intersection(
+        z.literal(
+          'http://eplca.jrc.ec.europa.eu/ILCD/Extensions/2018/ECNumber',
+        ),
+        z.string(),
+      ),
+      '@xmlns:xsi': z.intersection(
+        z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+        z.string(),
+      ),
+      '@version': z.intersection(z.literal('1.1'), z.string()),
+      '@locations': z.intersection(
+        z.literal('../ILCDLocations.xml'),
+        z.string(),
+      ),
+      '@xsi:schemaLocation': z.intersection(
+        z.literal(
+          'http://lca.jrc.it/ILCD/Flow ../../schemas/ILCD_FlowDataSet.xsd',
+        ),
+        z.string(),
       ),
       flowInformation: z.object({
         dataSetInformation: z.object({
@@ -47,10 +73,190 @@ export const FlowsSchema = z
             'common:other': CommonOtherSchema.optional(),
           }),
           'common:synonyms': FTMultiLangSchema.optional(),
-          classificationInformation: z.union([
-            z.object({ 'common:elementaryFlowCategorization': z.unknown() }),
-            z.object({ 'common:classification': z.unknown() }),
-          ]),
+          classificationInformation: z.intersection(
+            z.object({
+              'common:elementaryFlowCategorization': z
+                .object({
+                  'common:category': jsonSchemaTuple(
+                    [
+                      withJsonSchemaDependencies(
+                        z.object({
+                          '@level': z.intersection(
+                            z.literal('0'),
+                            LevelTypeSchema,
+                          ),
+                          '@catId': z.string(),
+                          '#text': z.string(),
+                        }),
+                        [
+                          {
+                            property: '@level',
+                            schema: FlowsElementaryCategorySchema,
+                          },
+                        ],
+                      ),
+                      withJsonSchemaDependencies(
+                        z.object({
+                          '@level': z.intersection(
+                            z.literal('1'),
+                            LevelTypeSchema,
+                          ),
+                          '@catId': z.string(),
+                          '#text': z.string(),
+                        }),
+                        [
+                          {
+                            property: '@level',
+                            schema: FlowsElementaryCategorySchema,
+                          },
+                        ],
+                      ),
+                      withJsonSchemaDependencies(
+                        z.object({
+                          '@level': z.intersection(
+                            z.literal('2'),
+                            LevelTypeSchema,
+                          ),
+                          '@catId': z.string(),
+                          '#text': z.string(),
+                        }),
+                        [
+                          {
+                            property: '@level',
+                            schema: FlowsElementaryCategorySchema,
+                          },
+                        ],
+                      ),
+                    ],
+                    { additionalItems: false, maxItems: 3, uniqueItems: true },
+                  ),
+                  'common:other': CommonOtherSchema.optional(),
+                })
+                .optional(),
+              'common:classification': z
+                .union([
+                  z.object({
+                    'common:class': jsonSchemaTuple(
+                      [
+                        withJsonSchemaDependencies(
+                          z.object({
+                            '@level': z.intersection(
+                              z.literal('0'),
+                              LevelTypeSchema,
+                            ),
+                            '@classId': z.string(),
+                            '#text': z.string(),
+                          }),
+                          [
+                            {
+                              property: '@level',
+                              schema: FlowsProductCategorySchema,
+                            },
+                          ],
+                        ),
+                        withJsonSchemaDependencies(
+                          z.object({
+                            '@level': z.intersection(
+                              z.literal('1'),
+                              LevelTypeSchema,
+                            ),
+                            '@classId': z.string(),
+                            '#text': z.string(),
+                          }),
+                          [
+                            {
+                              property: '@level',
+                              schema: FlowsProductCategorySchema,
+                            },
+                          ],
+                        ),
+                        withJsonSchemaDependencies(
+                          z.object({
+                            '@level': z.intersection(
+                              z.literal('2'),
+                              LevelTypeSchema,
+                            ),
+                            '@classId': z.string(),
+                            '#text': z.string(),
+                          }),
+                          [
+                            {
+                              property: '@level',
+                              schema: FlowsProductCategorySchema,
+                            },
+                          ],
+                        ),
+                        withJsonSchemaDependencies(
+                          z.object({
+                            '@level': z.intersection(
+                              z.literal('3'),
+                              LevelTypeSchema,
+                            ),
+                            '@classId': z.string(),
+                            '#text': z.string(),
+                          }),
+                          [
+                            {
+                              property: '@level',
+                              schema: FlowsProductCategorySchema,
+                            },
+                          ],
+                        ),
+                        withJsonSchemaDependencies(
+                          z.object({
+                            '@level': z.intersection(
+                              z.literal('4'),
+                              LevelTypeSchema,
+                            ),
+                            '@classId': z.string(),
+                            '#text': z.string(),
+                          }),
+                          [
+                            {
+                              property: '@level',
+                              schema: FlowsProductCategorySchema,
+                            },
+                          ],
+                        ),
+                      ],
+                      {
+                        additionalItems: false,
+                        maxItems: 5,
+                        uniqueItems: true,
+                      },
+                    ),
+                    'common:other': CommonOtherSchema.optional(),
+                    '@name': z.string().optional(),
+                    '@classes': z.string().optional(),
+                  }),
+                  z
+                    .array(
+                      z.object({
+                        '@name': z.string(),
+                        '@classes': z.string().optional(),
+                        'common:class': z
+                          .array(
+                            z.object({
+                              '@level': LevelTypeSchema,
+                              '@classId': z.string(),
+                              '#text': z.string(),
+                            }),
+                          )
+                          .min(1),
+                        'common:other': CommonOtherSchema.optional(),
+                      }),
+                    )
+                    .min(1),
+                ])
+                .optional(),
+            }),
+            jsonSchemaOneOf([
+              z.object({
+                'common:elementaryFlowCategorization': z.unknown(),
+              }) as z.ZodType,
+              z.object({ 'common:classification': z.unknown() }) as z.ZodType,
+            ] as z.ZodType[]),
+          ),
           CASNumber: CASNumberSchema.optional(),
           sumFormula: StringSchema.optional(),
           'common:generalComment': FTMultiLangSchema.optional(),
@@ -78,23 +284,29 @@ export const FlowsSchema = z
       }),
       modellingAndValidation: z.object({
         LCIMethod: z.object({
-          typeOfDataSet: z.union([
-            z.literal('Elementary flow'),
-            z.literal('Product flow'),
-            z.literal('Waste flow'),
-            z.literal('Other flow'),
-          ]),
+          typeOfDataSet: z.intersection(
+            z.union([
+              z.literal('Elementary flow'),
+              z.literal('Product flow'),
+              z.literal('Waste flow'),
+              z.literal('Other flow'),
+            ]),
+            z.string(),
+          ),
           'common:other': CommonOtherSchema.optional(),
         }),
         complianceDeclarations: z.object({
           compliance: z.union([
             z.object({
               'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-              'common:approvalOfOverallCompliance': z.union([
-                z.literal('Fully compliant'),
-                z.literal('Not compliant'),
-                z.literal('Not defined'),
-              ]),
+              'common:approvalOfOverallCompliance': z.intersection(
+                z.union([
+                  z.literal('Fully compliant'),
+                  z.literal('Not compliant'),
+                  z.literal('Not defined'),
+                ]),
+                z.string(),
+              ),
               'common:other': CommonOtherSchema.optional(),
             }),
             z
@@ -102,11 +314,14 @@ export const FlowsSchema = z
                 z.object({
                   'common:referenceToComplianceSystem':
                     GlobalReferenceTypeSchema,
-                  'common:approvalOfOverallCompliance': z.union([
-                    z.literal('Fully compliant'),
-                    z.literal('Not compliant'),
-                    z.literal('Not defined'),
-                  ]),
+                  'common:approvalOfOverallCompliance': z.intersection(
+                    z.union([
+                      z.literal('Fully compliant'),
+                      z.literal('Not compliant'),
+                      z.literal('Not defined'),
+                    ]),
+                    z.string(),
+                  ),
                   'common:other': CommonOtherSchema.optional(),
                 }),
               )
@@ -128,7 +343,7 @@ export const FlowsSchema = z
           'common:dataSetVersion': VersionSchema,
           'common:referenceToPrecedingDataSetVersion':
             GlobalReferenceTypeSchema.optional(),
-          'common:permanentDataSetURI': z.string().optional(),
+          'common:permanentDataSetURI': z.url().optional(),
           'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
           'common:other': CommonOtherSchema.optional(),
         }),
@@ -143,22 +358,28 @@ export const FlowsSchema = z
             minimumValue: RealSchema.optional(),
             maximumValue: RealSchema.optional(),
             uncertaintyDistributionType: z
-              .union([
-                z.literal('undefined'),
-                z.literal('log-normal'),
-                z.literal('normal'),
-                z.literal('triangular'),
-                z.literal('uniform'),
-              ])
+              .intersection(
+                z.union([
+                  z.literal('undefined'),
+                  z.literal('log-normal'),
+                  z.literal('normal'),
+                  z.literal('triangular'),
+                  z.literal('uniform'),
+                ]),
+                z.string(),
+              )
               .optional(),
             relativeStandardDeviation95In: PercSchema.optional(),
             dataDerivationTypeStatus: z
-              .union([
-                z.literal('Measured'),
-                z.literal('Calculated'),
-                z.literal('Estimated'),
-                z.literal('Unknown derivation'),
-              ])
+              .intersection(
+                z.union([
+                  z.literal('Measured'),
+                  z.literal('Calculated'),
+                  z.literal('Estimated'),
+                  z.literal('Unknown derivation'),
+                ]),
+                z.string(),
+              )
               .optional(),
             generalComment: StringMultiLangSchema.optional(),
             'common:other': CommonOtherSchema.optional(),
@@ -171,22 +392,28 @@ export const FlowsSchema = z
               minimumValue: RealSchema.optional(),
               maximumValue: RealSchema.optional(),
               uncertaintyDistributionType: z
-                .union([
-                  z.literal('undefined'),
-                  z.literal('log-normal'),
-                  z.literal('normal'),
-                  z.literal('triangular'),
-                  z.literal('uniform'),
-                ])
+                .intersection(
+                  z.union([
+                    z.literal('undefined'),
+                    z.literal('log-normal'),
+                    z.literal('normal'),
+                    z.literal('triangular'),
+                    z.literal('uniform'),
+                  ]),
+                  z.string(),
+                )
                 .optional(),
               relativeStandardDeviation95In: PercSchema.optional(),
               dataDerivationTypeStatus: z
-                .union([
-                  z.literal('Measured'),
-                  z.literal('Calculated'),
-                  z.literal('Estimated'),
-                  z.literal('Unknown derivation'),
-                ])
+                .intersection(
+                  z.union([
+                    z.literal('Measured'),
+                    z.literal('Calculated'),
+                    z.literal('Estimated'),
+                    z.literal('Unknown derivation'),
+                  ]),
+                  z.string(),
+                )
                 .optional(),
               generalComment: StringMultiLangSchema.optional(),
               'common:other': CommonOtherSchema.optional(),

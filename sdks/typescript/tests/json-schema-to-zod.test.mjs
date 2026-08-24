@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { JsonSchemaToZod } from '../scripts/json-schema-to-zod.ts';
+import { replaceExportedSchema } from '../scripts/schema-postprocess.ts';
 
 test('orders local definitions by dependency and external imports deterministically', () => {
   const schema = {
@@ -123,13 +124,32 @@ test('renders enum, const, anyOf, and allOf without permissive fallbacks', () =>
   assert.doesNotMatch(content, /z\.unknown\(\)/);
 });
 
+test('combines const and enum with their sibling validation constraints', () => {
+  const { content } = new JsonSchemaToZod('literal_siblings.json', {
+    type: 'object',
+    properties: {
+      fixed: { type: 'integer', const: 2, minimum: 2 },
+      mode: { type: 'string', enum: ['alpha'], minLength: 3 },
+    },
+  }).renderModule();
+
+  assert.match(
+    content,
+    /fixed: z\.intersection\(z\.literal\(2\), z\.number\(\)\.int\(\)\.min\(2\)\)/
+  );
+  assert.match(
+    content,
+    /mode: z\.intersection\(z\.literal\("alpha"\), z\.string\(\)\.min\(3\)\)/
+  );
+});
+
 test('throws for a not-only schema instead of accepting unknown input', () => {
   assert.throws(
     () =>
       new JsonSchemaToZod('unsupported.json', {
         not: { type: 'string' },
       }).renderModule(),
-    /unsupported\.json#: unsupported JSON Schema shape \(not\)/
+    /unsupported\.json#: not is only supported by the CommonOther or LocalizedText domain overlay/
   );
 });
 
@@ -158,5 +178,125 @@ test('renders the same input identically on repeated calls', () => {
   assert.deepEqual(
     new JsonSchemaToZod('determinism.json', schema).renderModule(),
     first
+  );
+});
+
+test('combines object siblings with anyOf and preserves exact oneOf semantics', () => {
+  const { content } = new JsonSchemaToZod('composition_siblings.json', {
+    type: 'object',
+    properties: { kind: { type: 'string' } },
+    required: ['kind'],
+    anyOf: [
+      {
+        type: 'object',
+        properties: { left: { const: true } },
+        required: ['left'],
+      },
+      {
+        type: 'object',
+        properties: { right: { const: true } },
+        required: ['right'],
+      },
+    ],
+    oneOf: [
+      { type: 'object', required: ['left'] },
+      { type: 'object', required: ['right'] },
+    ],
+  }).renderModule();
+
+  assert.match(content, /z\.object\(\{kind: z\.string\(\)\}\)/);
+  assert.match(content, /z\.union\(\[/);
+  assert.match(content, /jsonSchemaOneOf\(\[/);
+  assert.match(content, /z\.intersection\(/);
+});
+
+test('renders integer, JSON-deep uniqueness, formats, tuple, and dependencies', () => {
+  const { content } = new JsonSchemaToZod('active-keywords.json', {
+    type: 'object',
+    properties: {
+      count: { type: 'integer' },
+      createdAt: { type: 'string', format: 'date-time' },
+      email: { type: 'string', format: 'email' },
+      uri: { type: 'string', format: 'uri' },
+      values: {
+        type: 'array',
+        items: { type: 'object', additionalProperties: true },
+        uniqueItems: true,
+      },
+      tuple: {
+        type: 'array',
+        items: [{ const: 'first' }, { type: 'integer' }],
+        additionalItems: false,
+      },
+    },
+    dependencies: {
+      count: {
+        type: 'object',
+        required: ['createdAt'],
+      },
+    },
+  }).renderModule();
+
+  assert.match(content, /count: z\.number\(\)\.int\(\)/);
+  assert.match(content, /z\.iso\.datetime\(\{ offset: true \}\)/);
+  assert.match(content, /z\.email\(\)/);
+  assert.match(content, /z\.url\(\)/);
+  assert.match(content, /withJsonSchemaUniqueItems\(/);
+  assert.match(content, /jsonSchemaTuple\(/);
+  assert.match(content, /withJsonSchemaDependencies\(/);
+});
+
+test('renders additionalProperties policy explicitly', () => {
+  const strict = new JsonSchemaToZod('strict.json', {
+    type: 'object',
+    properties: { known: { type: 'string' } },
+    additionalProperties: false,
+  }).renderModule().content;
+  const typed = new JsonSchemaToZod('typed.json', {
+    type: 'object',
+    properties: { known: { type: 'string' } },
+    additionalProperties: { type: 'integer' },
+  }).renderModule().content;
+
+  assert.match(strict, /\.strict\(\)/);
+  assert.match(typed, /\.catchall\(z\.number\(\)\.int\(\)\)/);
+});
+
+test('fails closed for unknown and unhandled validation keywords', () => {
+  assert.throws(
+    () =>
+      new JsonSchemaToZod('future.json', {
+        type: 'string',
+        minContains: 1,
+      }).renderModule(),
+    /future\.json#: unsupported JSON Schema keyword minContains/
+  );
+  assert.throws(
+    () =>
+      new JsonSchemaToZod('pattern-properties.json', {
+        type: 'object',
+        patternProperties: { '^x-': { type: 'string' } },
+      }).renderModule(),
+    /patternProperties is only supported by the CommonOther domain overlay/
+  );
+  assert.throws(
+    () =>
+      new JsonSchemaToZod('unknown-format.json', {
+        type: 'string',
+        format: 'hostname',
+      }).renderModule(),
+    /unsupported JSON Schema format hostname/
+  );
+});
+
+test('fails when a domain overlay target is absent', () => {
+  assert.throws(
+    () =>
+      replaceExportedSchema(
+        "import { z } from 'zod';\n",
+        'MissingSchema',
+        'export const MissingSchema = z.string();'
+      ),
+    /Could not replace missing generated schema MissingSchema/
   );
 });

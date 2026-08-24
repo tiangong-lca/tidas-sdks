@@ -1,11 +1,17 @@
 // Generated directly from TIDAS JSON Schema: tidas_lciamethods.json
 import { z } from 'zod';
 import {
+  jsonSchemaTuple,
+  withJsonSchemaConditional,
+  withJsonSchemaDependencies,
+} from './../core/validation/json-schema';
+import {
   CommonOtherSchema,
   FTMultiLangSchema,
   GISSchema,
   GlobalReferenceTypeSchema,
   Int6Schema,
+  LevelTypeSchema,
   PercSchema,
   RealSchema,
   STMultiLangSchema,
@@ -17,18 +23,29 @@ import {
   VersionSchema,
   dateTimeSchema,
 } from './tidas_data_types.schema';
+import { LCIAMethodSchema } from './tidas_lciamethods_category.schema';
 
 export const LciamethodsSchema = z.object({
   LCIAMethodDataSet: z.object({
-    '@xmlns': z.literal('http://lca.jrc.it/ILCD/LCIAMethod').optional(),
-    '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common').optional(),
-    '@xmlns:xsi': z
-      .literal('http://www.w3.org/2001/XMLSchema-instance')
+    '@xmlns': z
+      .intersection(z.literal('http://lca.jrc.it/ILCD/LCIAMethod'), z.string())
       .optional(),
-    '@version': z.literal('1.1').optional(),
+    '@xmlns:common': z
+      .intersection(z.literal('http://lca.jrc.it/ILCD/Common'), z.string())
+      .optional(),
+    '@xmlns:xsi': z
+      .intersection(
+        z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+        z.string(),
+      )
+      .optional(),
+    '@version': z.intersection(z.literal('1.1'), z.string()).optional(),
     '@xsi:schemaLocation': z
-      .literal(
-        'http://lca.jrc.it/ILCD/LCIAMethod ../../schemas/ILCD_LCIAMethodDataSet.xsd',
+      .intersection(
+        z.literal(
+          'http://lca.jrc.it/ILCD/LCIAMethod ../../schemas/ILCD_LCIAMethodDataSet.xsd',
+        ),
+        z.string(),
       )
       .optional(),
     LCIAMethodInformation: z.object({
@@ -38,54 +55,72 @@ export const LciamethodsSchema = z.object({
         methodology: z.string().optional(),
         classificationInformation: z.object({
           'common:classification': z.object({
-            'common:class': z.tuple([
-              z.object({
-                '@level': z.literal('0'),
-                '@classId': z.string(),
-                '#text': z.string(),
-              }),
-              z.object({
-                '@level': z.literal('1'),
-                '@classId': z.string(),
-                '#text': z.string(),
-              }),
-              z.object({
-                '@level': z.literal('2'),
-                '@classId': z.string(),
-                '#text': z.string(),
-              }),
-            ]),
+            'common:class': jsonSchemaTuple(
+              [
+                withJsonSchemaDependencies(
+                  z.object({
+                    '@level': z.intersection(z.literal('0'), LevelTypeSchema),
+                    '@classId': z.string(),
+                    '#text': z.string(),
+                  }),
+                  [{ property: '@level', schema: LCIAMethodSchema }],
+                ),
+                withJsonSchemaDependencies(
+                  z.object({
+                    '@level': z.intersection(z.literal('1'), LevelTypeSchema),
+                    '@classId': z.string(),
+                    '#text': z.string(),
+                  }),
+                  [{ property: '@level', schema: LCIAMethodSchema }],
+                ),
+                withJsonSchemaDependencies(
+                  z.object({
+                    '@level': z.intersection(z.literal('2'), LevelTypeSchema),
+                    '@classId': z.string(),
+                    '#text': z.string(),
+                  }),
+                  [{ property: '@level', schema: LCIAMethodSchema }],
+                ),
+              ],
+              { additionalItems: false, maxItems: 3, uniqueItems: true },
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
         }),
         impactCategory: z
-          .union([
-            z.literal('Climate change'),
-            z.literal('Ozone depletion'),
-            z.literal('Terrestrial Eutrophication'),
-            z.literal('Aquatic Eutrophication'),
-            z.literal('Acidification'),
-            z.literal('Photochemical ozone creation'),
-            z.literal('Land use'),
-            z.literal('Abiotic resource depletion'),
-            z.literal('Biotic resource depletion'),
-            z.literal('Ionizing radiation'),
-            z.literal('Cancer human health effects'),
-            z.literal('Non-cancer human health effects'),
-            z.literal('Respiratory inorganics'),
-            z.literal('Aquatic eco-toxicity'),
-            z.literal('Terrestrial eco-toxicity'),
-            z.literal('other'),
-          ])
+          .intersection(
+            z.union([
+              z.literal('Climate change'),
+              z.literal('Ozone depletion'),
+              z.literal('Terrestrial Eutrophication'),
+              z.literal('Aquatic Eutrophication'),
+              z.literal('Acidification'),
+              z.literal('Photochemical ozone creation'),
+              z.literal('Land use'),
+              z.literal('Abiotic resource depletion'),
+              z.literal('Biotic resource depletion'),
+              z.literal('Ionizing radiation'),
+              z.literal('Cancer human health effects'),
+              z.literal('Non-cancer human health effects'),
+              z.literal('Respiratory inorganics'),
+              z.literal('Aquatic eco-toxicity'),
+              z.literal('Terrestrial eco-toxicity'),
+              z.literal('other'),
+            ]),
+            z.string(),
+          )
           .optional(),
         areaOfProtection: z
-          .union([
-            z.literal('Natural resources'),
-            z.literal('Natural environment'),
-            z.literal('Human health'),
-            z.literal('Man-made environment'),
-            z.literal('Other'),
-          ])
+          .intersection(
+            z.union([
+              z.literal('Natural resources'),
+              z.literal('Natural environment'),
+              z.literal('Human health'),
+              z.literal('Man-made environment'),
+              z.literal('Other'),
+            ]),
+            z.string(),
+          )
           .optional(),
         impactIndicator: StringSchema.optional(),
         'common:generalComment': FTMultiLangSchema.optional(),
@@ -150,23 +185,29 @@ export const LciamethodsSchema = z.object({
     modellingAndValidation: z.object({
       useAdviceForDataSet: STMultiLangSchema.optional(),
       LCIAMethodNormalisationAndWeighting: z.object({
-        typeOfDataSet: z.union([
-          z.literal('Inventory indicator'),
-          z.literal('Mid-point indicator'),
-          z.literal('Damage indicator'),
-          z.literal('Area of Protection damage indicator'),
-          z.literal('Combined single-point indicator'),
-          z.literal('LCIA methodology documentation'),
-        ]),
-        LCIAMethodPrinciple: z.union([
-          z.literal('Distance-to-target'),
-          z.literal('Critical surface-time'),
-          z.literal('Effective volumes'),
-          z.literal('AoP-Damage model'),
-          z.literal('Carrying capacity'),
-          z.literal('Resource dissipation'),
-          z.literal('other'),
-        ]),
+        typeOfDataSet: z.intersection(
+          z.union([
+            z.literal('Inventory indicator'),
+            z.literal('Mid-point indicator'),
+            z.literal('Damage indicator'),
+            z.literal('Area of Protection damage indicator'),
+            z.literal('Combined single-point indicator'),
+            z.literal('LCIA methodology documentation'),
+          ]),
+          z.string(),
+        ),
+        LCIAMethodPrinciple: z.intersection(
+          z.union([
+            z.literal('Distance-to-target'),
+            z.literal('Critical surface-time'),
+            z.literal('Effective volumes'),
+            z.literal('AoP-Damage model'),
+            z.literal('Carrying capacity'),
+            z.literal('Resource dissipation'),
+            z.literal('other'),
+          ]),
+          z.string(),
+        ),
         deviationsFromLCIAMethodPrinciple: FTMultiLangSchema.optional(),
         normalisation: z.boolean().optional(),
         referenceToUsableNormalisationDataSets:
@@ -192,82 +233,42 @@ export const LciamethodsSchema = z.object({
         })
         .optional(),
       validation: z.object({
-        review: z.object({
-          '@type': z.union([
-            z.literal('Dependent internal review'),
-            z.literal('Independent internal review'),
-            z.literal('Independent external review'),
-            z.literal('Accredited third party review'),
-            z.literal('Independent review panel'),
-            z.literal('Not reviewed'),
-          ]),
-          'common:scope': z
-            .union([
-              z.object({
-                '@name': z.union([
-                  z.literal('Substance properties, physical and chemical'),
-                  z.literal('Substance properties, biological'),
-                  z.literal('Model for Transport and Fate'),
-                  z.literal('Model for Exposure'),
-                  z.literal('Model for Effect'),
-                  z.literal('Model for Damage'),
-                  z.literal('Characterisation factors'),
-                  z.literal('Application of model'),
-                  z.literal('Normalisation'),
-                  z.literal('Weighting'),
-                  z.literal('Documentation'),
-                ]),
-                'common:method': z.union([
-                  z.object({
-                    '@name': z.union([
-                      z.literal('Recollection / Validation of data'),
-                      z.literal('Recalculation'),
-                      z.literal('Cross-check with other source'),
-                      z.literal('Cross-check with other LCIA method(ology)'),
-                      z.literal('Expert judgement'),
-                    ]),
-                  }),
-                  z.array(
-                    z.object({
-                      '@name': z.union([
-                        z.literal('Recollection / Validation of data'),
-                        z.literal('Recalculation'),
-                        z.literal('Cross-check with other source'),
-                        z.literal('Cross-check with other LCIA method(ology)'),
-                        z.literal('Expert judgement'),
-                      ]),
-                    }),
-                  ),
-                ]),
-              }),
-              z.array(
+        review: withJsonSchemaConditional(
+          z.object({
+            '@type': z.intersection(
+              z.union([
+                z.literal('Dependent internal review'),
+                z.literal('Independent internal review'),
+                z.literal('Independent external review'),
+                z.literal('Accredited third party review'),
+                z.literal('Independent review panel'),
+                z.literal('Not reviewed'),
+              ]),
+              z.string(),
+            ),
+            'common:scope': z
+              .union([
                 z.object({
-                  '@name': z.union([
-                    z.literal('Substance properties, physical and chemical'),
-                    z.literal('Substance properties, biological'),
-                    z.literal('Model for Transport and Fate'),
-                    z.literal('Model for Exposure'),
-                    z.literal('Model for Effect'),
-                    z.literal('Model for Damage'),
-                    z.literal('Characterisation factors'),
-                    z.literal('Application of model'),
-                    z.literal('Normalisation'),
-                    z.literal('Weighting'),
-                    z.literal('Documentation'),
-                  ]),
+                  '@name': z.intersection(
+                    z.union([
+                      z.literal('Substance properties, physical and chemical'),
+                      z.literal('Substance properties, biological'),
+                      z.literal('Model for Transport and Fate'),
+                      z.literal('Model for Exposure'),
+                      z.literal('Model for Effect'),
+                      z.literal('Model for Damage'),
+                      z.literal('Characterisation factors'),
+                      z.literal('Application of model'),
+                      z.literal('Normalisation'),
+                      z.literal('Weighting'),
+                      z.literal('Documentation'),
+                    ]),
+                    z.string(),
+                  ),
                   'common:method': z.union([
                     z.object({
-                      '@name': z.union([
-                        z.literal('Recollection / Validation of data'),
-                        z.literal('Recalculation'),
-                        z.literal('Cross-check with other source'),
-                        z.literal('Cross-check with other LCIA method(ology)'),
-                        z.literal('Expert judgement'),
-                      ]),
-                    }),
-                    z.array(
-                      z.object({
-                        '@name': z.union([
+                      '@name': z.intersection(
+                        z.union([
                           z.literal('Recollection / Validation of data'),
                           z.literal('Recalculation'),
                           z.literal('Cross-check with other source'),
@@ -276,93 +277,208 @@ export const LciamethodsSchema = z.object({
                           ),
                           z.literal('Expert judgement'),
                         ]),
+                        z.string(),
+                      ),
+                    }),
+                    z.array(
+                      z.object({
+                        '@name': z.intersection(
+                          z.union([
+                            z.literal('Recollection / Validation of data'),
+                            z.literal('Recalculation'),
+                            z.literal('Cross-check with other source'),
+                            z.literal(
+                              'Cross-check with other LCIA method(ology)',
+                            ),
+                            z.literal('Expert judgement'),
+                          ]),
+                          z.string(),
+                        ),
                       }),
                     ),
                   ]),
                 }),
-              ),
-            ])
-            .optional(),
-          'common:reviewDetails': FTMultiLangSchema.optional(),
-          'common:referenceToNameOfReviewerAndInstitution':
-            GlobalReferenceTypeSchema.optional(),
-          'common:otherReviewDetails': FTMultiLangSchema.optional(),
-          'common:referenceToCompleteReviewReport':
-            GlobalReferenceTypeSchema.optional(),
-          'common:other': CommonOtherSchema.optional(),
-        }),
+                z.array(
+                  z.object({
+                    '@name': z.intersection(
+                      z.union([
+                        z.literal(
+                          'Substance properties, physical and chemical',
+                        ),
+                        z.literal('Substance properties, biological'),
+                        z.literal('Model for Transport and Fate'),
+                        z.literal('Model for Exposure'),
+                        z.literal('Model for Effect'),
+                        z.literal('Model for Damage'),
+                        z.literal('Characterisation factors'),
+                        z.literal('Application of model'),
+                        z.literal('Normalisation'),
+                        z.literal('Weighting'),
+                        z.literal('Documentation'),
+                      ]),
+                      z.string(),
+                    ),
+                    'common:method': z.union([
+                      z.object({
+                        '@name': z.intersection(
+                          z.union([
+                            z.literal('Recollection / Validation of data'),
+                            z.literal('Recalculation'),
+                            z.literal('Cross-check with other source'),
+                            z.literal(
+                              'Cross-check with other LCIA method(ology)',
+                            ),
+                            z.literal('Expert judgement'),
+                          ]),
+                          z.string(),
+                        ),
+                      }),
+                      z.array(
+                        z.object({
+                          '@name': z.intersection(
+                            z.union([
+                              z.literal('Recollection / Validation of data'),
+                              z.literal('Recalculation'),
+                              z.literal('Cross-check with other source'),
+                              z.literal(
+                                'Cross-check with other LCIA method(ology)',
+                              ),
+                              z.literal('Expert judgement'),
+                            ]),
+                            z.string(),
+                          ),
+                        }),
+                      ),
+                    ]),
+                  }),
+                ),
+              ])
+              .optional(),
+            'common:reviewDetails': FTMultiLangSchema.optional(),
+            'common:referenceToNameOfReviewerAndInstitution':
+              GlobalReferenceTypeSchema.optional(),
+            'common:otherReviewDetails': FTMultiLangSchema.optional(),
+            'common:referenceToCompleteReviewReport':
+              GlobalReferenceTypeSchema.optional(),
+            'common:other': CommonOtherSchema.optional(),
+          }),
+          z.object({ '@type': z.literal('Not reviewed').optional() }),
+          z.unknown(),
+          z.object({
+            'common:scope': z.unknown(),
+            'common:reviewDetails': z.unknown(),
+            'common:referenceToNameOfReviewerAndInstitution': z.unknown(),
+            'common:referenceToCompleteReviewReport': z.unknown(),
+          }),
+        ),
         'common:other': CommonOtherSchema.optional(),
       }),
       complianceDeclarations: z.object({
         compliance: z.union([
           z.object({
             'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-            'common:approvalOfOverallCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:nomenclatureCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:methodologicalCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:reviewCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:documentationCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:qualityCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
+            'common:approvalOfOverallCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:nomenclatureCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:methodologicalCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:reviewCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:documentationCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:qualityCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
           z
             .array(
               z.object({
                 'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-                'common:approvalOfOverallCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:nomenclatureCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:methodologicalCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:reviewCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:documentationCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:qualityCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
+                'common:approvalOfOverallCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:nomenclatureCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:methodologicalCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:reviewCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:documentationCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:qualityCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
                 'common:other': CommonOtherSchema.optional(),
               }),
             )
@@ -396,13 +512,16 @@ export const LciamethodsSchema = z.object({
           GlobalReferenceTypeSchema.optional(),
         recommendationBy: z.object({
           referenceToEntity: GlobalReferenceTypeSchema,
-          level: z.union([
-            z.literal('Level I'),
-            z.literal('Level II'),
-            z.literal('Level III'),
-            z.literal('Interim'),
-            z.literal('Not recommended'),
-          ]),
+          level: z.intersection(
+            z.union([
+              z.literal('Level I'),
+              z.literal('Level II'),
+              z.literal('Level III'),
+              z.literal('Interim'),
+              z.literal('Not recommended'),
+            ]),
+            z.string(),
+          ),
           meaning: FTMultiLangSchema,
         }),
         'common:other': CommonOtherSchema.optional(),
@@ -412,24 +531,30 @@ export const LciamethodsSchema = z.object({
         'common:dataSetVersion': VersionSchema,
         'common:referenceToPrecedingDataSetVersion':
           GlobalReferenceTypeSchema.optional(),
-        'common:permanentDataSetURI': z.string().optional(),
+        'common:permanentDataSetURI': z.url().optional(),
         'common:workflowAndPublicationStatus': z
-          .union([
-            z.literal('Working draft'),
-            z.literal('Final draft for internal review'),
-            z.literal('Final draft for external review'),
-            z.literal('Data set finalised; unpublished'),
-            z.literal('Under revision'),
-            z.literal('Withdrawn'),
-            z.literal('Data set finalised; subsystems published'),
-            z.literal('Data set finalised; entirely published'),
-          ])
+          .intersection(
+            z.union([
+              z.literal('Working draft'),
+              z.literal('Final draft for internal review'),
+              z.literal('Final draft for external review'),
+              z.literal('Data set finalised; unpublished'),
+              z.literal('Under revision'),
+              z.literal('Withdrawn'),
+              z.literal('Data set finalised; subsystems published'),
+              z.literal('Data set finalised; entirely published'),
+            ]),
+            z.string(),
+          )
           .optional(),
         'common:referenceToUnchangedRepublication':
           GlobalReferenceTypeSchema.optional(),
         'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
         'common:copyright': z
-          .union([z.literal('true'), z.literal('false')])
+          .intersection(
+            z.union([z.literal('true'), z.literal('false')]),
+            z.string(),
+          )
           .optional(),
         'common:accessRestrictions': FTMultiLangSchema.optional(),
         'common:other': CommonOtherSchema.optional(),
@@ -441,37 +566,49 @@ export const LciamethodsSchema = z.object({
         z.object({
           referenceToFlowDataSet: GlobalReferenceTypeSchema,
           location: z.string().optional(),
-          exchangeDirection: z.union([z.literal('Input'), z.literal('Output')]),
+          exchangeDirection: z.intersection(
+            z.union([z.literal('Input'), z.literal('Output')]),
+            z.string(),
+          ),
           meanValue: RealSchema,
           minimumValue: RealSchema.optional(),
           maximumValue: RealSchema.optional(),
           uncertaintyDistributionType: z
-            .union([
-              z.literal('undefined'),
-              z.literal('log-normal'),
-              z.literal('normal'),
-              z.literal('triangular'),
-              z.literal('uniform'),
-            ])
+            .intersection(
+              z.union([
+                z.literal('undefined'),
+                z.literal('log-normal'),
+                z.literal('normal'),
+                z.literal('triangular'),
+                z.literal('uniform'),
+              ]),
+              z.string(),
+            )
             .optional(),
           relativeStandardDeviation95In: PercSchema.optional(),
           dataDerivationTypeStatus: z
-            .union([
-              z.literal('Measured'),
-              z.literal('Calculated'),
-              z.literal('Estimated'),
-              z.literal('Unknown derivation'),
-              z.literal('Missing important'),
-              z.literal('Missing unimportant'),
-            ])
+            .intersection(
+              z.union([
+                z.literal('Measured'),
+                z.literal('Calculated'),
+                z.literal('Estimated'),
+                z.literal('Unknown derivation'),
+                z.literal('Missing important'),
+                z.literal('Missing unimportant'),
+              ]),
+              z.string(),
+            )
             .optional(),
-          deviatingRecommendation: z.union([
-            z.literal('Level I'),
-            z.literal('Level II'),
-            z.literal('Level III'),
-            z.literal('Interim'),
-            z.literal('Not recommended'),
-          ]),
+          deviatingRecommendation: z.intersection(
+            z.union([
+              z.literal('Level I'),
+              z.literal('Level II'),
+              z.literal('Level III'),
+              z.literal('Interim'),
+              z.literal('Not recommended'),
+            ]),
+            z.string(),
+          ),
           referenceToDataSource: GlobalReferenceTypeSchema.optional(),
           generalComment: StringMultiLangSchema.optional(),
           'common:other': CommonOtherSchema.optional(),
@@ -480,40 +617,49 @@ export const LciamethodsSchema = z.object({
           z.object({
             referenceToFlowDataSet: GlobalReferenceTypeSchema,
             location: z.string().optional(),
-            exchangeDirection: z.union([
-              z.literal('Input'),
-              z.literal('Output'),
-            ]),
+            exchangeDirection: z.intersection(
+              z.union([z.literal('Input'), z.literal('Output')]),
+              z.string(),
+            ),
             meanValue: RealSchema,
             minimumValue: RealSchema.optional(),
             maximumValue: RealSchema.optional(),
             uncertaintyDistributionType: z
-              .union([
-                z.literal('undefined'),
-                z.literal('log-normal'),
-                z.literal('normal'),
-                z.literal('triangular'),
-                z.literal('uniform'),
-              ])
+              .intersection(
+                z.union([
+                  z.literal('undefined'),
+                  z.literal('log-normal'),
+                  z.literal('normal'),
+                  z.literal('triangular'),
+                  z.literal('uniform'),
+                ]),
+                z.string(),
+              )
               .optional(),
             relativeStandardDeviation95In: PercSchema.optional(),
             dataDerivationTypeStatus: z
-              .union([
-                z.literal('Measured'),
-                z.literal('Calculated'),
-                z.literal('Estimated'),
-                z.literal('Unknown derivation'),
-                z.literal('Missing important'),
-                z.literal('Missing unimportant'),
-              ])
+              .intersection(
+                z.union([
+                  z.literal('Measured'),
+                  z.literal('Calculated'),
+                  z.literal('Estimated'),
+                  z.literal('Unknown derivation'),
+                  z.literal('Missing important'),
+                  z.literal('Missing unimportant'),
+                ]),
+                z.string(),
+              )
               .optional(),
-            deviatingRecommendation: z.union([
-              z.literal('Level I'),
-              z.literal('Level II'),
-              z.literal('Level III'),
-              z.literal('Interim'),
-              z.literal('Not recommended'),
-            ]),
+            deviatingRecommendation: z.intersection(
+              z.union([
+                z.literal('Level I'),
+                z.literal('Level II'),
+                z.literal('Level III'),
+                z.literal('Interim'),
+                z.literal('Not recommended'),
+              ]),
+              z.string(),
+            ),
             referenceToDataSource: z
               .object({
                 referenceToDataSource: GlobalReferenceTypeSchema.optional(),

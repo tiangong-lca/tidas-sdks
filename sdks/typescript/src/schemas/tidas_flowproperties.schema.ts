@@ -1,5 +1,6 @@
 // Generated directly from TIDAS JSON Schema: tidas_flowproperties.json
 import { z } from 'zod';
+import { withJsonSchemaDependencies } from './../core/validation/json-schema';
 import {
   CommonOtherSchema,
   FTMultiLangSchema,
@@ -9,15 +10,28 @@ import {
   UUIDSchema,
   VersionSchema,
 } from './tidas_data_types.schema';
+import { FlowPropertySchema } from './tidas_flowproperties_category.schema';
 
 export const FlowpropertiesSchema = z.object({
   flowPropertyDataSet: z.object({
-    '@xmlns': z.literal('http://lca.jrc.it/ILCD/FlowProperty'),
-    '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common'),
-    '@xmlns:xsi': z.literal('http://www.w3.org/2001/XMLSchema-instance'),
-    '@version': z.literal('1.1'),
-    '@xsi:schemaLocation': z.literal(
-      'http://lca.jrc.it/ILCD/FlowProperty ../../schemas/ILCD_FlowPropertyDataSet.xsd',
+    '@xmlns': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/FlowProperty'),
+      z.string(),
+    ),
+    '@xmlns:common': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/Common'),
+      z.string(),
+    ),
+    '@xmlns:xsi': z.intersection(
+      z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+      z.string(),
+    ),
+    '@version': z.intersection(z.literal('1.1'), z.string()),
+    '@xsi:schemaLocation': z.intersection(
+      z.literal(
+        'http://lca.jrc.it/ILCD/FlowProperty ../../schemas/ILCD_FlowPropertyDataSet.xsd',
+      ),
+      z.string(),
     ),
     flowPropertiesInformation: z.object({
       dataSetInformation: z.object({
@@ -26,11 +40,14 @@ export const FlowpropertiesSchema = z.object({
         'common:synonyms': FTMultiLangSchema.optional(),
         classificationInformation: z.object({
           'common:classification': z.object({
-            'common:class': z.object({
-              '@level': LevelTypeSchema,
-              '@classId': z.string(),
-              '#text': z.string(),
-            }),
+            'common:class': withJsonSchemaDependencies(
+              z.object({
+                '@level': LevelTypeSchema,
+                '@classId': z.string(),
+                '#text': z.string(),
+              }),
+              [{ property: '@level', schema: FlowPropertySchema }],
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
         }),
@@ -55,22 +72,28 @@ export const FlowpropertiesSchema = z.object({
           compliance: z.union([
             z.object({
               'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-              'common:approvalOfOverallCompliance': z.union([
-                z.literal('Fully compliant'),
-                z.literal('Not compliant'),
-                z.literal('Not defined'),
-              ]),
+              'common:approvalOfOverallCompliance': z.intersection(
+                z.union([
+                  z.literal('Fully compliant'),
+                  z.literal('Not compliant'),
+                  z.literal('Not defined'),
+                ]),
+                z.string(),
+              ),
             }),
             z
               .array(
                 z.object({
                   'common:referenceToComplianceSystem':
                     GlobalReferenceTypeSchema,
-                  'common:approvalOfOverallCompliance': z.union([
-                    z.literal('Fully compliant'),
-                    z.literal('Not compliant'),
-                    z.literal('Not defined'),
-                  ]),
+                  'common:approvalOfOverallCompliance': z.intersection(
+                    z.union([
+                      z.literal('Fully compliant'),
+                      z.literal('Not compliant'),
+                      z.literal('Not defined'),
+                    ]),
+                    z.string(),
+                  ),
                 }),
               )
               .min(1),
@@ -82,7 +105,7 @@ export const FlowpropertiesSchema = z.object({
       .optional(),
     administrativeInformation: z.object({
       dataEntryBy: z.object({
-        'common:timeStamp': z.iso.datetime(),
+        'common:timeStamp': z.iso.datetime({ offset: true }),
         'common:referenceToDataSetFormat': GlobalReferenceTypeSchema,
         'common:other': CommonOtherSchema.optional(),
       }),
@@ -90,7 +113,7 @@ export const FlowpropertiesSchema = z.object({
         'common:dataSetVersion': VersionSchema,
         'common:referenceToPrecedingDataSetVersion':
           GlobalReferenceTypeSchema.optional(),
-        'common:permanentDataSetURI': z.string().optional(),
+        'common:permanentDataSetURI': z.url().optional(),
         'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
         'common:other': CommonOtherSchema.optional(),
       }),

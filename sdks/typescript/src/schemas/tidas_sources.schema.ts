@@ -1,23 +1,38 @@
 // Generated directly from TIDAS JSON Schema: tidas_sources.json
 import { z } from 'zod';
+import { withJsonSchemaDependencies } from './../core/validation/json-schema';
 import {
   CommonOtherSchema,
   FTMultiLangSchema,
   GlobalReferenceTypeSchema,
+  LevelTypeSchema,
   RequiredStringMultiLangSchema,
   UUIDSchema,
   VersionSchema,
   dateTimeSchema,
 } from './tidas_data_types.schema';
+import { SourceSchema } from './tidas_sources_category.schema';
 
 export const SourcesSchema = z.object({
   sourceDataSet: z.object({
-    '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common'),
-    '@xmlns': z.literal('http://lca.jrc.it/ILCD/Source'),
-    '@xmlns:xsi': z.literal('http://www.w3.org/2001/XMLSchema-instance'),
-    '@version': z.literal('1.1'),
-    '@xsi:schemaLocation': z.literal(
-      'http://lca.jrc.it/ILCD/Source ../../schemas/ILCD_SourceDataSet.xsd',
+    '@xmlns:common': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/Common'),
+      z.string(),
+    ),
+    '@xmlns': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/Source'),
+      z.string(),
+    ),
+    '@xmlns:xsi': z.intersection(
+      z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+      z.string(),
+    ),
+    '@version': z.intersection(z.literal('1.1'), z.string()),
+    '@xsi:schemaLocation': z.intersection(
+      z.literal(
+        'http://lca.jrc.it/ILCD/Source ../../schemas/ILCD_SourceDataSet.xsd',
+      ),
+      z.string(),
     ),
     sourceInformation: z.object({
       dataSetInformation: z.object({
@@ -25,28 +40,34 @@ export const SourcesSchema = z.object({
         'common:shortName': RequiredStringMultiLangSchema,
         classificationInformation: z.object({
           'common:classification': z.object({
-            'common:class': z.object({
-              '@level': z.literal('0'),
-              '@classId': z.string(),
-              '#text': z.string(),
-            }),
+            'common:class': withJsonSchemaDependencies(
+              z.object({
+                '@level': z.intersection(z.literal('0'), LevelTypeSchema),
+                '@classId': z.string(),
+                '#text': z.string(),
+              }),
+              [{ property: '@level', schema: SourceSchema }],
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
         }),
         sourceCitation: z.string().optional(),
         publicationType: z
-          .union([
-            z.literal('Undefined'),
-            z.literal('Article in periodical'),
-            z.literal('Chapter in anthology'),
-            z.literal('Monograph'),
-            z.literal('Direct measurement'),
-            z.literal('Oral communication'),
-            z.literal('Personal written communication'),
-            z.literal('Questionnaire'),
-            z.literal('Software or database'),
-            z.literal('Other unpublished and grey literature'),
-          ])
+          .intersection(
+            z.union([
+              z.literal('Undefined'),
+              z.literal('Article in periodical'),
+              z.literal('Chapter in anthology'),
+              z.literal('Monograph'),
+              z.literal('Direct measurement'),
+              z.literal('Oral communication'),
+              z.literal('Personal written communication'),
+              z.literal('Questionnaire'),
+              z.literal('Software or database'),
+              z.literal('Other unpublished and grey literature'),
+            ]),
+            z.string(),
+          )
           .optional(),
         sourceDescriptionOrComment: FTMultiLangSchema.optional(),
         referenceToDigitalFile: z
@@ -71,7 +92,7 @@ export const SourcesSchema = z.object({
         'common:dataSetVersion': VersionSchema,
         'common:referenceToPrecedingDataSetVersion':
           GlobalReferenceTypeSchema.optional(),
-        'common:permanentDataSetURI': z.string().optional(),
+        'common:permanentDataSetURI': z.url().optional(),
         'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
         'common:other': CommonOtherSchema.optional(),
       }),

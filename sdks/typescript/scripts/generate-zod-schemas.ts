@@ -8,6 +8,7 @@ import {
   type JsonSchemaObject,
 } from './json-schema-to-zod.js';
 import { requireTidasToolsSchemaDir } from './resolve-tidas-tools-path.js';
+import { replaceExportedSchema } from './schema-postprocess.js';
 
 // Configuration
 const SCHEMAS_DIR = process.env.TIDAS_ZOD_OUTPUT_DIR ?? 'src/schemas';
@@ -538,46 +539,6 @@ export const CommonOtherSchema = z
   return updatedContent;
 }
 
-function replaceExportedSchema(
-  content: string,
-  schemaName: string,
-  replacement: string
-): string {
-  const marker = `export const ${schemaName}`;
-  const startIndex = content.indexOf(marker);
-
-  if (startIndex === -1) {
-    const insertionMarker = 'export const GlobalReferenceTypeSchema';
-    const insertionIndex = content.indexOf(insertionMarker);
-
-    if (insertionIndex === -1) {
-      return `${content.trimEnd()}\n\n${replacement}\n`;
-    }
-
-    return `${content.slice(0, insertionIndex)}${replacement}\n\n${content.slice(
-      insertionIndex
-    )}`;
-  }
-
-  const nextExportIndex = content.indexOf(
-    '\n\nexport const ',
-    startIndex + marker.length
-  );
-  const nextPrivateConstIndex = content.indexOf(
-    '\n\nconst ',
-    startIndex + marker.length
-  );
-  const candidateEndIndexes = [nextExportIndex, nextPrivateConstIndex].filter(
-    (index) => index !== -1
-  );
-  const endIndex =
-    candidateEndIndexes.length > 0
-      ? Math.min(...candidateEndIndexes)
-      : content.length;
-
-  return `${content.slice(0, startIndex)}${replacement}${content.slice(endIndex)}`;
-}
-
 function applyRequiredLocalizedTextSchemaOverrides(content: string): string {
   let updatedContent = content;
 
@@ -612,16 +573,22 @@ function syncRequiredLocalizedTextSchemaImport(
   baseSchemaName: string,
   requiredSchemaName: string
 ): string {
-  const importPattern =
-    /import \{\n([\s\S]*?)\n\} from '\.\/tidas_data_types\.schema';/;
-  const importMatch = importPattern.exec(content);
-
-  if (!importMatch) {
+  const importEndMarker = "} from './tidas_data_types.schema';";
+  const importEnd = content.indexOf(importEndMarker);
+  const importStart =
+    importEnd === -1 ? -1 : content.lastIndexOf('import {', importEnd);
+  if (importStart === -1 || importEnd === -1) {
     return content;
   }
-
-  const importBlock = importMatch[0];
-  const importLines = importMatch[1]
+  const importBlock = content.slice(
+    importStart,
+    importEnd + importEndMarker.length
+  );
+  const importBody = importBlock.slice(
+    'import {'.length,
+    importBlock.indexOf(importEndMarker)
+  );
+  const importLines = importBody
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)

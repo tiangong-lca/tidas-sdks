@@ -1,10 +1,12 @@
 // Generated directly from TIDAS JSON Schema: tidas_unitgroups.json
 import { z } from 'zod';
+import { withJsonSchemaDependencies } from './../core/validation/json-schema';
 import {
   CommonOtherSchema,
   FTMultiLangSchema,
   GlobalReferenceTypeSchema,
   Int5Schema,
+  LevelTypeSchema,
   RealSchema,
   StringMultiLangSchema,
   RequiredStringMultiLangSchema,
@@ -13,15 +15,28 @@ import {
   VersionSchema,
   dateTimeSchema,
 } from './tidas_data_types.schema';
+import { UnitGroupSchema } from './tidas_unitgroups_category.schema';
 
 export const UnitgroupsSchema = z.object({
   unitGroupDataSet: z.object({
-    '@xmlns': z.literal('http://lca.jrc.it/ILCD/UnitGroup'),
-    '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common'),
-    '@xmlns:xsi': z.literal('http://www.w3.org/2001/XMLSchema-instance'),
-    '@version': z.literal('1.1'),
-    '@xsi:schemaLocation': z.literal(
-      'http://lca.jrc.it/ILCD/UnitGroup ../../schemas/ILCD_UnitGroupDataSet.xsd',
+    '@xmlns': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/UnitGroup'),
+      z.string(),
+    ),
+    '@xmlns:common': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/Common'),
+      z.string(),
+    ),
+    '@xmlns:xsi': z.intersection(
+      z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+      z.string(),
+    ),
+    '@version': z.intersection(z.literal('1.1'), z.string()),
+    '@xsi:schemaLocation': z.intersection(
+      z.literal(
+        'http://lca.jrc.it/ILCD/UnitGroup ../../schemas/ILCD_UnitGroupDataSet.xsd',
+      ),
+      z.string(),
     ),
     unitGroupInformation: z.object({
       dataSetInformation: z.object({
@@ -29,11 +44,14 @@ export const UnitgroupsSchema = z.object({
         'common:name': RequiredStringMultiLangSchema,
         classificationInformation: z.object({
           'common:classification': z.object({
-            'common:class': z.object({
-              '@level': z.literal('0'),
-              '@classId': z.string(),
-              '#text': z.string(),
-            }),
+            'common:class': withJsonSchemaDependencies(
+              z.object({
+                '@level': z.intersection(z.literal('0'), LevelTypeSchema),
+                '@classId': z.string(),
+                '#text': z.string(),
+              }),
+              [{ property: '@level', schema: UnitGroupSchema }],
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
         }),
@@ -51,22 +69,28 @@ export const UnitgroupsSchema = z.object({
         compliance: z.union([
           z.object({
             'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-            'common:approvalOfOverallCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
+            'common:approvalOfOverallCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
           z
             .array(
               z.object({
                 'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-                'common:approvalOfOverallCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
+                'common:approvalOfOverallCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
                 'common:other': CommonOtherSchema.optional(),
               }),
             )
@@ -86,7 +110,7 @@ export const UnitgroupsSchema = z.object({
         'common:dataSetVersion': VersionSchema,
         'common:referenceToPrecedingDataSetVersion':
           GlobalReferenceTypeSchema.optional(),
-        'common:permanentDataSetURI': z.string().optional(),
+        'common:permanentDataSetURI': z.url().optional(),
         'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
         'common:other': CommonOtherSchema.optional(),
       }),

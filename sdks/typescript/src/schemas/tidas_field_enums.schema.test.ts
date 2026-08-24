@@ -100,4 +100,30 @@ describe('TIDAS field enum schemas', () => {
       false
     );
   });
+
+  it('requires LCIA review evidence unless the method is Not reviewed', () => {
+    const reviewSchema =
+      lciaDataSetShape().modellingAndValidation.shape.validation.shape.review;
+
+    assert.strictEqual(
+      reviewSchema.safeParse({ '@type': 'Not reviewed' }).success,
+      true
+    );
+
+    const result = reviewSchema.safeParse({
+      '@type': 'Independent external review',
+    });
+    assert.strictEqual(result.success, false);
+    if (!result.success) {
+      assert.deepStrictEqual(
+        result.error.issues.map((issue: any) => issue.path.join('.')).sort(),
+        [
+          'common:referenceToCompleteReviewReport',
+          'common:referenceToNameOfReviewerAndInstitution',
+          'common:reviewDetails',
+          'common:scope',
+        ]
+      );
+    }
+  });
 });

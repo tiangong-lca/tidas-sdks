@@ -1,6 +1,10 @@
 // Generated directly from TIDAS JSON Schema: tidas_lifecyclemodels.json
 import { z } from 'zod';
 import {
+  jsonSchemaTuple,
+  withJsonSchemaDependencies,
+} from './../core/validation/json-schema';
+import {
   CommonOtherSchema,
   FTMultiLangSchema,
   GlobalReferenceTypeSchema,
@@ -13,19 +17,33 @@ import {
   VersionSchema,
   dateTimeSchema,
 } from './tidas_data_types.schema';
+import { ProcessesCategorySchema } from './tidas_processes_category.schema';
 
 export const LifecyclemodelsSchema = z.object({
   lifeCycleModelDataSet: z.object({
-    '@xmlns': z.literal(
-      'http://eplca.jrc.ec.europa.eu/ILCD/LifeCycleModel/2017',
+    '@xmlns': z.intersection(
+      z.literal('http://eplca.jrc.ec.europa.eu/ILCD/LifeCycleModel/2017'),
+      z.string(),
     ),
-    '@xmlns:acme': z.literal('http://acme.com/custom'),
-    '@xmlns:common': z.literal('http://lca.jrc.it/ILCD/Common'),
-    '@xmlns:xsi': z.literal('http://www.w3.org/2001/XMLSchema-instance'),
-    '@locations': z.literal('../ILCDLocations.xml'),
-    '@version': z.literal('1.1'),
-    '@xsi:schemaLocation': z.literal(
-      'http://eplca.jrc.ec.europa.eu/ILCD/LifeCycleModel/2017 ../../schemas/ILCD_LifeCycleModelDataSet.xsd',
+    '@xmlns:acme': z.intersection(
+      z.literal('http://acme.com/custom'),
+      z.string(),
+    ),
+    '@xmlns:common': z.intersection(
+      z.literal('http://lca.jrc.it/ILCD/Common'),
+      z.string(),
+    ),
+    '@xmlns:xsi': z.intersection(
+      z.literal('http://www.w3.org/2001/XMLSchema-instance'),
+      z.string(),
+    ),
+    '@locations': z.intersection(z.literal('../ILCDLocations.xml'), z.string()),
+    '@version': z.intersection(z.literal('1.1'), z.string()),
+    '@xsi:schemaLocation': z.intersection(
+      z.literal(
+        'http://eplca.jrc.ec.europa.eu/ILCD/LifeCycleModel/2017 ../../schemas/ILCD_LifeCycleModelDataSet.xsd',
+      ),
+      z.string(),
     ),
     lifeCycleModelInformation: z.object({
       dataSetInformation: z.object({
@@ -40,28 +58,43 @@ export const LifecyclemodelsSchema = z.object({
         classificationInformation: z.object({
           'common:classification': z.union([
             z.object({
-              'common:class': z.tuple([
-                z.object({
-                  '@level': z.literal('0'),
-                  '@classId': z.string(),
-                  '#text': z.string(),
-                }),
-                z.object({
-                  '@level': z.literal('1'),
-                  '@classId': z.string(),
-                  '#text': z.string(),
-                }),
-                z.object({
-                  '@level': z.literal('2'),
-                  '@classId': z.string(),
-                  '#text': z.string(),
-                }),
-                z.object({
-                  '@level': z.literal('3'),
-                  '@classId': z.string(),
-                  '#text': z.string(),
-                }),
-              ]),
+              'common:class': jsonSchemaTuple(
+                [
+                  withJsonSchemaDependencies(
+                    z.object({
+                      '@level': z.intersection(z.literal('0'), LevelTypeSchema),
+                      '@classId': z.string(),
+                      '#text': z.string(),
+                    }),
+                    [{ property: '@level', schema: ProcessesCategorySchema }],
+                  ),
+                  withJsonSchemaDependencies(
+                    z.object({
+                      '@level': z.intersection(z.literal('1'), LevelTypeSchema),
+                      '@classId': z.string(),
+                      '#text': z.string(),
+                    }),
+                    [{ property: '@level', schema: ProcessesCategorySchema }],
+                  ),
+                  withJsonSchemaDependencies(
+                    z.object({
+                      '@level': z.intersection(z.literal('2'), LevelTypeSchema),
+                      '@classId': z.string(),
+                      '#text': z.string(),
+                    }),
+                    [{ property: '@level', schema: ProcessesCategorySchema }],
+                  ),
+                  withJsonSchemaDependencies(
+                    z.object({
+                      '@level': z.intersection(z.literal('3'), LevelTypeSchema),
+                      '@classId': z.string(),
+                      '#text': z.string(),
+                    }),
+                    [{ property: '@level', schema: ProcessesCategorySchema }],
+                  ),
+                ],
+                { additionalItems: false, maxItems: 4, uniqueItems: true },
+              ),
               'common:other': CommonOtherSchema.optional(),
               '@name': z.string().optional(),
               '@classes': z.string().optional(),
@@ -92,7 +125,7 @@ export const LifecyclemodelsSchema = z.object({
         'common:other': CommonOtherSchema.optional(),
       }),
       quantitativeReference: z.object({
-        referenceToReferenceProcess: z.number(),
+        referenceToReferenceProcess: z.number().int(),
         'common:other': CommonOtherSchema.optional(),
       }),
       technology: z.object({
@@ -169,7 +202,13 @@ export const LifecyclemodelsSchema = z.object({
                         .union([
                           z.object({
                             '@dominant': z
-                              .union([z.literal('true'), z.literal('false')])
+                              .intersection(
+                                z.union([
+                                  z.literal('true'),
+                                  z.literal('false'),
+                                ]),
+                                z.string(),
+                              )
                               .optional(),
                             '@flowUUID': UUIDSchema,
                             downstreamProcess: z.union([
@@ -178,10 +217,13 @@ export const LifecyclemodelsSchema = z.object({
                                 '@flowUUID': UUIDSchema,
                                 '@location': z.string().optional(),
                                 '@dominant': z
-                                  .union([
-                                    z.literal('true'),
-                                    z.literal('false'),
-                                  ])
+                                  .intersection(
+                                    z.union([
+                                      z.literal('true'),
+                                      z.literal('false'),
+                                    ]),
+                                    z.string(),
+                                  )
                                   .optional(),
                                 '@version': VersionSchema,
                               }),
@@ -191,10 +233,13 @@ export const LifecyclemodelsSchema = z.object({
                                   '@flowUUID': UUIDSchema,
                                   '@location': z.string().optional(),
                                   '@dominant': z
-                                    .union([
-                                      z.literal('true'),
-                                      z.literal('false'),
-                                    ])
+                                    .intersection(
+                                      z.union([
+                                        z.literal('true'),
+                                        z.literal('false'),
+                                      ]),
+                                      z.string(),
+                                    )
                                     .optional(),
                                   '@version': VersionSchema,
                                 }),
@@ -205,7 +250,13 @@ export const LifecyclemodelsSchema = z.object({
                           z.array(
                             z.object({
                               '@dominant': z
-                                .union([z.literal('true'), z.literal('false')])
+                                .intersection(
+                                  z.union([
+                                    z.literal('true'),
+                                    z.literal('false'),
+                                  ]),
+                                  z.string(),
+                                )
                                 .optional(),
                               '@flowUUID': UUIDSchema,
                               downstreamProcess: z.union([
@@ -214,10 +265,13 @@ export const LifecyclemodelsSchema = z.object({
                                   '@flowUUID': UUIDSchema,
                                   '@location': z.string().optional(),
                                   '@dominant': z
-                                    .union([
-                                      z.literal('true'),
-                                      z.literal('false'),
-                                    ])
+                                    .intersection(
+                                      z.union([
+                                        z.literal('true'),
+                                        z.literal('false'),
+                                      ]),
+                                      z.string(),
+                                    )
                                     .optional(),
                                   '@version': VersionSchema,
                                 }),
@@ -227,10 +281,13 @@ export const LifecyclemodelsSchema = z.object({
                                     '@flowUUID': UUIDSchema,
                                     '@location': z.string().optional(),
                                     '@dominant': z
-                                      .union([
-                                        z.literal('true'),
-                                        z.literal('false'),
-                                      ])
+                                      .intersection(
+                                        z.union([
+                                          z.literal('true'),
+                                          z.literal('false'),
+                                        ]),
+                                        z.string(),
+                                      )
                                       .optional(),
                                     '@version': VersionSchema,
                                   }),
@@ -298,7 +355,10 @@ export const LifecyclemodelsSchema = z.object({
                     outputExchange: z.union([
                       z.object({
                         '@dominant': z
-                          .union([z.literal('true'), z.literal('false')])
+                          .intersection(
+                            z.union([z.literal('true'), z.literal('false')]),
+                            z.string(),
+                          )
                           .optional(),
                         '@flowUUID': UUIDSchema,
                         downstreamProcess: z.union([
@@ -307,7 +367,13 @@ export const LifecyclemodelsSchema = z.object({
                             '@flowUUID': UUIDSchema,
                             '@location': z.string().optional(),
                             '@dominant': z
-                              .union([z.literal('true'), z.literal('false')])
+                              .intersection(
+                                z.union([
+                                  z.literal('true'),
+                                  z.literal('false'),
+                                ]),
+                                z.string(),
+                              )
                               .optional(),
                             '@version': VersionSchema,
                           }),
@@ -317,7 +383,13 @@ export const LifecyclemodelsSchema = z.object({
                               '@flowUUID': UUIDSchema,
                               '@location': z.string().optional(),
                               '@dominant': z
-                                .union([z.literal('true'), z.literal('false')])
+                                .intersection(
+                                  z.union([
+                                    z.literal('true'),
+                                    z.literal('false'),
+                                  ]),
+                                  z.string(),
+                                )
                                 .optional(),
                               '@version': VersionSchema,
                             }),
@@ -328,7 +400,10 @@ export const LifecyclemodelsSchema = z.object({
                       z.array(
                         z.object({
                           '@dominant': z
-                            .union([z.literal('true'), z.literal('false')])
+                            .intersection(
+                              z.union([z.literal('true'), z.literal('false')]),
+                              z.string(),
+                            )
                             .optional(),
                           '@flowUUID': UUIDSchema,
                           downstreamProcess: z.union([
@@ -337,7 +412,13 @@ export const LifecyclemodelsSchema = z.object({
                               '@flowUUID': UUIDSchema,
                               '@location': z.string().optional(),
                               '@dominant': z
-                                .union([z.literal('true'), z.literal('false')])
+                                .intersection(
+                                  z.union([
+                                    z.literal('true'),
+                                    z.literal('false'),
+                                  ]),
+                                  z.string(),
+                                )
                                 .optional(),
                               '@version': VersionSchema,
                             }),
@@ -347,10 +428,13 @@ export const LifecyclemodelsSchema = z.object({
                                 '@flowUUID': UUIDSchema,
                                 '@location': z.string().optional(),
                                 '@dominant': z
-                                  .union([
-                                    z.literal('true'),
-                                    z.literal('false'),
-                                  ])
+                                  .intersection(
+                                    z.union([
+                                      z.literal('true'),
+                                      z.literal('false'),
+                                    ]),
+                                    z.string(),
+                                  )
                                   .optional(),
                                 '@version': VersionSchema,
                               }),
@@ -405,72 +489,108 @@ export const LifecyclemodelsSchema = z.object({
         compliance: z.union([
           z.object({
             'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-            'common:approvalOfOverallCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:nomenclatureCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:methodologicalCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:reviewCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:documentationCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
-            'common:qualityCompliance': z.union([
-              z.literal('Fully compliant'),
-              z.literal('Not compliant'),
-              z.literal('Not defined'),
-            ]),
+            'common:approvalOfOverallCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:nomenclatureCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:methodologicalCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:reviewCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:documentationCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
+            'common:qualityCompliance': z.intersection(
+              z.union([
+                z.literal('Fully compliant'),
+                z.literal('Not compliant'),
+                z.literal('Not defined'),
+              ]),
+              z.string(),
+            ),
             'common:other': CommonOtherSchema.optional(),
           }),
           z
             .array(
               z.object({
                 'common:referenceToComplianceSystem': GlobalReferenceTypeSchema,
-                'common:approvalOfOverallCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:nomenclatureCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:methodologicalCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:reviewCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:documentationCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
-                'common:qualityCompliance': z.union([
-                  z.literal('Fully compliant'),
-                  z.literal('Not compliant'),
-                  z.literal('Not defined'),
-                ]),
+                'common:approvalOfOverallCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:nomenclatureCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:methodologicalCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:reviewCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:documentationCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
+                'common:qualityCompliance': z.intersection(
+                  z.union([
+                    z.literal('Fully compliant'),
+                    z.literal('Not compliant'),
+                    z.literal('Not defined'),
+                  ]),
+                  z.string(),
+                ),
                 'common:other': CommonOtherSchema.optional(),
               }),
             )
@@ -505,18 +625,24 @@ export const LifecyclemodelsSchema = z.object({
         'common:dataSetVersion': VersionSchema,
         'common:referenceToPrecedingDataSetVersion':
           GlobalReferenceTypeSchema.optional(),
-        'common:permanentDataSetURI': z.string(),
+        'common:permanentDataSetURI': z.url(),
         'common:referenceToOwnershipOfDataSet': GlobalReferenceTypeSchema,
-        'common:copyright': z.union([z.literal('true'), z.literal('false')]),
+        'common:copyright': z.intersection(
+          z.union([z.literal('true'), z.literal('false')]),
+          z.string(),
+        ),
         'common:referenceToEntitiesWithExclusiveAccess':
           GlobalReferenceTypeSchema.optional(),
-        'common:licenseType': z.union([
-          z.literal('Free of charge for all users and uses'),
-          z.literal('Free of charge for some user types or use types'),
-          z.literal('Free of charge for members only'),
-          z.literal('License fee'),
-          z.literal('Other'),
-        ]),
+        'common:licenseType': z.intersection(
+          z.union([
+            z.literal('Free of charge for all users and uses'),
+            z.literal('Free of charge for some user types or use types'),
+            z.literal('Free of charge for members only'),
+            z.literal('License fee'),
+            z.literal('Other'),
+          ]),
+          z.string(),
+        ),
         'common:accessRestrictions': FTMultiLangSchema.optional(),
         'common:other': CommonOtherSchema.optional(),
       }),
