@@ -133,6 +133,16 @@ test('the complete installed and locked npm trees contain no TypeScript below 7'
   );
 });
 
+test('dependency-tree inspection opts out of the parent npm workspace', () => {
+  assert.deepEqual(npmListArguments('typescript'), [
+    'ls',
+    '--workspaces=false',
+    'typescript',
+    '--all',
+    '--json',
+  ]);
+});
+
 test('package, config, and script surfaces contain no banned legacy tooling', () => {
   const governedFiles = [
     join(REPOSITORY_ROOT, 'package.json'),
