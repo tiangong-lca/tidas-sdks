@@ -16,6 +16,7 @@ import test from 'node:test';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(TEST_DIR);
+const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT));
 const PACKAGE_JSON_PATH = join(PACKAGE_ROOT, 'package.json');
 const PACKAGE_JSON = readJson(PACKAGE_JSON_PATH);
 
@@ -48,7 +49,10 @@ const PUBLISH_FORBIDDEN_TOOLS = new Set([
 ]);
 
 test('all first-party manifests declare only direct TypeScript 7.x', () => {
-  const manifests = findFiles(PACKAGE_ROOT, (path) => basename(path) === 'package.json');
+  const manifests = [
+    join(REPOSITORY_ROOT, 'package.json'),
+    ...findFiles(PACKAGE_ROOT, (path) => basename(path) === 'package.json'),
+  ];
   const declarations = [];
 
   for (const manifestPath of manifests) {
@@ -122,7 +126,9 @@ test('the complete installed and locked npm trees contain no TypeScript below 7'
 });
 
 test('package, config, and script surfaces contain no banned legacy tooling', () => {
-  const governedFiles = findFiles(PACKAGE_ROOT, (path) => {
+  const governedFiles = [
+    join(REPOSITORY_ROOT, 'package.json'),
+    ...findFiles(PACKAGE_ROOT, (path) => {
     const name = basename(path);
     const packageRelativePath = relative(PACKAGE_ROOT, path);
     return (
@@ -132,7 +138,8 @@ test('package, config, and script surfaces contain no banned legacy tooling', ()
       /(?:^|[.])config[.]/.test(name) ||
       packageRelativePath.startsWith(`scripts${pathSeparator()}`)
     );
-  });
+    }),
+  ];
   const findings = [];
 
   for (const path of governedFiles) {
@@ -376,7 +383,7 @@ function isTypeScript7Range(range) {
 }
 
 function displayPath(path) {
-  return relative(PACKAGE_ROOT, path) || '.';
+  return relative(REPOSITORY_ROOT, path) || '.';
 }
 
 function pathSeparator() {
