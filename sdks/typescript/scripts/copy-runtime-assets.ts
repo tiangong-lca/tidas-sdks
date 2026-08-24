@@ -8,7 +8,7 @@ const OUTPUT_DIR = path.join(__dirname, '../dist/runtime-assets');
 async function main() {
   if (!existsSync(SOURCE_DIR)) {
     throw new Error(
-      'Runtime assets are missing under src/runtime-assets. Run npm run sync-runtime-assets first.'
+      'Runtime assets are missing under src/runtime-assets. Run pnpm sync-runtime-assets first.'
     );
   }
 

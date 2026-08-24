@@ -4,11 +4,11 @@
   "private": true,
   "description": "Examples for @tiangong-lca/tidas-sdk",
   "scripts": {
-    "typecheck": "tsc --noEmit --project tsconfig.json",
-    "test-imports": "tsx --tsconfig tsconfig.json test-imports.ts",
-    "run-contact-draft": "tsx --tsconfig tsconfig.json 01-basic-usage/contact-draft.ts",
-    "run-xml-roundtrip": "tsx --tsconfig tsconfig.json 02-xml-roundtrip/xml-roundtrip.ts",
-    "check": "npm run typecheck && npm run test-imports && npm run run-contact-draft && npm run run-xml-roundtrip"
+    "typecheck": "pnpm exec tsc --noEmit --project tsconfig.json",
+    "test-imports": "pnpm exec tsx --tsconfig tsconfig.json test-imports.ts",
+    "run-contact-draft": "pnpm exec tsx --tsconfig tsconfig.json 01-basic-usage/contact-draft.ts",
+    "run-xml-roundtrip": "pnpm exec tsx --tsconfig tsconfig.json 02-xml-roundtrip/xml-roundtrip.ts",
+    "check": "pnpm typecheck && pnpm test-imports && pnpm run-contact-draft && pnpm run-xml-roundtrip"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
@@ -16,6 +16,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@tiangong-lca/tidas-sdk": "file:.."
+    "@tiangong-lca/tidas-sdk": "workspace:*"
   }
 }

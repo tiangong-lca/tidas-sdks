@@ -7,7 +7,7 @@ those specifiers to this checkout so a release cannot drift from its examples.
 Run the complete gate from this directory:
 
 ```bash
-npm run check
+pnpm check
 ```
 
 The gate uses TypeScript 7 to type-check every example, verifies all public

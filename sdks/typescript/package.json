@@ -55,8 +55,8 @@
     "build": "tsx scripts/bundle-methodologies.ts && tsc && tsx scripts/copy-runtime-assets.ts",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "prebuild": "npm run clean",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run check:examples && npm run build",
+    "prebuild": "pnpm clean",
+    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm check:examples && pnpm build",
     "bundle-methodologies": "tsx scripts/bundle-methodologies.ts",
     "sync-runtime-assets": "tsx scripts/sync-runtime-assets.ts",
     "copy-runtime-assets": "tsx scripts/copy-runtime-assets.ts",
@@ -71,11 +71,11 @@
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
     "test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
     "test:coverage": "node --import tsx --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=75 --test-coverage-functions=70 \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
-    "check:examples": "npm --prefix examples run check",
+    "check:examples": "pnpm --filter tidas-sdk-examples check",
     "verify:release": "bash ../../scripts/ci/verify-typescript-package.sh",
-    "release:prepare:patch": "npm version patch --no-git-tag-version",
-    "release:prepare:minor": "npm version minor --no-git-tag-version",
-    "release:prepare:major": "npm version major --no-git-tag-version"
+    "release:prepare:patch": "pnpm version patch --no-git-tag-version",
+    "release:prepare:minor": "pnpm version minor --no-git-tag-version",
+    "release:prepare:major": "pnpm version major --no-git-tag-version"
   },
   "keywords": [
     "tidas",
@@ -117,9 +117,5 @@
     "jsonschema": "^1.5.0",
     "xmltodict": "^1.0.5",
     "zod": "^4.4.3"
-  },
-  "allowScripts": {
-    "esbuild@0.28.2": true,
-    "fsevents@2.3.3": true
   }
 }
