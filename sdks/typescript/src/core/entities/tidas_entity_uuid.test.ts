@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import { TidasContact } from './TidasContact';
 import { TidasFlow } from './TidasFlow';
 
@@ -9,17 +11,17 @@ describe('entity UUID defaults', () => {
     const flow = new TidasFlow();
     const contact = new TidasContact();
 
-    expect(
+    assert.ok(
       UUID_V4_PATTERN.test(
         flow.flowDataSet.flowInformation.dataSetInformation['common:UUID']
       )
-    ).toBe(true);
-    expect(
+    );
+    assert.ok(
       UUID_V4_PATTERN.test(
         contact.contactDataSet.contactInformation.dataSetInformation[
           'common:UUID'
         ]
       )
-    ).toBe(true);
+    );
   });
 });

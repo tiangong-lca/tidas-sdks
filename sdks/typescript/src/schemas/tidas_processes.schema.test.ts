@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import { ProcessesSchema } from './tidas_processes.schema';
 
 function exchangeLocationSchema() {
@@ -9,20 +11,22 @@ describe('process exchange location schema', () => {
   it('accepts location category codes and legacy non-empty strings', () => {
     const schema = exchangeLocationSchema();
 
-    expect(schema.safeParse('CN').success).toBe(true);
-    expect(schema.safeParse('GLO').success).toBe(true);
-    expect(schema.safeParse('Legacy plant area').success).toBe(true);
+    assert.strictEqual(schema.safeParse('CN').success, true);
+    assert.strictEqual(schema.safeParse('GLO').success, true);
+    assert.strictEqual(schema.safeParse('Legacy plant area').success, true);
   });
 
   it('rejects empty strings and localized text shapes', () => {
     const schema = exchangeLocationSchema();
 
-    expect(schema.safeParse('').success).toBe(false);
-    expect(schema.safeParse({ '@xml:lang': 'en', '#text': 'CN' }).success).toBe(
+    assert.strictEqual(schema.safeParse('').success, false);
+    assert.strictEqual(
+      schema.safeParse({ '@xml:lang': 'en', '#text': 'CN' }).success,
       false
     );
-    expect(
-      schema.safeParse([{ '@xml:lang': 'en', '#text': 'CN' }]).success
-    ).toBe(false);
+    assert.strictEqual(
+      schema.safeParse([{ '@xml:lang': 'en', '#text': 'CN' }]).success,
+      false
+    );
   });
 });

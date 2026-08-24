@@ -1,5 +1,7 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { describe, test } from 'node:test';
 import { FlowsSchema } from './tidas_flows.schema';
 
 function loadElementaryFlow(): Record<string, any> {
@@ -7,9 +9,10 @@ function loadElementaryFlow(): Record<string, any> {
     __dirname,
     '../../../python/tests/fixtures/flow-validation-parity.json'
   );
-  const payload = JSON.parse(
-    fs.readFileSync(fixture, 'utf8')
-  ) as Record<string, any>;
+  const payload = JSON.parse(fs.readFileSync(fixture, 'utf8')) as Record<
+    string,
+    any
+  >;
   const dataSet = payload.flowDataSet;
   dataSet.modellingAndValidation.LCIMethod.typeOfDataSet = 'Elementary flow';
   const info = dataSet.flowInformation.dataSetInformation;
@@ -20,46 +23,51 @@ function loadElementaryFlow(): Record<string, any> {
 
 describe('type-aware Flow name validation', () => {
   test('allows an Elementary flow without synthetic name qualifiers', () => {
-    expect(FlowsSchema.safeParse(loadElementaryFlow()).success).toBe(true);
+    assert.strictEqual(
+      FlowsSchema.safeParse(loadElementaryFlow()).success,
+      true
+    );
   });
 
-  test.each(['Product flow', 'Waste flow', 'Other flow'] as const)(
-    'requires both name qualifiers for %s',
-    (flowType) => {
+  for (const flowType of [
+    'Product flow',
+    'Waste flow',
+    'Other flow',
+  ] as const) {
+    test(`requires both name qualifiers for ${flowType}`, () => {
       const payload = loadElementaryFlow();
       payload.flowDataSet.modellingAndValidation.LCIMethod.typeOfDataSet =
         flowType;
 
       const result = FlowsSchema.safeParse(payload);
 
-      expect(result.success).toBe(false);
+      assert.strictEqual(result.success, false);
       if (!result.success) {
-        const paths = result.error.issues.map((issue) =>
-          issue.path.join('.')
+        const paths = result.error.issues.map((issue) => issue.path.join('.'));
+        assert.ok(
+          paths.includes(
+            'flowDataSet.flowInformation.dataSetInformation.name.treatmentStandardsRoutes'
+          )
         );
-        expect(paths).toContain(
-          'flowDataSet.flowInformation.dataSetInformation.name.treatmentStandardsRoutes'
-        );
-        expect(paths).toContain(
-          'flowDataSet.flowInformation.dataSetInformation.name.mixAndLocationTypes'
+        assert.ok(
+          paths.includes(
+            'flowDataSet.flowInformation.dataSetInformation.name.mixAndLocationTypes'
+          )
         );
       }
-    }
-  );
+    });
+  }
 
   test('accepts a Product flow when both name qualifiers are present', () => {
     const payload = loadElementaryFlow();
     payload.flowDataSet.modellingAndValidation.LCIMethod.typeOfDataSet =
       'Product flow';
-    const name =
-      payload.flowDataSet.flowInformation.dataSetInformation.name;
+    const name = payload.flowDataSet.flowInformation.dataSetInformation.name;
     name.treatmentStandardsRoutes = [
       { '@xml:lang': 'en', '#text': 'technical grade' },
     ];
-    name.mixAndLocationTypes = [
-      { '@xml:lang': 'en', '#text': 'at plant' },
-    ];
+    name.mixAndLocationTypes = [{ '@xml:lang': 'en', '#text': 'at plant' }];
 
-    expect(FlowsSchema.safeParse(payload).success).toBe(true);
+    assert.strictEqual(FlowsSchema.safeParse(payload).success, true);
   });
 });

@@ -1,7 +1,9 @@
+import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { describe, it } from 'node:test';
 import {
   copyEilcdAssets,
   copyTidasAssets,
@@ -19,9 +21,9 @@ describe('runtime asset helpers', () => {
     const eilcdDir = resolveRuntimeAssetDir('eilcd');
     const tidasDir = resolveRuntimeAssetDir('tidas');
 
-    expect(fs.existsSync(runtimeAssetsDir)).toBe(true);
-    expect(fs.existsSync(path.join(eilcdDir, 'schemas'))).toBe(true);
-    expect(fs.existsSync(path.join(tidasDir, 'schemas'))).toBe(true);
+    assert.strictEqual(fs.existsSync(runtimeAssetsDir), true);
+    assert.strictEqual(fs.existsSync(path.join(eilcdDir, 'schemas')), true);
+    assert.strictEqual(fs.existsSync(path.join(tidasDir, 'schemas')), true);
   });
 
   it('copies eilcd asset contents into the output root', async () => {
@@ -29,9 +31,12 @@ describe('runtime asset helpers', () => {
 
     await copyEilcdAssets(outputDir);
 
-    expect(fs.existsSync(path.join(outputDir, 'schemas'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'stylesheets'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'eilcd'))).toBe(false);
+    assert.strictEqual(fs.existsSync(path.join(outputDir, 'schemas')), true);
+    assert.strictEqual(
+      fs.existsSync(path.join(outputDir, 'stylesheets')),
+      true
+    );
+    assert.strictEqual(fs.existsSync(path.join(outputDir, 'eilcd')), false);
   });
 
   it('copies tidas asset contents into the output root', async () => {
@@ -39,18 +44,18 @@ describe('runtime asset helpers', () => {
 
     await copyTidasAssets(outputDir);
 
-    expect(fs.existsSync(path.join(outputDir, 'schemas'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'methodologies'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'tidas'))).toBe(false);
+    assert.strictEqual(fs.existsSync(path.join(outputDir, 'schemas')), true);
+    assert.strictEqual(
+      fs.existsSync(path.join(outputDir, 'methodologies')),
+      true
+    );
+    assert.strictEqual(fs.existsSync(path.join(outputDir, 'tidas')), false);
   });
 
   it('packages the Rust asset lock and the versioned 10-node taxonomy extension', () => {
     const runtimeAssetsDir = resolveRuntimeAssetsDir();
     const lock = JSON.parse(
-      fs.readFileSync(
-        path.join(runtimeAssetsDir, 'asset-lock.v1.json'),
-        'utf8'
-      )
+      fs.readFileSync(path.join(runtimeAssetsDir, 'asset-lock.v1.json'), 'utf8')
     ) as {
       schema_version: string;
       entries: Array<{
@@ -88,20 +93,29 @@ describe('runtime asset helpers', () => {
       )
     ) as { oneOf: unknown[] };
 
-    expect(lock.schema_version).toBe('tidas.asset-lock.v1');
-    expect(lock.entries).toHaveLength(80);
-    expect(extensionEntry).toBeDefined();
-    expect(extensionBytes).toHaveLength(extensionEntry?.bytes ?? -1);
-    expect(createHash('sha256').update(extensionBytes).digest('hex')).toBe(
+    assert.strictEqual(lock.schema_version, 'tidas.asset-lock.v1');
+    assert.strictEqual(lock.entries.length, 80);
+    assert.notStrictEqual(extensionEntry, undefined);
+    assert.strictEqual(extensionBytes.length, extensionEntry?.bytes ?? -1);
+    assert.strictEqual(
+      createHash('sha256').update(extensionBytes).digest('hex'),
       extensionEntry?.sha256
     );
-    expect(extension).toMatchObject({
-      schema_version: 'tidas.elementary-flow-taxonomy-extension.v1',
-      taxonomy_id: 'tidas-ef-extension',
-      taxonomy_version: 1,
-      base_taxonomy: { node_count: 55 },
-    });
-    expect(extension.nodes).toHaveLength(10);
-    expect(effectiveSchema.oneOf).toHaveLength(65);
+    assert.deepStrictEqual(
+      {
+        schema_version: extension.schema_version,
+        taxonomy_id: extension.taxonomy_id,
+        taxonomy_version: extension.taxonomy_version,
+        base_taxonomy: { node_count: extension.base_taxonomy.node_count },
+      },
+      {
+        schema_version: 'tidas.elementary-flow-taxonomy-extension.v1',
+        taxonomy_id: 'tidas-ef-extension',
+        taxonomy_version: 1,
+        base_taxonomy: { node_count: 55 },
+      }
+    );
+    assert.strictEqual(extension.nodes.length, 10);
+    assert.strictEqual(effectiveSchema.oneOf.length, 65);
   });
 });

@@ -1,6 +1,8 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { describe, it } from 'node:test';
 import { convertDirectory } from './convert-directory';
 
 function packageRoot() {
@@ -36,13 +38,16 @@ describe('directory conversion tools', () => {
     const xmlPath = path.join(outputDir, 'data', 'flows', 'example.xml');
     const copiedPath = path.join(outputDir, 'data', 'flows', 'notes.txt');
 
-    expect(result.convertedCount).toBe(1);
-    expect(result.copiedCount).toBe(1);
-    expect(fs.existsSync(xmlPath)).toBe(true);
-    expect(fs.readFileSync(xmlPath, 'utf8')).toContain('<flowDataSet');
-    expect(fs.readFileSync(copiedPath, 'utf8')).toBe('keep me');
-    expect(fs.existsSync(path.join(outputDir, 'schemas'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'stylesheets'))).toBe(true);
+    assert.strictEqual(result.convertedCount, 1);
+    assert.strictEqual(result.copiedCount, 1);
+    assert.strictEqual(fs.existsSync(xmlPath), true);
+    assert.ok(fs.readFileSync(xmlPath, 'utf8').includes('<flowDataSet'));
+    assert.strictEqual(fs.readFileSync(copiedPath, 'utf8'), 'keep me');
+    assert.strictEqual(fs.existsSync(path.join(outputDir, 'schemas')), true);
+    assert.strictEqual(
+      fs.existsSync(path.join(outputDir, 'stylesheets')),
+      true
+    );
   });
 
   it('converts XML files back to JSON and copies tidas assets', async () => {
@@ -69,10 +74,16 @@ describe('directory conversion tools', () => {
       unknown
     >;
 
-    expect(result.convertedCount).toBe(1);
-    expect(result.copiedCount).toBe(0);
-    expect(jsonPayload.flowDataSet).toBeDefined();
-    expect(fs.existsSync(path.join(jsonOutputDir, 'schemas'))).toBe(true);
-    expect(fs.existsSync(path.join(jsonOutputDir, 'methodologies'))).toBe(true);
+    assert.strictEqual(result.convertedCount, 1);
+    assert.strictEqual(result.copiedCount, 0);
+    assert.notStrictEqual(jsonPayload.flowDataSet, undefined);
+    assert.strictEqual(
+      fs.existsSync(path.join(jsonOutputDir, 'schemas')),
+      true
+    );
+    assert.strictEqual(
+      fs.existsSync(path.join(jsonOutputDir, 'methodologies')),
+      true
+    );
   });
 });
