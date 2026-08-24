@@ -228,9 +228,17 @@ test('package-manager subprocesses do not inherit Node test bookkeeping', () => 
 
   assert.equal(options.env.PATH, '/fixture/bin');
   assert.equal(Object.hasOwn(options.env, 'NODE_TEST_CONTEXT'), false);
-  assert.equal(Object.hasOwn(options.env, 'NODE_V8_COVERAGE'), false);
+  assert.equal(Object.hasOwn(options.env, 'NODE_V8_COVERAGE'), true);
+  assert.equal(options.env.NODE_V8_COVERAGE, undefined);
   assert.equal(environment.NODE_TEST_CONTEXT, 'child-v8');
   assert.equal(environment.NODE_V8_COVERAGE, '/tmp/parent-node-coverage');
+
+  const childCoverage = execFileSync(
+    process.execPath,
+    ['-e', 'process.stdout.write(process.env.NODE_V8_COVERAGE ?? "unset")'],
+    options
+  );
+  assert.equal(childCoverage, 'unset');
 });
 
 test('package, config, and script surfaces contain no banned legacy tooling', () => {
@@ -689,9 +697,11 @@ test('schema generator source invokes neither npx, ts-to-zod, nor Compiler API',
 });
 
 function commandOptions(cwd, environment = process.env) {
-  const env = { ...environment };
+  // Node's child_process deliberately restores NODE_V8_COVERAGE from the
+  // parent when the key is absent. An own undefined value suppresses that
+  // fallback and is omitted from the spawned OS environment.
+  const env = { ...environment, NODE_V8_COVERAGE: undefined };
   delete env.NODE_TEST_CONTEXT;
-  delete env.NODE_V8_COVERAGE;
 
   return {
     cwd,
