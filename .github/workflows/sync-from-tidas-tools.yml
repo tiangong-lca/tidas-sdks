@@ -161,17 +161,13 @@ jobs:
             echo "branch_name=automation/tidas-tools-sync-$SHORT_SHA"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Set up Node.js
+      - name: Set up pnpm and Node.js
         if: steps.request.outputs.requested_typescript == 'true'
-        uses: actions/setup-node@v6
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: sdks/typescript/package-lock.json
-
-      - name: Upgrade npm for release parity
-        if: steps.request.outputs.requested_typescript == 'true'
-        run: npm install --global npm@11.5.1
+          runtime: node@24
+          install: false
+          cache: true
 
       - name: Set up Python
         if: steps.request.outputs.requested_python == 'true'
@@ -253,7 +249,7 @@ jobs:
         if: steps.changes.outputs.typescript_changed == 'true'
         env:
           TYPESCRIPT_VERSION: ${{ steps.typescript_release.outputs.version }}
-        run: npm --workspace @tiangong-lca/tidas-sdk version "$TYPESCRIPT_VERSION" --no-git-tag-version
+        run: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match version "$TYPESCRIPT_VERSION" --no-git-tag-version
 
       - name: Resolve Python release version
         if: steps.changes.outputs.python_changed == 'true'

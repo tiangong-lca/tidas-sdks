@@ -342,6 +342,13 @@ test('published dependencies contain no compiler, generator, lint, or test tooli
   );
 });
 
+test('the package publishes only to the public npm registry', () => {
+  assert.deepEqual(PACKAGE_JSON.publishConfig, {
+    access: 'public',
+    registry: 'https://registry.npmjs.org/',
+  });
+});
+
 test('all package tsconfigs avoid TypeScript 7 removed module resolution options', () => {
   const configPaths = findFiles(PACKAGE_ROOT, (path) =>
     /^tsconfig(?:\..+)?\.json$/.test(basename(path))

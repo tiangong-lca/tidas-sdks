@@ -61,17 +61,13 @@ jobs:
         if: steps.release.outputs.any_changed != 'true'
         run: echo "No package version changes detected on main."
 
-      - name: Set up Node.js
+      - name: Set up pnpm and Node.js
         if: steps.release.outputs.typescript_changed == 'true'
-        uses: actions/setup-node@v6
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: sdks/typescript/package-lock.json
-
-      - name: Upgrade npm for release parity
-        if: steps.release.outputs.typescript_changed == 'true'
-        run: npm install --global npm@11.5.1
+          runtime: node@24
+          install: false
+          cache: true
 
       - name: Verify TypeScript package before release tag
         if: steps.release.outputs.typescript_changed == 'true'

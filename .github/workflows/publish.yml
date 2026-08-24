@@ -49,16 +49,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-          cache: npm
-          cache-dependency-path: sdks/typescript/package-lock.json
-
-      - name: Upgrade npm for trusted publishing
-        run: npm install --global npm@11.5.1
+          runtime: node@24
+          install: false
+          cache: true
 
       - name: Validate release tag
         run: ./scripts/ci/check-release-tag.sh typescript
@@ -70,8 +66,7 @@ jobs:
         run: ./scripts/ci/verify-typescript-package.sh
 
       - name: Publish to npm
-        working-directory: sdks/typescript
-        run: npm publish --access public --provenance
+        run: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match publish --access public --provenance --no-git-checks
 
   python-build:
     name: Build Python distributions

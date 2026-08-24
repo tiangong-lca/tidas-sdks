@@ -93,7 +93,8 @@
     "directory": "sdks/typescript"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
