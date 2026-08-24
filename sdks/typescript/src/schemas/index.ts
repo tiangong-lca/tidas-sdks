@@ -40,7 +40,7 @@ export type ValidationResult<T> = {
  */
 export function validateWithZod<T>(
   data: unknown,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T> {
   const result = schema.safeParse(data);
   
@@ -62,7 +62,7 @@ export function validateWithZod<T>(
  */
 export function parseWithZod<T>(
   jsonData: string,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T> {
   try {
     const parsed = JSON.parse(jsonData);
@@ -85,7 +85,7 @@ export function parseWithZod<T>(
  */
 export function validateBatch<T>(
   dataArray: unknown[],
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T>[] {
   return dataArray.map(data => validateWithZod(data, schema));
 }
@@ -93,7 +93,7 @@ export function validateBatch<T>(
 /**
  * Create a validation method for object classes
  */
-export function createValidationMethod<T>(schema: z.ZodSchema<T>) {
+export function createValidationMethod<T>(schema: z.ZodType<T>) {
   return function validate(this: any): ValidationResult<T> {
     return validateWithZod(this.data || this._data, schema);
   };
@@ -102,7 +102,7 @@ export function createValidationMethod<T>(schema: z.ZodSchema<T>) {
 /**
  * Create a static validation method for object classes
  */
-export function createStaticValidationMethod<T>(schema: z.ZodSchema<T>) {
+export function createStaticValidationMethod<T>(schema: z.ZodType<T>) {
   return function validateWithSchema(data: unknown): ValidationResult<T> {
     return validateWithZod(data, schema);
   };

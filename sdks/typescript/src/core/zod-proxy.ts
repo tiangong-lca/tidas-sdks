@@ -79,9 +79,9 @@ function parseArrayPath(path: string): PathInfo {
  * Get schema at a specific path within the main schema
  */
 function getSchemaAtPath(
-  currentSchema: z.ZodSchema,
+  currentSchema: z.ZodType,
   pathSegments: string[]
-): z.ZodSchema | null {
+): z.ZodType | null {
   let schema = currentSchema;
 
   for (const segment of pathSegments) {
@@ -94,7 +94,7 @@ function getSchemaAtPath(
       }
     } else if (schema instanceof z.ZodArray) {
       // If it's an array, get element type
-      schema = schema.element as unknown as z.ZodSchema;
+      schema = schema.element as unknown as z.ZodType;
       // Continue processing remaining path after array access
       continue;
     } else {
@@ -173,7 +173,7 @@ function setNestedArrayProperty(obj: any, fullPath: string, value: any): void {
 /**
  * Main ZodProxy class for creating proxies with Schema validation
  */
-export class ZodProxy<T extends z.ZodSchema> {
+export class ZodProxy<T extends z.ZodType> {
   private schema: T;
   private options: ZodProxyOptions;
   private accessLog: AccessLogEntry[] = [];
@@ -466,7 +466,7 @@ export class ZodProxy<T extends z.ZodSchema> {
 /**
  * Factory function to create a ZodProxy with convenient API
  */
-export function createZodProxy<T extends z.ZodSchema>(
+export function createZodProxy<T extends z.ZodType>(
   schema: T,
   options: ZodProxyOptions = {}
 ): {

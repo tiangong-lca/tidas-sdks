@@ -41,13 +41,13 @@ export interface SuggestResult<T extends TidasEntity> {
  * Provides basic validation and data container functionality without property mapping
  */
 export abstract class TidasEntity<T = any> {
-  protected _schema: z.ZodSchema<T>;
+  protected _schema: z.ZodType<T>;
   protected _data: Partial<T> = {};
   protected _proxy: any;
   protected _validationConfig: ValidationConfig;
 
   constructor(
-    schema: z.ZodSchema<T>,
+    schema: z.ZodType<T>,
     initialData?: Partial<T>,
     validationConfig?: Partial<ValidationConfig>
   ) {

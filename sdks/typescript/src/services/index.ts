@@ -19,6 +19,7 @@ export {
   type SuggestResult,
   
   // Deprecated (for backward compatibility)
+  // oxlint-disable-next-line typescript/no-deprecated -- Retain the documented public alias until the next major release.
   suggestRawData,
 } from './copilot-service';
 
