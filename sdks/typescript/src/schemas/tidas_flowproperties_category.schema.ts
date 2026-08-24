@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { jsonSchemaOneOf } from './../core/validation/json-schema';
 
-export const FlowPropertySchema = jsonSchemaOneOf(
+export const FlowPropertySchema: z.ZodType<any> = jsonSchemaOneOf(
   [
     z.object({
       '@level': z.literal('0').optional(),

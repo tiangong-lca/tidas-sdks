@@ -251,11 +251,9 @@ export const FlowsSchema = z
                 .optional(),
             }),
             jsonSchemaOneOf([
-              z.object({
-                'common:elementaryFlowCategorization': z.unknown(),
-              }) as z.ZodType,
-              z.object({ 'common:classification': z.unknown() }) as z.ZodType,
-            ] as z.ZodType[]),
+              z.object({ 'common:elementaryFlowCategorization': z.unknown() }),
+              z.object({ 'common:classification': z.unknown() }),
+            ]),
           ),
           CASNumber: CASNumberSchema.optional(),
           sumFormula: StringSchema.optional(),

@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { jsonSchemaOneOf } from './../core/validation/json-schema';
 
-export const LCIAMethodSchema = jsonSchemaOneOf(
+export const LCIAMethodSchema: z.ZodType<any> = jsonSchemaOneOf(
   [
     z.object({
       '@level': z.literal('0').optional(),

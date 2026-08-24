@@ -2,6 +2,7 @@ import { parse, unparse, type ParseOptions, type UnparseOptions } from 'xmltodic
 
 export type XmlParseOptions = ParseOptions;
 export type XmlUnparseOptions = UnparseOptions;
+export type XmlInput = string | Uint8Array;
 
 export const DEFAULT_XML_PARSE_OPTIONS: Readonly<XmlParseOptions> = Object.freeze({
   attr_prefix: '@',
@@ -15,8 +16,8 @@ export const DEFAULT_XML_UNPARSE_OPTIONS: Readonly<XmlUnparseOptions> =
     pretty: true,
   });
 
-function normalizeXmlInput(input: string | Buffer) {
-  return Buffer.isBuffer(input) ? input.toString('utf8') : input;
+function normalizeXmlInput(input: XmlInput) {
+  return typeof input === 'string' ? input : new TextDecoder().decode(input);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -24,7 +25,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function parseXml(
-  input: string | Buffer,
+  input: XmlInput,
   options: XmlParseOptions = {}
 ): unknown {
   return parse(normalizeXmlInput(input), {
@@ -34,7 +35,7 @@ export function parseXml(
 }
 
 export function datasetFromXml(
-  input: string | Buffer,
+  input: XmlInput,
   options: XmlParseOptions = {}
 ): Record<string, unknown> {
   const parsed = parseXml(input, options);

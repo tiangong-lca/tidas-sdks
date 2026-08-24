@@ -889,7 +889,7 @@ export const ProcessesSchema = z.object({
             relativeStandardDeviation95In: PercSchema.optional(),
             generalComment: StringMultiLangSchema.optional(),
             'common:other': CommonOtherSchema.optional(),
-          }) as z.ZodType,
+          }),
           z
             .array(
               z.object({
@@ -913,8 +913,8 @@ export const ProcessesSchema = z.object({
                 'common:other': CommonOtherSchema.optional(),
               }),
             )
-            .min(1) as z.ZodType,
-        ] as z.ZodType[]).optional(),
+            .min(1),
+        ]).optional(),
         'common:other': CommonOtherSchema.optional(),
       })
       .optional(),

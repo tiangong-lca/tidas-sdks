@@ -85,10 +85,10 @@ function addUniqueItemsIssue(values: readonly unknown[], ctx: z.RefinementCtx) {
   }
 }
 
-export function jsonSchemaOneOf(
-  schemas: readonly z.ZodType[],
+export function jsonSchemaOneOf<const TSchemas extends readonly z.ZodType[]>(
+  schemas: TSchemas,
   discriminator?: OneOfDiscriminator
-): z.ZodType {
+): z.ZodType<z.output<TSchemas[number]>, z.input<TSchemas[number]>> {
   const indexesByValue = new Map<unknown, number[]>();
   discriminator?.values.forEach((value, index) => {
     const indexes = indexesByValue.get(value) ?? [];
@@ -96,7 +96,7 @@ export function jsonSchemaOneOf(
     indexesByValue.set(value, indexes);
   });
 
-  return z.unknown().superRefine((value, ctx) => {
+  const schema = z.unknown().superRefine((value, ctx) => {
     let candidateIndexes: readonly number[] | undefined;
     if (discriminator) {
       if (discriminator.property === undefined) {
@@ -124,6 +124,11 @@ export function jsonSchemaOneOf(
       });
     }
   });
+
+  return schema as z.ZodType<
+    z.output<TSchemas[number]>,
+    z.input<TSchemas[number]>
+  >;
 }
 
 export function jsonSchemaTuple(

@@ -93,7 +93,7 @@ export class JsonSchemaToZod {
     )) {
       const exportName = schemaName(definitionName);
       bodies.push(
-        `export const ${exportName} = ${this.renderSchema(
+        `export const ${exportName}${this.exportTypeAnnotation()} = ${this.renderSchema(
           definition,
           `#/$defs/${definitionName}`
         )};`
@@ -104,7 +104,7 @@ export class JsonSchemaToZod {
     if (hasRootSchema(this.schema)) {
       const exportName = schemaName(fileBaseName(this.fileName));
       bodies.push(
-        `export const ${exportName} = ${this.renderSchema(
+        `export const ${exportName}${this.exportTypeAnnotation()} = ${this.renderSchema(
           withoutDefinitions(this.schema),
           '#'
         )};`
@@ -194,16 +194,19 @@ export class JsonSchemaToZod {
     if (schema.oneOf) {
       this.validationHelpers.add('jsonSchemaOneOf');
       const discriminator = findOneOfDiscriminator(schema.oneOf);
+      const eraseBranchTypes = this.exportsOpaqueCategorySchemas();
       fragments.push(
         `jsonSchemaOneOf([${schema.oneOf
           .map(
             (entry, index) =>
-              `(${this.renderSchema(
-                entry,
-                `${location}/oneOf/${index}`
-              )}) as z.ZodType`
+              eraseBranchTypes
+                ? `(${this.renderSchema(
+                    entry,
+                    `${location}/oneOf/${index}`
+                  )}) as z.ZodType`
+                : this.renderSchema(entry, `${location}/oneOf/${index}`)
           )
-          .join(', ')}] as z.ZodType[]${
+          .join(', ')}]${eraseBranchTypes ? ' as z.ZodType[]' : ''}${
           discriminator ? `, ${JSON.stringify(discriminator)}` : ''
         })`
       );
@@ -231,7 +234,7 @@ export class JsonSchemaToZod {
       }
     }
 
-    if (schema.if) {
+    if (schema.if !== undefined) {
       if (!isDomainOverlayConditional(this.fileName, location)) {
         conditionals.push({ schema, location });
       }
@@ -263,20 +266,28 @@ export class JsonSchemaToZod {
     return rendered;
   }
 
+  private exportsOpaqueCategorySchemas(): boolean {
+    return this.fileName.endsWith('_category.json');
+  }
+
+  private exportTypeAnnotation(): string {
+    return this.exportsOpaqueCategorySchemas() ? ': z.ZodType<any>' : '';
+  }
+
   private renderConditional(
     base: string,
     schema: JsonSchemaObject,
     location: string
   ): string {
-    if (!schema.if) {
+    if (schema.if === undefined) {
       return base;
     }
     this.validationHelpers.add('withJsonSchemaConditional');
     const condition = this.renderSchema(schema.if, `${location}/if`);
-    const whenTrue = schema.then
+    const whenTrue = schema.then !== undefined
       ? this.renderSchema(schema.then, `${location}/then`)
       : 'undefined';
-    const whenFalse = schema.else
+    const whenFalse = schema.else !== undefined
       ? this.renderSchema(schema.else, `${location}/else`)
       : 'undefined';
     return `withJsonSchemaConditional(${base}, ${condition}, ${whenTrue}, ${whenFalse})`;
@@ -536,7 +547,11 @@ function withoutDefinitions(schema: JsonSchemaObject): JsonSchemaObject {
 function isConditionalSchema(
   schema: JsonSchema
 ): schema is JsonSchemaObject & { if: JsonSchema } {
-  return typeof schema === 'object' && schema !== null && Boolean(schema.if);
+  return (
+    typeof schema === 'object' &&
+    schema !== null &&
+    Object.prototype.hasOwnProperty.call(schema, 'if')
+  );
 }
 
 function isExplicitEmptySchema(schema: JsonSchemaObject): boolean {

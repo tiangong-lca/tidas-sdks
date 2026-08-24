@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { jsonSchemaOneOf } from './../core/validation/json-schema';
 
-export const LocationsCategorySchema = jsonSchemaOneOf(
+export const LocationsCategorySchema: z.ZodType<any> = jsonSchemaOneOf(
   [
     z.literal('NULL') as z.ZodType,
     z.literal('GLO') as z.ZodType,

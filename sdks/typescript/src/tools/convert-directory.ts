@@ -4,6 +4,7 @@ import { copyEilcdAssets, copyTidasAssets } from './runtime-assets';
 import {
   datasetFromXml,
   datasetToXml,
+  type XmlInput,
   type XmlParseOptions,
   type XmlUnparseOptions,
 } from '../xml';
@@ -28,20 +29,25 @@ export interface DirectoryConversionResult {
   copiedCount: number;
 }
 
-function normalizeJsonInput(input: string | Buffer | Record<string, unknown>) {
+type FormatInput = XmlInput | Record<string, unknown>;
+
+function normalizeJsonInput(input: FormatInput) {
   if (typeof input === 'string') {
     return JSON.parse(input) as Record<string, unknown>;
   }
 
-  if (Buffer.isBuffer(input)) {
-    return JSON.parse(input.toString('utf8')) as Record<string, unknown>;
+  if (input instanceof Uint8Array) {
+    return JSON.parse(new TextDecoder().decode(input)) as Record<
+      string,
+      unknown
+    >;
   }
 
   return input;
 }
 
 export function convertFormat(
-  input: string | Buffer | Record<string, unknown>,
+  input: FormatInput,
   options: FormatConversionOptions = {}
 ) {
   const { toXml = true, parseOptions, unparseOptions } = options;
@@ -50,8 +56,10 @@ export function convertFormat(
     return datasetToXml(normalizeJsonInput(input), unparseOptions);
   }
 
-  if (typeof input !== 'string' && !Buffer.isBuffer(input)) {
-    throw new TypeError('XML to JSON conversion expects a string or Buffer input.');
+  if (typeof input !== 'string' && !(input instanceof Uint8Array)) {
+    throw new TypeError(
+      'XML to JSON conversion expects a string or Uint8Array input.'
+    );
   }
 
   return datasetFromXml(input, parseOptions);

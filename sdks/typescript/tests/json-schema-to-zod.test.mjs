@@ -289,6 +289,19 @@ test('fails closed for unknown and unhandled validation keywords', () => {
   );
 });
 
+test('preserves boolean if/then/else schemas instead of treating false as absent', () => {
+  const { content } = new JsonSchemaToZod('boolean-conditional.json', {
+    if: true,
+    then: false,
+    else: true,
+  }).renderModule();
+
+  assert.match(
+    content,
+    /withJsonSchemaConditional\(z\.unknown\(\), z\.unknown\(\), z\.never\(\), z\.unknown\(\)\)/
+  );
+});
+
 test('fails when a domain overlay target is absent', () => {
   assert.throws(
     () =>

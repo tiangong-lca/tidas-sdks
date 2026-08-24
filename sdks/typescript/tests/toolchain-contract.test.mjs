@@ -324,7 +324,9 @@ test(
           (specifier, index) =>
             `import * as entry${index} from ${JSON.stringify(specifier)};\nvoid entry${index};`
         )
-        .join('\n')}\n`;
+        .join(
+          '\n'
+        )}\nimport { ProcessSchema } from '@tiangong-lca/tidas-sdk/schemas';\nimport { z } from 'zod';\ntype ProcessOutput = z.output<typeof ProcessSchema>;\ntype ProcessResults = NonNullable<ProcessOutput['processDataSet']['LCIAResults']>;\ntype LCIAResultOutput = ProcessResults['LCIAResult'];\ntype IsUnknown<T> = unknown extends T ? ([T] extends [unknown] ? true : false) : false;\ntype AssertFalse<T extends false> = T;\ntype LCIAResultMustRemainTyped = AssertFalse<IsUnknown<LCIAResultOutput>>;\nvoid (undefined as unknown as LCIAResultMustRemainTyped);\n`;
       writeFileSync(join(consumerRoot, 'imports.ts'), typecheckSource, {
         encoding: 'utf8',
         flag: 'wx',
@@ -343,8 +345,8 @@ test(
               moduleResolution: 'Node16',
               strict: true,
               noEmit: true,
-              skipLibCheck: true,
-              typeRoots: [join(PACKAGE_ROOT, 'node_modules', '@types')],
+              skipLibCheck: false,
+              types: [],
             },
             include: ['./imports.ts', './imports.mts'],
           },

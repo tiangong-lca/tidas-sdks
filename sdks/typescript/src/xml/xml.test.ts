@@ -56,8 +56,8 @@ describe('xml helpers', () => {
     assert.strictEqual(functionalUnitOrOther['#text'], '1 kg of output');
   });
 
-  it('accepts Buffer input and returns the same parsed shape', () => {
-    const parsed = parseXml(Buffer.from(SAMPLE_XML, 'utf8')) as Record<
+  it('accepts Uint8Array input and returns the same parsed shape', () => {
+    const parsed = parseXml(new TextEncoder().encode(SAMPLE_XML)) as Record<
       string,
       unknown
     >;
