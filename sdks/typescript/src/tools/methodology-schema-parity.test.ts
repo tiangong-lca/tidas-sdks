@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import bundledMethodologies from '../data/bundled-methodologies.json';
 import {
   compareMethodologyWithSchema,
@@ -76,35 +78,37 @@ describe('methodology-schema parity tools', () => {
 
     const result = compareMethodologyWithSchema(methodology, schema);
 
-    expect(result.errors).toEqual([]);
-    expect(result.warnings).toEqual(
-      expect.arrayContaining([
-        "Field 'processDataSet.processInformation.dataSetInformation.customOnly' in YAML methodology not found in schema",
-        "Schema field 'processDataSet.missingTop' not covered in YAML methodology",
-      ])
-    );
-    expect(result.warnings).toHaveLength(2);
+    assert.deepStrictEqual(result.errors, []);
+    for (const expectedWarning of [
+      "Field 'processDataSet.processInformation.dataSetInformation.customOnly' in YAML methodology not found in schema",
+      "Schema field 'processDataSet.missingTop' not covered in YAML methodology",
+    ]) {
+      assert.ok(result.warnings.includes(expectedWarning));
+    }
+    assert.strictEqual(result.warnings.length, 2);
   });
 
   it('validates the bundled methodologies against bundled runtime schemas', () => {
     const report = validateBundledMethodologies();
-    const methodologyKeys = Object.keys(bundledMethodologies.methodologies ?? {}).sort();
+    const methodologyKeys = Object.keys(
+      bundledMethodologies.methodologies ?? {}
+    ).sort();
 
-    expect(report.ok).toBe(true);
-    expect(report.summary.file_count).toBe(methodologyKeys.length);
-    expect(report.summary.error_count).toBe(0);
-    expect(report.files.map((file) => file.methodology_key)).toEqual(methodologyKeys);
-    expect(report.files).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          methodology_key: methodologyKeys[0],
-          methodology_file: expect.stringMatching(/^tidas_.+\.yaml$/),
-          schema_file: expect.stringMatching(/^tidas_.+\.json$/),
-          status: expect.stringMatching(/^(ok|warning)$/),
-          errors: [],
-          warnings: expect.any(Array),
-        }),
-      ])
+    assert.strictEqual(report.ok, true);
+    assert.strictEqual(report.summary.file_count, methodologyKeys.length);
+    assert.strictEqual(report.summary.error_count, 0);
+    assert.deepStrictEqual(
+      report.files.map((file) => file.methodology_key),
+      methodologyKeys
     );
+    const firstReport = report.files.find(
+      (file) => file.methodology_key === methodologyKeys[0]
+    );
+    assert.ok(firstReport);
+    assert.match(firstReport.methodology_file, /^tidas_.+\.yaml$/);
+    assert.match(firstReport.schema_file, /^tidas_.+\.json$/);
+    assert.match(firstReport.status, /^(ok|warning)$/);
+    assert.deepStrictEqual(firstReport.errors, []);
+    assert.ok(Array.isArray(firstReport.warnings));
   });
 });

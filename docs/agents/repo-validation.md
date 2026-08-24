@@ -27,9 +27,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: automation regressions prove generated review metadata and untagged-version release recovery."
+lastReviewedAt: 2026-08-24
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
+lastReviewedNote: "Reviewed for issue #101 after independent review: validation now proves active Draft-07 semantics, real tarball exports, maintained examples, lint categories, and coverage ratchets."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -53,7 +53,8 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
-| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run one focused example or narrow package command when the change is isolated | This verify script covers build, tests, generated artifacts, and packability. When the change touches validation behavior, also record one smoke result that proves the normalized `validationIssues` payload still exposes stable `code`, `path`, `severity`, optional `params`, and `rawCode`. |
+| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `npm run test:coverage` when testable behavior changes | This covers the frozen TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the consumer inherits no compiler tooling. Coverage ratchets are lines 95%, branches 75%, functions 70%. |
+| JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `npm run verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |
 | release setup, tag, or publish workflows | run both verify scripts and `python3 ./scripts/ci/test-automation-contracts.py` | inspect `.github/workflows/**` and record any tag or environment assumptions checked locally | Tag creation and registry publication are separate from local package verification. Release detection must distinguish an untagged pending version from an already-tagged version. |
@@ -76,6 +77,13 @@ Facts that matter:
 - clean TypeScript generation and verification both install dependencies through
   `scripts/ci/lib/typescript-dependencies.sh`, which requires the committed
   lockfile and runs `npm ci --workspaces=false`
+- `sdks/typescript/tests/toolchain-contract.test.mjs` rejects TypeScript majors
+  below 7, legacy Compiler API consumers, removed tsconfig options, missing
+  coverage ratchets, unusable tarball exports, and consumers that inherit
+  compiler tooling
+- generator changes should build the baseline before editing, then run
+  `npm run verify:schema-generation-parity`; its automatic candidate directory
+  is always cleaned and can be replaced by explicit baseline/candidate paths
 - if you intentionally validate against a local checkout, record both its path
   and exact commit in the PR note
 
@@ -88,6 +96,12 @@ Facts that matter:
   flow accepts `baseName` without synthetic qualifiers and Product, Waste, and
   Other flows reject missing `treatmentStandardsRoutes` or
   `mixAndLocationTypes`.
+- Process and LCIA review validators must require scope, details, reviewer, and
+  report references whenever `@type` is not `Not reviewed`; taxonomy dependency
+  tests must prove both valid and invalid locked classification cases.
+- Validation changes that correct historical under-validation require an
+  explicit compatibility/version decision. Issue #101 uses `0.2.0`, not a
+  patch, so `^0.1.x` consumers opt in deliberately.
 - If a change touches `sdks/typescript/scripts/generate-zod-schemas.ts`, `sdks/typescript/src/core/config/ValidationConfig.ts`, or committed schema output under `sdks/typescript/src/schemas/**`, mention in the PR note whether the validation contract changed or remained backward compatible.
 
 ## Minimum PR Note Quality

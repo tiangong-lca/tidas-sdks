@@ -124,11 +124,7 @@ export interface Processes {
           minimumValue?: Real;
           maximumValue?: Real;
           uncertaintyDistributionType?:
-            | 'undefined'
-            | 'log-normal'
-            | 'normal'
-            | 'triangular'
-            | 'uniform';
+            'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
           relativeStandardDeviation95In?: Perc;
           comment?: StringMultiLang;
           'common:other'?: CommonOther;
@@ -383,57 +379,33 @@ export interface Processes {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }[];
         'common:other'?: CommonOther;
@@ -506,11 +478,7 @@ export interface Processes {
         minimumAmount?: Real;
         maximumAmount?: Real;
         uncertaintyDistributionType?:
-          | 'undefined'
-          | 'log-normal'
-          | 'normal'
-          | 'triangular'
-          | 'uniform';
+          'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
         relativeStandardDeviation95In?: Perc;
         allocations?: {
           allocation?:
@@ -550,11 +518,7 @@ export interface Processes {
             referenceToLCIAMethodDataSet?: GlobalReferenceType;
             meanAmount: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             generalComment?: StringMultiLang;
             'common:other'?: CommonOther;
@@ -563,11 +527,7 @@ export interface Processes {
             referenceToLCIAMethodDataSet?: GlobalReferenceType;
             meanAmount: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             generalComment?: StringMultiLang;
             'common:other'?: CommonOther;

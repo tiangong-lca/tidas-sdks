@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import { FlowsSchema } from './tidas_flows.schema';
 import { LciamethodsSchema } from './tidas_lciamethods.schema';
 
@@ -32,13 +34,13 @@ describe('TIDAS field enum schemas', () => {
   it('accepts the TIDAS LCIA area of protection values', () => {
     const schema = areaOfProtectionSchema();
 
-    expect(schema.safeParse('Man-made environment').success).toBe(true);
+    assert.strictEqual(schema.safeParse('Man-made environment').success, true);
   });
 
   it('accepts the TIDAS flow type values', () => {
     const schema = flowTypeOfDataSetSchema();
 
-    expect(schema.safeParse('Other flow').success).toBe(true);
+    assert.strictEqual(schema.safeParse('Other flow').success, true);
   });
 
   it('uses normal as the TIDAS uncertainty distribution enum value', () => {
@@ -46,24 +48,29 @@ describe('TIDAS field enum schemas', () => {
     const factorObjectSchema = factorSchema.options[0];
     const factorArrayItemSchema = factorSchema.options[1].element;
 
-    expect(
+    assert.strictEqual(
       factorObjectSchema.shape.uncertaintyDistributionType.safeParse('normal')
-        .success
-    ).toBe(true);
-    expect(
+        .success,
+      true
+    );
+    assert.strictEqual(
       factorObjectSchema.shape.uncertaintyDistributionType.safeParse(
         'normalisation'
-      ).success
-    ).toBe(false);
-    expect(
-      factorArrayItemSchema.shape.uncertaintyDistributionType.safeParse('normal')
-        .success
-    ).toBe(true);
-    expect(
+      ).success,
+      false
+    );
+    assert.strictEqual(
+      factorArrayItemSchema.shape.uncertaintyDistributionType.safeParse(
+        'normal'
+      ).success,
+      true
+    );
+    assert.strictEqual(
       factorArrayItemSchema.shape.uncertaintyDistributionType.safeParse(
         'normalisation'
-      ).success
-    ).toBe(false);
+      ).success,
+      false
+    );
   });
 
   it('uses the LCIA-specific review method enum values', () => {
@@ -77,16 +84,46 @@ describe('TIDAS field enum schemas', () => {
 
     // A4: LCIA-method review uses ILCD MethodOfReviewValues, not the process
     // review method list ("Compliance with legal limits" is process-only).
-    expect(
-      methodObjectSchema.shape['@name'].safeParse('Expert judgement').success
-    ).toBe(true);
-    expect(
-      methodArrayItemSchema.shape['@name'].safeParse('Expert judgement').success
-    ).toBe(true);
-    expect(
+    assert.strictEqual(
+      methodObjectSchema.shape['@name'].safeParse('Expert judgement').success,
+      true
+    );
+    assert.strictEqual(
+      methodArrayItemSchema.shape['@name'].safeParse('Expert judgement')
+        .success,
+      true
+    );
+    assert.strictEqual(
       methodObjectSchema.shape['@name'].safeParse(
         'Compliance with legal limits'
-      ).success
-    ).toBe(false);
+      ).success,
+      false
+    );
+  });
+
+  it('requires LCIA review evidence unless the method is Not reviewed', () => {
+    const reviewSchema =
+      lciaDataSetShape().modellingAndValidation.shape.validation.shape.review;
+
+    assert.strictEqual(
+      reviewSchema.safeParse({ '@type': 'Not reviewed' }).success,
+      true
+    );
+
+    const result = reviewSchema.safeParse({
+      '@type': 'Independent external review',
+    });
+    assert.strictEqual(result.success, false);
+    if (!result.success) {
+      assert.deepStrictEqual(
+        result.error.issues.map((issue: any) => issue.path.join('.')).sort(),
+        [
+          'common:referenceToCompleteReviewReport',
+          'common:referenceToNameOfReviewerAndInstitution',
+          'common:reviewDetails',
+          'common:scope',
+        ]
+      );
+    }
   });
 });

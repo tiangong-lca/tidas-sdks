@@ -7,6 +7,10 @@ interface ClassificationValidationResult {
   errors?: string[];
 }
 
+function readClassificationCode(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 function makeIssue(
   category: string,
   filePath: string,
@@ -56,8 +60,8 @@ export function validateElementaryFlowsClassificationHierarchy(
   });
 
   for (let index = 1; index < classItems.length; index += 1) {
-    const parentId = String(classItems[index - 1]?.['@catId'] ?? '');
-    const childId = String(classItems[index]?.['@catId'] ?? '');
+    const parentId = readClassificationCode(classItems[index - 1]?.['@catId']);
+    const childId = readClassificationCode(classItems[index]?.['@catId']);
     if (!childId.startsWith(parentId)) {
       errors.push(
         `Elementary flow classification code error: child code '${childId}' does not start with parent code '${parentId}'`
@@ -83,8 +87,10 @@ export function validateProductFlowsClassificationHierarchy(
   });
 
   for (let index = 1; index < classItems.length; index += 1) {
-    const parentId = String(classItems[index - 1]?.['@classId'] ?? '');
-    const childId = String(classItems[index]?.['@classId'] ?? '');
+    const parentId = readClassificationCode(
+      classItems[index - 1]?.['@classId']
+    );
+    const childId = readClassificationCode(classItems[index]?.['@classId']);
     if (!childId.startsWith(parentId)) {
       errors.push(
         `Product flow classification code error: child code '${childId}' does not start with parent code '${parentId}'`
@@ -140,8 +146,8 @@ export function validateProcessesClassificationHierarchy(
     const child = classItems[index] ?? {};
     const parentLevel = Number(parent['@level']);
     const childLevel = Number(child['@level']);
-    const parentId = String(parent['@classId'] ?? '');
-    const childId = String(child['@classId'] ?? '');
+    const parentId = readClassificationCode(parent['@classId']);
+    const childId = readClassificationCode(child['@classId']);
 
     if (parentLevel === 0 && childLevel === 1) {
       const validCodes = level0ToLevel1Mapping[parentId] ?? [];

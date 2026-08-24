@@ -97,12 +97,12 @@ export function generateDiffSummary(
 
   // If paths are specified, only compare those
   if (paths && paths.length > 0) {
-    for (const path of paths) {
-      const originalValue = getValueByPath(original, path);
-      const improvedValue = getValueByPath(improved, path);
+    for (const selectedPath of paths) {
+      const originalValue = getValueByPath(original, selectedPath);
+      const improvedValue = getValueByPath(improved, selectedPath);
 
       if (JSON.stringify(originalValue) !== JSON.stringify(improvedValue)) {
-        summary.push(`📝 ${path}:`);
+        summary.push(`📝 ${selectedPath}:`);
         const originalStr =
           originalValue !== undefined
             ? JSON.stringify(originalValue, null, 2).substring(0, 100)
@@ -133,8 +133,8 @@ export function generateDiffSummary(
 /**
  * Helper function to get value by dot-notation path
  */
-function getValueByPath(obj: any, path: string): any {
-  const parts = path.split('.');
+function getValueByPath(obj: any, objectPath: string): any {
+  const parts = objectPath.split('.');
   let current = obj;
 
   for (const part of parts) {
@@ -154,7 +154,7 @@ function getValueByPath(obj: any, path: string): any {
 function findDifferences(
   original: any,
   improved: any,
-  path = ''
+  currentPath = ''
 ): Array<{ path: string; original: string; improved: string }> {
   const diffs: Array<{ path: string; original: string; improved: string }> = [];
 
@@ -162,7 +162,7 @@ function findDifferences(
   if (typeof original !== 'object' || typeof improved !== 'object') {
     if (JSON.stringify(original) !== JSON.stringify(improved)) {
       diffs.push({
-        path: path || 'root',
+        path: currentPath || 'root',
         original: JSON.stringify(original).substring(0, 100),
         improved: JSON.stringify(improved).substring(0, 100),
       });
@@ -174,7 +174,7 @@ function findDifferences(
   if (Array.isArray(original) || Array.isArray(improved)) {
     if (JSON.stringify(original) !== JSON.stringify(improved)) {
       diffs.push({
-        path: path || 'root',
+        path: currentPath || 'root',
         original: Array.isArray(original)
           ? `[${original.length} items]`
           : String(original),
@@ -193,7 +193,7 @@ function findDifferences(
   ]);
 
   for (const key of allKeys) {
-    const newPath = path ? `${path}.${key}` : key;
+    const newPath = currentPath ? `${currentPath}.${key}` : key;
     const originalValue = original?.[key];
     const improvedValue = improved?.[key];
 

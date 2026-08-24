@@ -1,71 +1,24 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
-
-// Types for dependency analysis
-interface DependencyGraph {
-  [fileName: string]: string[];
-}
-
-interface TypeFileInfo {
-  fileName: string;
-  filePath: string;
-  dependencies: string[];
-  isMainType: boolean;
-}
+import fs from 'node:fs';
+import path from 'node:path';
+import { format } from 'prettier';
+import {
+  JsonSchemaToZod,
+  type JsonSchemaObject,
+} from './json-schema-to-zod.js';
+import { requireTidasToolsSchemaDir } from './resolve-tidas-tools-path.js';
+import { replaceExportedSchema } from './schema-postprocess.js';
 
 // Configuration
-const TYPES_DIR = 'src/types';
-const SCHEMAS_DIR = 'src/schemas';
-const CONFIG_FILE = 'ts-to-zod.config.js';
-const CONFIG_SAVE_DIR = 'src/schemas/ts-to-zod-configs';
-const SAVE_CONFIG_SNAPSHOTS = process.env.TS_TO_ZOD_DEBUG_CONFIGS === '1';
-
-// Main types to generate schemas for - these are the primary interfaces we want to validate
-const MAIN_TYPES = [
-  'tidas_contacts',
-  'tidas_processes',
-  'tidas_flows',
-  'tidas_sources',
-  'tidas_flowproperties',
-  'tidas_unitgroups',
-  'tidas_lciamethods',
-  'tidas_lifecyclemodels',
-];
-
-// Core dependency types that other types depend on
-const CORE_DEPENDENCY_TYPES = ['tidas_data_types'];
-
-// Category/enum types that are dependencies
-const CATEGORY_DEPENDENCY_TYPES = [
-  'tidas_locations_category',
-  'tidas_contacts_category',
-  'tidas_flowproperties_category',
-  'tidas_flows_elementary_category',
-  'tidas_flows_product_category',
-  'tidas_lciamethods_category',
-  'tidas_processes_category',
-  'tidas_sources_category',
-  'tidas_unitgroups_category',
-];
-
-// All types that need to be processed (main + dependencies)
-const ALL_PROCESSABLE_TYPES = [
-  ...CORE_DEPENDENCY_TYPES,
-  ...CATEGORY_DEPENDENCY_TYPES,
-  ...MAIN_TYPES,
-];
+const SCHEMAS_DIR = process.env.TIDAS_ZOD_OUTPUT_DIR ?? 'src/schemas';
 
 async function generateZodSchemas(): Promise<void> {
-  console.log('🚀 Generating Zod schemas from TypeScript types...\n');
+  console.log('🚀 Generating Zod schemas directly from TIDAS JSON Schema...\n');
 
-  // Generate ts-to-zod configuration
-  await generateTsToZodConfig();
+  const upstreamSchemasDir = requireTidasToolsSchemaDir(
+    'Zod generation requires the locked tidas-tools JSON schemas. Set TIDAS_TOOLS_PATH/TIDAS_TOOLS_SCHEMA_DIR, place a sibling ../tidas-tools checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+  );
 
   // Ensure schemas directory exists
   if (!fs.existsSync(SCHEMAS_DIR)) {
@@ -82,98 +35,72 @@ async function generateZodSchemas(): Promise<void> {
     console.log(`   🗑️  Removed: ${schema}`);
   }
 
-  // Get dependency-sorted types for processing
-  const sortedTypes = await analyzeTypeDependencies();
-  const typeNames = sortedTypes.map((t) => t.fileName);
+  const schemaFiles = fs
+    .readdirSync(upstreamSchemasDir)
+    .filter((file) => file.startsWith('tidas_') && file.endsWith('.json'))
+    .sort();
 
-  // Run ts-to-zod with configuration, processing each type in dependency order
-  console.log('\n📦 Running ts-to-zod for each type in dependency order...');
+  if (schemaFiles.length === 0) {
+    throw new Error(`No TIDAS JSON schemas found in ${upstreamSchemasDir}`);
+  }
 
-  // Process all types using standard config approach
-  for (const typeName of typeNames) {
-    const configName = typeName.replace('tidas_', '');
-    console.log(`🔄 Processing ${typeName}...`);
-
-    try {
-      const { stderr } = await execAsync(
-        `npx ts-to-zod --config=${configName} --skipValidation`
-      );
-
-      const outputFile = path.join(SCHEMAS_DIR, `${typeName}.schema.ts`);
-      if (fs.existsSync(outputFile)) {
-        console.log(`   ✅ ${typeName}.schema.ts generated successfully`);
-
-        // Post-process the generated schema to fix constraint placement
-        await postProcessZodSchema(outputFile);
-      } else {
-        console.log(`   ❌ ${typeName}.schema.ts failed to generate`);
-        if (stderr) {
-          console.log(`   📋 Error details:`, stderr);
-        }
-      }
-    } catch (error) {
-      console.log(
-        `   ❌ Failed to process ${typeName}:`,
-        (error as Error).message
-      );
-
-      // If ts-to-zod fails, try fallback approach
-      console.log(`   🔄 Trying fallback approach for ${typeName}...`);
-      await generateFallbackSchema(typeName);
-    }
+  console.log(`\n📦 Rendering ${schemaFiles.length} JSON Schema documents...`);
+  for (const schemaFile of schemaFiles) {
+    console.log(`🔄 Processing ${schemaFile}...`);
+    const inputFile = path.join(upstreamSchemasDir, schemaFile);
+    const parsedSchema = JSON.parse(
+      fs.readFileSync(inputFile, 'utf8')
+    ) as JsonSchemaObject;
+    const renderer = new JsonSchemaToZod(schemaFile, parsedSchema);
+    const { content, exportNames } = renderer.renderModule();
+    const outputFile = path.join(
+      SCHEMAS_DIR,
+      schemaFile.replace(/\.json$/, '.schema.ts')
+    );
+    const formatted = await format(content, {
+      parser: 'typescript',
+      singleQuote: true,
+    });
+    fs.writeFileSync(outputFile, formatted, 'utf8');
+    await postProcessZodSchema(outputFile);
+    fs.writeFileSync(
+      outputFile,
+      await format(fs.readFileSync(outputFile, 'utf8'), {
+        parser: 'typescript',
+        singleQuote: true,
+      }),
+      'utf8'
+    );
+    assertGeneratedDomainRefinements(outputFile);
+    console.log(
+      `   ✅ ${path.basename(outputFile)} generated (${exportNames.length} exports)`
+    );
   }
 
   // Final verification
   console.log('\n✅ Final verification of generated schemas:');
-  // Need to include tidas_data_types back for verification
-  const allTypeNames = sortedTypes.map((t) => t.fileName);
-  const successCount = allTypeNames.filter((typeName) => {
-    const outputFile = path.join(SCHEMAS_DIR, `${typeName}.schema.ts`);
+  const successCount = schemaFiles.filter((schemaFile) => {
+    const outputFile = path.join(
+      SCHEMAS_DIR,
+      schemaFile.replace(/\.json$/, '.schema.ts')
+    );
     const exists = fs.existsSync(outputFile);
-    console.log(`   ${exists ? '✅' : '❌'} ${typeName}.schema.ts`);
+    console.log(`   ${exists ? '✅' : '❌'} ${path.basename(outputFile)}`);
     return exists;
   }).length;
 
   console.log(
-    `\n📊 Generated ${successCount}/${allTypeNames.length} schemas successfully`
+    `\n📊 Generated ${successCount}/${schemaFiles.length} schemas successfully`
   );
+
+  if (successCount !== schemaFiles.length) {
+    throw new Error('One or more Zod schema modules were not generated');
+  }
 
   // Generate enhanced index file
   await generateSchemasIndex();
 
-  // Clean up config file
-  if (fs.existsSync(CONFIG_FILE)) {
-    fs.unlinkSync(CONFIG_FILE);
-    console.log(`🧹 Cleaned up: ${CONFIG_FILE}`);
-  }
-
   console.log('\n🎉 Zod schema generation completed successfully!');
-}
-
-/**
- * Get correct dataset key for each type
- */
-function getDataSetKeyForType(typeName: string): string {
-  switch (typeName) {
-    case 'tidas_contacts':
-      return 'contactDataSet';
-    case 'tidas_processes':
-      return 'processDataSet';
-    case 'tidas_flows':
-      return 'flowDataSet';
-    case 'tidas_sources':
-      return 'sourceDataSet';
-    case 'tidas_flowproperties':
-      return 'flowPropertyDataSet';
-    case 'tidas_unitgroups':
-      return 'unitGroupDataSet';
-    case 'tidas_lciamethods':
-      return 'LCIAMethodDataSet';
-    case 'tidas_lifecyclemodels':
-      return 'lifeCycleModelDataSet';
-    default:
-      return typeName.replace('tidas_', '') + 'DataSet';
-  }
 }
 
 /**
@@ -218,7 +145,7 @@ async function postProcessZodSchema(schemaFile: string): Promise<void> {
 ) => {
   if (Array.isArray(value) && value.length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+        code: 'custom',
       message: 'Required',
     });
   }
@@ -308,6 +235,32 @@ export const RequiredFTMultiLangSchema =
   }
 }
 
+function assertGeneratedDomainRefinements(schemaFile: string): void {
+  const content = fs.readFileSync(schemaFile, 'utf8');
+  const expectations = schemaFile.endsWith('tidas_data_types.schema.ts')
+    ? [
+        'CAS_NUMBER_CHECKSUM_ERROR_CODE',
+        'localized_text_zh_must_include_chinese_character',
+        'localized_text_en_must_not_contain_chinese_character',
+        'export const RequiredStringMultiLangSchema',
+        'export const RequiredSTMultiLangSchema',
+        'export const RequiredFTMultiLangSchema',
+        'commonOtherExtensionElementPattern',
+        'z.ZodType<AnyXmlElement>',
+      ]
+    : schemaFile.endsWith('tidas_flows.schema.ts')
+      ? ['FLOW_NAME_CONDITIONAL_FIELDS', '.superRefine((value, ctx) =>']
+      : [];
+
+  for (const expectation of expectations) {
+    if (!content.includes(expectation)) {
+      throw new Error(
+        `${path.basename(schemaFile)} lost required domain refinement: ${expectation}`
+      );
+    }
+  }
+}
+
 function applyFlowNameConditionOverride(content: string): string {
   if (content.includes('FLOW_NAME_CONDITIONAL_FIELDS')) {
     return content;
@@ -345,7 +298,7 @@ const FLOW_NAME_CONDITIONAL_FIELDS = [
   for (const field of FLOW_NAME_CONDITIONAL_FIELDS) {
     if (name[field] === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: [
           'flowDataSet',
           'flowInformation',
@@ -385,7 +338,7 @@ const addLocalizedTextLanguageChecks = (
 
   if (lang === 'zh' && !chineseCharacterPattern.test(text)) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       path: ['#text'],
       message:
         "@xml:lang value 'zh' must include at least one Chinese character",
@@ -397,7 +350,7 @@ const addLocalizedTextLanguageChecks = (
 
   if (lang === 'en' && chineseCharacterPattern.test(text)) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       path: ['#text'],
       message:
         "@xml:lang value 'en' must not contain Chinese characters",
@@ -497,7 +450,7 @@ function applyCASNumberSchemaOverrides(content: string): string {
     }
 
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: 'CASNumber check digit is invalid',
       params: {
         validationCode: CAS_NUMBER_CHECKSUM_ERROR_CODE,
@@ -508,6 +461,7 @@ function applyCASNumberSchemaOverrides(content: string): string {
 }
 
 function applyCommonOtherSchemaOverrides(content: string): string {
+  const anyXmlElementTypeImport = `import { type AnyXmlElement } from './../types/tidas_data_types';`;
   const anyXmlElementSchema = `export const AnyXmlElementSchema: z.ZodType<AnyXmlElement> = z.lazy(() =>
   z.union([
     z.null(),
@@ -533,7 +487,7 @@ export const CommonOtherSchema = z
       if (commonOtherNamespaceDeclarationPattern.test(key)) {
         if (typeof entryValue !== 'string') {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: [key],
             message: 'Namespace declarations in common:other must be strings',
           });
@@ -547,7 +501,7 @@ export const CommonOtherSchema = z
       }
 
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: [key],
         message:
           'common:other entries must be namespace declarations or non-common extension elements',
@@ -556,15 +510,23 @@ export const CommonOtherSchema = z
 
     if (!hasExtensionElement) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message:
           'common:other must include at least one non-common extension element',
       });
     }
   });`;
 
-  let updatedContent = replaceExportedSchema(
-    content,
+  let updatedContent = content;
+  if (!updatedContent.includes("from './../types/tidas_data_types'")) {
+    updatedContent = updatedContent.replace(
+      "import { z } from 'zod';\n",
+      `import { z } from 'zod';\n${anyXmlElementTypeImport}\n`
+    );
+  }
+
+  updatedContent = replaceExportedSchema(
+    updatedContent,
     'AnyXmlElementSchema',
     anyXmlElementSchema
   );
@@ -575,46 +537,6 @@ export const CommonOtherSchema = z
   );
 
   return updatedContent;
-}
-
-function replaceExportedSchema(
-  content: string,
-  schemaName: string,
-  replacement: string
-): string {
-  const marker = `export const ${schemaName}`;
-  const startIndex = content.indexOf(marker);
-
-  if (startIndex === -1) {
-    const fallbackMarker = 'export const GlobalReferenceTypeSchema';
-    const fallbackIndex = content.indexOf(fallbackMarker);
-
-    if (fallbackIndex === -1) {
-      return `${content.trimEnd()}\n\n${replacement}\n`;
-    }
-
-    return `${content.slice(0, fallbackIndex)}${replacement}\n\n${content.slice(
-      fallbackIndex
-    )}`;
-  }
-
-  const nextExportIndex = content.indexOf(
-    '\n\nexport const ',
-    startIndex + marker.length
-  );
-  const nextPrivateConstIndex = content.indexOf(
-    '\n\nconst ',
-    startIndex + marker.length
-  );
-  const candidateEndIndexes = [nextExportIndex, nextPrivateConstIndex].filter(
-    (index) => index !== -1
-  );
-  const endIndex =
-    candidateEndIndexes.length > 0
-      ? Math.min(...candidateEndIndexes)
-      : content.length;
-
-  return `${content.slice(0, startIndex)}${replacement}${content.slice(endIndex)}`;
 }
 
 function applyRequiredLocalizedTextSchemaOverrides(content: string): string {
@@ -651,16 +573,22 @@ function syncRequiredLocalizedTextSchemaImport(
   baseSchemaName: string,
   requiredSchemaName: string
 ): string {
-  const importPattern =
-    /import \{\n([\s\S]*?)\n\} from '\.\/tidas_data_types\.schema';/;
-  const importMatch = importPattern.exec(content);
-
-  if (!importMatch) {
+  const importEndMarker = "} from './tidas_data_types.schema';";
+  const importEnd = content.indexOf(importEndMarker);
+  const importStart =
+    importEnd === -1 ? -1 : content.lastIndexOf('import {', importEnd);
+  if (importStart === -1 || importEnd === -1) {
     return content;
   }
-
-  const importBlock = importMatch[0];
-  const importLines = importMatch[1]
+  const importBlock = content.slice(
+    importStart,
+    importEnd + importEndMarker.length
+  );
+  const importBody = importBlock.slice(
+    'import {'.length,
+    importBlock.indexOf(importEndMarker)
+  );
+  const importLines = importBody
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
@@ -712,259 +640,12 @@ function hasIdentifierReference(content: string, identifier: string): boolean {
   return new RegExp(`\\b${escapedIdentifier}\\b`).test(content);
 }
 
-/**
- * Generate fallback schema when ts-to-zod fails
- */
-async function generateFallbackSchema(typeName: string): Promise<void> {
-  const outputFile = path.join(SCHEMAS_DIR, `${typeName}.schema.ts`);
-  const dataSetKey = getDataSetKeyForType(typeName);
-  const schemaName =
-    typeName
-      .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join('') + 'Schema';
-
-  // Create a basic schema that imports from data types and exports a permissive schema
-  const fallbackContent = `// Generated fallback schema for ${typeName}
-import { z } from 'zod';
-
-// Import base types (this might need manual adjustment)
-import {
-  UUIDSchema,
-  StringMultiLangSchema,
-  StringSchema,
-  STMultiLangSchema,
-  FTMultiLangSchema,
-  GlobalReferenceTypeSchema,
-  dateTimeSchema
-} from './tidas_data_types.schema';
-
-// Fallback schema - allows any structure but provides type checking for common fields
-export const ${schemaName} = z.object({
-  ${dataSetKey}: z.object({
-    // Common XML namespace attributes
-    '@xmlns': z.string().optional(),
-    '@xmlns:common': z.string().optional(),
-    '@xmlns:xsi': z.string().optional(),
-    '@version': z.string().optional(),
-    '@xsi:schemaLocation': z.string().optional(),
-    
-    // Allow any additional properties
-  }).passthrough()
-}).passthrough();
-
-// Note: This is a fallback schema. For full validation, 
-// the schema should be manually refined based on the actual type structure.
-`;
-
-  try {
-    fs.writeFileSync(outputFile, fallbackContent, 'utf8');
-    console.log(`   ✅ Generated fallback schema: ${outputFile}`);
-  } catch (error) {
-    console.log(
-      `   ❌ Failed to generate fallback schema: ${(error as Error).message}`
-    );
-  }
-}
-
-/**
- * Analyze TypeScript files to understand their import dependencies
- */
-async function analyzeTypeDependencies(): Promise<TypeFileInfo[]> {
-  console.log('🔍 Analyzing TypeScript dependencies...');
-
-  const typesFiles = fs
-    .readdirSync(TYPES_DIR)
-    .filter((file) => file.startsWith('tidas_') && file.endsWith('.ts'))
-    .map((file) => file.replace('.ts', ''));
-
-  console.log(`   Found ${typesFiles.length} TypeScript files`);
-
-  const dependencyGraph: DependencyGraph = {};
-  const typeFileInfos: TypeFileInfo[] = [];
-
-  // Build dependency graph by parsing import statements
-  for (const fileName of typesFiles) {
-    const filePath = path.join(TYPES_DIR, `${fileName}.ts`);
-    const content = fs.readFileSync(filePath, 'utf8');
-
-    const dependencies = parseImportStatements(content, fileName);
-    dependencyGraph[fileName] = dependencies;
-
-    typeFileInfos.push({
-      fileName,
-      filePath,
-      dependencies,
-      isMainType: ALL_PROCESSABLE_TYPES.includes(fileName),
-    });
-  }
-
-  // Filter to only include types we want to process
-  const processableTypes = typeFileInfos.filter((info) => info.isMainType);
-
-  console.log(
-    `   Analyzed dependencies for ${processableTypes.length} processable types`
-  );
-
-  // Sort types based on dependencies using topological sort
-  const sortedTypes = topologicalSort(processableTypes, dependencyGraph);
-
-  // Display dependency information
-  console.log('\n📊 Dependency Analysis Results:');
-  sortedTypes.forEach((typeInfo, index) => {
-    const depsList =
-      typeInfo.dependencies.length > 0
-        ? typeInfo.dependencies.join(', ')
-        : 'none';
-    console.log(`   ${index + 1}. ${typeInfo.fileName} (deps: ${depsList})`);
-  });
-
-  return sortedTypes;
-}
-
-/**
- * Parse import statements from TypeScript file content
- */
-function parseImportStatements(
-  content: string,
-  currentFileName: string
-): string[] {
-  const dependencies: string[] = [];
-  const importRegex =
-    /import\s+(?:type\s+)?{[^}]+}\s+from\s+['"]\.\/([^'"]+)['"]/g;
-
-  let match: RegExpExecArray | null;
-  while ((match = importRegex.exec(content)) !== null) {
-    const importedFile = match[1];
-    // Only track dependencies on tidas_ files to avoid circular references
-    if (importedFile.startsWith('tidas_') && importedFile !== currentFileName) {
-      dependencies.push(importedFile);
-    }
-  }
-
-  return [...new Set(dependencies)]; // Remove duplicates
-}
-
-/**
- * Topological sort to determine correct processing order
- */
-function topologicalSort(
-  types: TypeFileInfo[],
-  dependencyGraph: DependencyGraph
-): TypeFileInfo[] {
-  const visited = new Set<string>();
-  const visiting = new Set<string>();
-  const result: TypeFileInfo[] = [];
-  const typeMap = new Map(types.map((t) => [t.fileName, t]));
-
-  function visit(fileName: string): void {
-    if (visited.has(fileName)) return;
-
-    if (visiting.has(fileName)) {
-      console.log(`   ⚠️  Circular dependency detected involving ${fileName}`);
-      return;
-    }
-
-    visiting.add(fileName);
-
-    // Visit dependencies first
-    const dependencies = dependencyGraph[fileName] || [];
-    for (const dep of dependencies) {
-      // Only process dependencies that are in our types to process
-      if (typeMap.has(dep)) {
-        visit(dep);
-      }
-    }
-
-    visiting.delete(fileName);
-    visited.add(fileName);
-
-    const typeInfo = typeMap.get(fileName);
-    if (typeInfo) {
-      result.push(typeInfo);
-    }
-  }
-
-  // Visit all types
-  for (const typeInfo of types) {
-    visit(typeInfo.fileName);
-  }
-
-  return result;
-}
-
-/**
- * Generate ts-to-zod configuration file using dependency analysis
- */
-async function generateTsToZodConfig(): Promise<void> {
-  console.log(
-    '⚙️  Generating ts-to-zod configuration with dependency analysis...'
-  );
-
-  // Analyze dependencies to get correct processing order
-  const sortedTypes = await analyzeTypeDependencies();
-
-  const configs = sortedTypes.map((typeInfo) => ({
-    name: typeInfo.fileName.replace('tidas_', ''),
-    input: `${TYPES_DIR}/${typeInfo.fileName}.ts`,
-    output: `${SCHEMAS_DIR}/${typeInfo.fileName}.schema.ts`,
-    getSchemaName: '(id) => `${id}Schema`',
-    skipValidation: true,
-    keepComments: false,
-    skipParseJSDoc: false, // Enable JSDoc parsing for constraint extraction
-  }));
-
-  const configContent = `/**
- * ts-to-zod configuration - Auto-generated with dependency analysis
- * Processing order determined by import dependencies
- * @type {import("ts-to-zod").TsToZodConfig}
- */
-module.exports = [
-${configs
-  .map(
-    (config) => `  {
-    name: "${config.name}",
-    input: "${config.input}",
-    output: "${config.output}",
-    getSchemaName: ${config.getSchemaName},
-    skipValidation: ${config.skipValidation},
-    keepComments: ${config.keepComments},
-    skipParseJSDoc: ${config.skipParseJSDoc}
-  }`
-  )
-  .join(',\n')}
-];`;
-
-  fs.writeFileSync(CONFIG_FILE, configContent, 'utf8');
-
-  console.log(
-    `   ✅ Generated configuration for ${configs.length} types in dependency order`
-  );
-  if (SAVE_CONFIG_SNAPSHOTS) {
-    if (!fs.existsSync(CONFIG_SAVE_DIR)) {
-      fs.mkdirSync(CONFIG_SAVE_DIR, { recursive: true });
-    }
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const savedConfigFile = path.join(
-      CONFIG_SAVE_DIR,
-      `ts-to-zod.config.${timestamp}.js`
-    );
-    fs.writeFileSync(savedConfigFile, configContent, 'utf8');
-    console.log(`   📁 Configuration saved to: ${savedConfigFile}`);
-  }
-}
-
 async function generateSchemasIndex(): Promise<void> {
   console.log('📋 Generating enhanced schemas index file...');
 
-  // Get all generated schemas
-  const _allGeneratedTypes = (await analyzeTypeDependencies()).map(
-    (t) => t.fileName
-  );
-
   const indexContent = `/**
  * Automatically generated index file for all Zod schemas
- * Generated with dependency analysis
+ * Generated directly from the locked TIDAS JSON Schema assets
  */
 
 // Export all schemas
@@ -1004,7 +685,7 @@ export type ValidationResult<T> = {
  */
 export function validateWithZod<T>(
   data: unknown,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T> {
   const result = schema.safeParse(data);
   
@@ -1026,7 +707,7 @@ export function validateWithZod<T>(
  */
 export function parseWithZod<T>(
   jsonData: string,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T> {
   try {
     const parsed = JSON.parse(jsonData);
@@ -1049,7 +730,7 @@ export function parseWithZod<T>(
  */
 export function validateBatch<T>(
   dataArray: unknown[],
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): ValidationResult<T>[] {
   return dataArray.map(data => validateWithZod(data, schema));
 }
@@ -1057,7 +738,7 @@ export function validateBatch<T>(
 /**
  * Create a validation method for object classes
  */
-export function createValidationMethod<T>(schema: z.ZodSchema<T>) {
+export function createValidationMethod<T>(schema: z.ZodType<T>) {
   return function validate(this: any): ValidationResult<T> {
     return validateWithZod(this.data || this._data, schema);
   };
@@ -1066,7 +747,7 @@ export function createValidationMethod<T>(schema: z.ZodSchema<T>) {
 /**
  * Create a static validation method for object classes
  */
-export function createStaticValidationMethod<T>(schema: z.ZodSchema<T>) {
+export function createStaticValidationMethod<T>(schema: z.ZodType<T>) {
   return function validateWithSchema(data: unknown): ValidationResult<T> {
     return validateWithZod(data, schema);
   };
@@ -1078,5 +759,8 @@ export function createStaticValidationMethod<T>(schema: z.ZodSchema<T>) {
   console.log(`   ✅ Generated: ${indexFile}`);
 }
 
-// Run the generator
-generateZodSchemas().catch(console.error);
+// Run the generator and propagate failures to CI/release verification.
+generateZodSchemas().catch((error: unknown) => {
+  console.error(error);
+  process.exitCode = 1;
+});

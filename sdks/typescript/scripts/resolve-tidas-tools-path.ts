@@ -20,7 +20,7 @@ function isToolsRoot(candidate: string) {
   return existsSync(path.join(candidate, 'assets/asset-lock.v1.json'));
 }
 
-function runAssetResolver(repoRoot: string, ...args: string[]) {
+function runAssetResolver(toolsRepoRoot: string, ...args: string[]) {
   const resolver = path.join(
     resolveSdkRepoRoot(),
     'scripts/ci/tidas-tools-assets.mjs'
@@ -28,7 +28,7 @@ function runAssetResolver(repoRoot: string, ...args: string[]) {
   const [command, ...commandArgs] = args;
   return execFileSync(
     process.execPath,
-    [resolver, command, repoRoot, ...commandArgs],
+    [resolver, command, toolsRepoRoot, ...commandArgs],
     {
       encoding: 'utf8',
     }

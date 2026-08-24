@@ -1,7 +1,7 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-08-20"
-lastReviewedCommit: "726cbfacb6c4f01f9c024d54c80a903558454142"
+lastReviewedAt: "2026-08-24"
+lastReviewedCommit: "6b18b475e2aa0ea6100acf2931bcab8c7968391d"
 
 catalog:
   repos:
@@ -40,10 +40,10 @@ ownership:
           - sdks/typescript/examples/**
           - sdks/typescript/scripts/**
           - sdks/typescript/src/**
-          - sdks/typescript/jest.config.js
-          - sdks/typescript/eslint.config.mjs
+          - sdks/typescript/tests/**
+          - sdks/typescript/.oxlintrc.json
           - sdks/typescript/tsconfig.json
-          - sdks/typescript/tsconfig.zod.json
+          - sdks/typescript/tsconfig.tools.json
       ownerRepo: tidas-sdk
     - id: python-package-surface
       paths:
@@ -99,10 +99,10 @@ coverage:
     - sdks/typescript/examples/**
     - sdks/typescript/scripts/**
     - sdks/typescript/src/**
-    - sdks/typescript/jest.config.js
-    - sdks/typescript/eslint.config.mjs
+    - sdks/typescript/tests/**
+    - sdks/typescript/.oxlintrc.json
     - sdks/typescript/tsconfig.json
-    - sdks/typescript/tsconfig.zod.json
+    - sdks/typescript/tsconfig.tools.json
     - sdks/python/pyproject.toml
     - sdks/python/README.md
     - sdks/python/README-zh.md
@@ -154,13 +154,16 @@ routing:
         - sdks/typescript/examples/**
         - sdks/typescript/scripts/**
         - sdks/typescript/src/**
-        - sdks/typescript/jest.config.js
-        - sdks/typescript/eslint.config.mjs
+        - sdks/typescript/tests/**
+        - sdks/typescript/.oxlintrc.json
         - sdks/typescript/tsconfig.json
-        - sdks/typescript/tsconfig.zod.json
+        - sdks/typescript/tsconfig.tools.json
     validation-contract:
       paths:
         - sdks/typescript/scripts/generate-zod-schemas.ts
+        - sdks/typescript/scripts/json-schema-to-zod.ts
+        - sdks/typescript/scripts/verify-zod-generation-parity.ts
+        - sdks/typescript/tests/json-schema-to-zod.test.mjs
         - sdks/typescript/src/core/config/ValidationConfig.ts
         - sdks/typescript/src/schemas/tidas_data_types.schema.ts
         - docs/agents/repo-validation.md
@@ -293,13 +296,13 @@ rules:
         kind: package-script
       - path: sdks/typescript/src/**
         kind: package-source
-      - path: sdks/typescript/jest.config.js
+      - path: sdks/typescript/tests/**
         kind: package-test-config
-      - path: sdks/typescript/eslint.config.mjs
+      - path: sdks/typescript/.oxlintrc.json
         kind: package-runtime
       - path: sdks/typescript/tsconfig.json
         kind: package-runtime
-      - path: sdks/typescript/tsconfig.zod.json
+      - path: sdks/typescript/tsconfig.tools.json
         kind: package-runtime
     requiredDocs:
       - path: AGENTS.md

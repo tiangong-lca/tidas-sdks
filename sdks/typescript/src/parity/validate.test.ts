@@ -1,6 +1,8 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { describe, it } from 'node:test';
 import { categoryValidate, validatePackageDir } from './validate';
 
 function packageRoot() {
@@ -190,31 +192,36 @@ describe('package validation parity', () => {
     const report = validatePackageDir(inputDir);
     const locations = report.issues.map((issue) => issue.location);
 
-    expect(report.ok).toBe(false);
-    expect(report.summary.category_count).toBe(1);
-    expect(report.summary.issue_count).toBe(8);
-    expect(report.summary.error_count).toBe(8);
-    expect(report.categories).toHaveLength(1);
-    expect(report.categories[0]?.category).toBe('flows');
-    expect(report.categories[0]?.summary.issue_count).toBe(8);
-    expect(new Set(report.issues.map((issue) => issue.issue_code))).toEqual(
+    assert.strictEqual(report.ok, false);
+    assert.strictEqual(report.summary.category_count, 1);
+    assert.strictEqual(report.summary.issue_count, 8);
+    assert.strictEqual(report.summary.error_count, 8);
+    assert.strictEqual(report.categories.length, 1);
+    assert.strictEqual(report.categories[0]?.category, 'flows');
+    assert.strictEqual(report.categories[0]?.summary.issue_count, 8);
+    assert.deepStrictEqual(
+      new Set(report.issues.map((issue) => issue.issue_code)),
       new Set(['schema_error'])
     );
-    expect(locations).toEqual(
-      expect.arrayContaining([
-        'flowDataSet',
-        'flowDataSet/administrativeInformation/publicationAndOwnership',
-        'flowDataSet/flowInformation/dataSetInformation/classificationInformation/common:elementaryFlowCategorization/common:category/0',
-      ])
+    for (const expectedLocation of [
+      'flowDataSet',
+      'flowDataSet/administrativeInformation/publicationAndOwnership',
+      'flowDataSet/flowInformation/dataSetInformation/classificationInformation/common:elementaryFlowCategorization/common:category/0',
+    ]) {
+      assert.ok(locations.includes(expectedLocation));
+    }
+    assert.ok(
+      !locations.includes('flowDataSet/flowInformation/dataSetInformation/name')
     );
-    expect(locations).not.toContain(
-      'flowDataSet/flowInformation/dataSetInformation/name'
+    assert.ok(
+      !locations.includes(
+        'flowDataSet/flowInformation/dataSetInformation/common:other'
+      )
     );
-    expect(locations).not.toContain(
-      'flowDataSet/flowInformation/dataSetInformation/common:other'
-    );
-    expect(locations).not.toContain(
-      'flowDataSet/administrativeInformation/dataEntryBy/common:timeStamp'
+    assert.ok(
+      !locations.includes(
+        'flowDataSet/administrativeInformation/dataEntryBy/common:timeStamp'
+      )
     );
   });
 
@@ -222,41 +229,34 @@ describe('package validation parity', () => {
     const inputDir = makeInvalidSourcesCategory();
     const report = validatePackageDir(inputDir);
 
-    expect(report.ok).toBe(false);
-    expect(report.summary.issue_count).toBe(1);
-    expect(report.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          issue_code: 'schema_error',
-          category: 'sources',
-          location: '<root>',
-          context: expect.objectContaining({
-            validator: 'required',
-            argument: 'sourceDataSet',
-          }),
-          message: expect.stringContaining('sourceDataSet'),
-        }),
-      ])
+    assert.strictEqual(report.ok, false);
+    assert.strictEqual(report.summary.issue_count, 1);
+    const requiredIssue = report.issues.find(
+      (issue) =>
+        issue.issue_code === 'schema_error' &&
+        issue.category === 'sources' &&
+        issue.location === '<root>'
     );
+    assert.ok(requiredIssue);
+    assert.strictEqual(requiredIssue.context.validator, 'required');
+    assert.strictEqual(requiredIssue.context.argument, 'sourceDataSet');
+    assert.ok(requiredIssue.message.includes('sourceDataSet'));
   });
 
   it('enforces CAS number check digits through runtime JSON Schema formats', () => {
     const inputDir = makeInvalidCASNumberFlowPackage();
     const report = validatePackageDir(inputDir);
 
-    expect(report.ok).toBe(false);
-    expect(report.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          issue_code: 'schema_error',
-          location: 'flowDataSet/flowInformation/dataSetInformation/CASNumber',
-          context: expect.objectContaining({
-            validator: 'format',
-            argument: 'cas-number',
-          }),
-        }),
-      ])
+    assert.strictEqual(report.ok, false);
+    const casIssue = report.issues.find(
+      (issue) =>
+        issue.issue_code === 'schema_error' &&
+        issue.location ===
+          'flowDataSet/flowInformation/dataSetInformation/CASNumber'
     );
+    assert.ok(casIssue);
+    assert.strictEqual(casIssue.context.validator, 'format');
+    assert.strictEqual(casIssue.context.argument, 'cas-number');
   });
 
   it('avoids cascading classification issues when the schema structure is missing', () => {
@@ -267,10 +267,11 @@ describe('package validation parity', () => {
       false
     );
 
-    expect(report.summary.issue_count).toBe(1);
-    expect(report.issues.map((issue) => issue.issue_code)).toEqual([
-      'schema_error',
-    ]);
+    assert.strictEqual(report.summary.issue_count, 1);
+    assert.deepStrictEqual(
+      report.issues.map((issue) => issue.issue_code),
+      ['schema_error']
+    );
   });
 
   it('adds localized text and classification hierarchy issues on top of schema issues', () => {
@@ -281,63 +282,65 @@ describe('package validation parity', () => {
       .filter((issue) => issue.issue_code === 'schema_error')
       .map((issue) => issue.location);
 
-    expect(report.summary.issue_count).toBeGreaterThan(3);
-    expect(
+    assert.ok(report.summary.issue_count > 3);
+    assert.ok(
       report.issues.filter((issue) => issue.issue_code === 'schema_error')
-        .length
-    ).toBeGreaterThan(0);
-    expect(
+        .length > 0
+    );
+    assert.strictEqual(
       report.issues.filter(
         (issue) => issue.issue_code === 'localized_text_language_error'
-      ).length
-    ).toBe(1);
-    expect(
+      ).length,
+      1
+    );
+    assert.strictEqual(
       report.issues.filter(
         (issue) =>
           issue.issue_code === 'localized_text_language_not_in_tidas_enum'
-      ).length
-    ).toBe(1);
-    expect(
+      ).length,
+      1
+    );
+    assert.ok(
       report.issues.filter(
         (issue) => issue.issue_code === 'classification_hierarchy_error'
-      ).length
-    ).toBeGreaterThan(0);
-    expect(issueCodes).toEqual(
-      expect.arrayContaining([
-        'schema_error',
-        'localized_text_language_error',
-        'localized_text_language_not_in_tidas_enum',
-        'classification_hierarchy_error',
-      ])
+      ).length > 0
     );
+    for (const expectedCode of [
+      'schema_error',
+      'localized_text_language_error',
+      'localized_text_language_not_in_tidas_enum',
+      'classification_hierarchy_error',
+    ]) {
+      assert.ok(issueCodes.includes(expectedCode));
+    }
     // common:classification is now anyOf(strict single-system object | named
     // multi-system array). An invalid classification that matches neither branch
     // surfaces a single schema_error at the common:classification node (anyOf
     // failures don't report per-item); classification ordering is still checked
     // by the hierarchy gate below.
-    expect(schemaLocations).toEqual(
-      expect.arrayContaining([
-        'flowDataSet/flowInformation/dataSetInformation/name/baseName',
-        'flowDataSet/flowInformation/dataSetInformation/classificationInformation/common:classification',
-      ])
-    );
-    expect(report.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          issue_code: 'localized_text_language_error',
-          location:
-            'flowDataSet/flowInformation/dataSetInformation/name/baseName/0',
-        }),
-        expect.objectContaining({
-          issue_code: 'localized_text_language_not_in_tidas_enum',
-          location:
-            'flowDataSet/flowInformation/dataSetInformation/name/baseName/1',
-        }),
-        expect.objectContaining({
-          issue_code: 'classification_hierarchy_error',
-          location: '<root>',
-        }),
-      ])
-    );
+    for (const expectedLocation of [
+      'flowDataSet/flowInformation/dataSetInformation/name/baseName',
+      'flowDataSet/flowInformation/dataSetInformation/classificationInformation/common:classification',
+    ]) {
+      assert.ok(schemaLocations.includes(expectedLocation));
+    }
+    for (const [issueCode, location] of [
+      [
+        'localized_text_language_error',
+        'flowDataSet/flowInformation/dataSetInformation/name/baseName/0',
+      ],
+      [
+        'localized_text_language_not_in_tidas_enum',
+        'flowDataSet/flowInformation/dataSetInformation/name/baseName/1',
+      ],
+      ['classification_hierarchy_error', '<root>'],
+    ] as const) {
+      assert.ok(
+        report.issues.some(
+          (issue) =>
+            issue.issue_code === issueCode && issue.location === location
+        )
+      );
+    }
   });
 });

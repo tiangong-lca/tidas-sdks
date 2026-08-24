@@ -55,16 +55,12 @@ export interface Flowproperties {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
             }[];
         'common:other'?: CommonOther;
       };

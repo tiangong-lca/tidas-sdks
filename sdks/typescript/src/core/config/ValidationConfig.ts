@@ -82,7 +82,7 @@ export type EnhancedValidationResult<T> =
       mode: ValidationMode;
     };
 
-type ZodIssueLike = z.ZodIssue & {
+type ZodIssueLike = z.core.$ZodIssue & {
   exact?: boolean;
   expected?: string;
   format?: string;
@@ -132,7 +132,9 @@ const CRITICAL_ERROR_PATTERNS = [
  * Validation utilities class
  */
 export class ValidationUtils {
-  private static getPath(path: z.ZodIssue['path']): Array<string | number> {
+  private static getPath(
+    path: z.core.$ZodIssue['path']
+  ): Array<string | number> {
     return path.map((segment) =>
       typeof segment === 'string' || typeof segment === 'number'
         ? segment
@@ -354,7 +356,7 @@ export class ValidationUtils {
   }
 
   static normalizeIssue(
-    issue: z.ZodIssue,
+    issue: z.core.$ZodIssue,
     sourceData?: unknown,
     severity: ValidationIssueSeverity = 'error'
   ): NormalizedValidationIssue {
@@ -373,7 +375,7 @@ export class ValidationUtils {
   }
 
   static normalizeIssues(
-    issues: z.ZodIssue[],
+    issues: z.core.$ZodIssue[],
     sourceData?: unknown,
     severity: ValidationIssueSeverity = 'error'
   ): NormalizedValidationIssue[] {
@@ -385,7 +387,7 @@ export class ValidationUtils {
   /**
    * Categorize Zod error by severity
    */
-  static categorizeError(error: z.ZodIssue): ErrorSeverity {
+  static categorizeError(error: z.core.$ZodIssue): ErrorSeverity {
     const message = error.message;
 
     // Check for critical patterns
@@ -422,7 +424,7 @@ export class ValidationUtils {
   /**
    * Convert Zod issue to validation warning
    */
-  static issueToWarning(issue: z.ZodIssue): ValidationWarning {
+  static issueToWarning(issue: z.core.$ZodIssue): ValidationWarning {
     const severity = this.categorizeError(issue);
 
     return {
@@ -442,7 +444,7 @@ export class ValidationUtils {
    * Perform weak validation that returns warnings instead of errors
    */
   static performWeakValidation<T>(
-    schema: z.ZodSchema<T>,
+    schema: z.ZodType<T>,
     data: any,
     config: ValidationConfig
   ): EnhancedValidationResult<T> {
@@ -458,7 +460,7 @@ export class ValidationUtils {
     }
 
     // Categorize errors
-    const criticalErrors: z.ZodIssue[] = [];
+    const criticalErrors: z.core.$ZodIssue[] = [];
     const warnings: ValidationWarning[] = [];
 
     for (const issue of result.error.issues) {
@@ -498,12 +500,12 @@ export class ValidationUtils {
    * This validates nested objects independently, even when parent validation fails
    */
   private static collectNestedErrors(
-    schema: z.ZodSchema<any>,
+    schema: z.ZodType<any>,
     data: any,
     path: string[] = [],
     maxDepth: number = 10
-  ): z.ZodIssue[] {
-    const issues: z.ZodIssue[] = [];
+  ): z.core.$ZodIssue[] {
+    const issues: z.core.$ZodIssue[] = [];
 
     // Prevent infinite recursion
     if (path.length >= maxDepth) {
@@ -543,7 +545,7 @@ export class ValidationUtils {
           const fieldData = data?.[key];
 
           // Always validate the field itself first
-          const fieldResult = (fieldSchema as z.ZodSchema<any>).safeParse(
+          const fieldResult = (fieldSchema as z.ZodType<any>).safeParse(
             fieldData
           );
 
@@ -588,7 +590,7 @@ export class ValidationUtils {
             !Array.isArray(fieldData)
           ) {
             const nestedIssues = this.collectNestedErrors(
-              fieldSchema as z.ZodSchema<any>,
+              fieldSchema as z.ZodType<any>,
               fieldData,
               fieldPath,
               maxDepth
@@ -607,7 +609,7 @@ export class ValidationUtils {
    * This attempts to validate nested structures even when parent objects have errors
    */
   static performDeepValidation<T>(
-    schema: z.ZodSchema<T>,
+    schema: z.ZodType<T>,
     data: any,
     config: ValidationConfig
   ): EnhancedValidationResult<T> {
@@ -680,7 +682,7 @@ export class ValidationUtils {
    * Perform validation based on mode
    */
   static performValidation<T>(
-    schema: z.ZodSchema<T>,
+    schema: z.ZodType<T>,
     data: any,
     config: ValidationConfig
   ): EnhancedValidationResult<T> {
@@ -723,8 +725,10 @@ export class ValidationUtils {
           mode: config.mode,
         };
 
-      default:
-        throw new Error(`Unknown validation mode: ${config.mode}`);
+      default: {
+        const unsupportedMode: string = config.mode;
+        throw new Error(`Unknown validation mode: ${unsupportedMode}`);
+      }
     }
   }
 }

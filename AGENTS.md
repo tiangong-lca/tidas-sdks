@@ -30,9 +30,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: generated SDK refreshes now carry governed-doc review evidence, and untagged merged versions remain release-recoverable."
+lastReviewedAt: 2026-08-24
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
+lastReviewedNote: "Reviewed for issue #101 after independent review: the 0.2 SDK boundary now includes active Draft-07 semantics, real consumers/examples, coverage ratchets, and governed TS7 paths."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -141,6 +141,11 @@ Route those tasks to:
 - do not treat `tidas` as the immediate code-generation upstream when package refresh behavior actually depends on `tidas-tools`
 - TypeScript runtime assets are selected and integrity-checked through the upstream Rust `assets/asset-lock.v1.json`; the committed package copy includes that authoritative lock
 - TypeScript generation and verification must install generator dependencies from `sdks/typescript/package-lock.json` through the shared `npm ci --workspaces=false` helper; upstream refreshes must not fall back to `npm install`
+- the TypeScript SDK has one compiler track: standard `typescript@7.x`; legacy compiler consumers, aliases, `ts-node`, `ts-jest`, and TypeScript-ESLint are not valid fallbacks
+- Zod schemas are rendered directly from the locked upstream JSON Schema assets; generation must not parse generated TypeScript or invoke a package runner, and unsupported schema shapes must fail instead of emitting permissive fallback validators
+- the `0.2.x` validation boundary consumes every active locked Draft-07 keyword, uses exact-pointer allowlists for domain overlays, and fails generation on an unknown keyword, format, or overlay location
+- Oxlint owns JavaScript/TypeScript lint, including type-aware deprecation checks; Node 24's test runner owns package tests, while `tsc` remains the independent release typecheck
+- release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
 - Python generated models refresh from `tidas-tools`, not from the public docs repository

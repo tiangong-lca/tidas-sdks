@@ -54,17 +54,13 @@ export interface Unitgroups {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }[];
         'common:other'?: CommonOther;

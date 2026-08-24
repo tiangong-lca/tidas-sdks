@@ -25,9 +25,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: generated refresh review metadata and tag-absence release recovery are explicit automation layers."
+lastReviewedAt: 2026-08-24
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
+lastReviewedNote: "Reviewed for issue #101 after independent review: the architecture now records active Draft-07 helpers, the 0.2 compatibility boundary, and executable consumer/example gates."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -83,10 +83,24 @@ The TypeScript package owns developer-facing APIs plus packaged runtime assets a
 It also owns the stable validation contract that downstream apps consume:
 
 - generated schemas can emit custom Zod issues for localized-text checks
-- `sdks/typescript/scripts/generate-zod-schemas.ts` is responsible for preserving the custom validation-code injection during regeneration
-- that generator also preserves the cross-field Flow name condition that JSON-Schema `if` / `then` cannot be represented by the intermediate TypeScript interface alone
+- `sdks/typescript/scripts/json-schema-to-zod.ts` renders the locked upstream JSON Schema AST directly, without the TypeScript Compiler API or an intermediate generated interface
+- `sdks/typescript/scripts/generate-zod-schemas.ts` applies the small named domain overlays for custom validation codes, recursive `common:other`, CAS checks, required localized text, and the Flow name condition
+- `sdks/typescript/src/core/validation/json-schema.ts` supplies browser/Node-compatible oneOf, conditional, dependency, tuple, and deep-unique semantics used by generated modules
+- unsupported structural schema shapes fail generation; there is no permissive fallback schema
+- `sdks/typescript/scripts/verify-zod-generation-parity.ts` compares a candidate generator against a previously built baseline with stable success and issue code/path signatures
 - `sdks/typescript/src/core/config/ValidationConfig.ts` normalizes raw Zod issues into the `validationIssues` payload returned by `validateEnhanced()`
 - downstream consumers should rely on normalized issue codes instead of parsing free-form error text when they need stable programmatic behavior
+
+The package toolchain is intentionally single-track: `typescript@7.x` is the
+only compiler, Oxlint performs type-aware lint, and Node 24 plus `tsx` executes
+the test suites. The published package does not carry compiler, generator,
+lint, or test tooling into downstream installations.
+
+The direct renderer intentionally establishes the pre-1.0 `0.2.x`
+compatibility boundary. Historical generated Zod schemas under-enforced parts
+of the authoritative Draft-07 inputs; downstream `^0.1.x` consumers do not
+receive those corrections automatically. Each consumer upgrades deliberately
+and runs its own real data cases.
 
 ### Python package
 

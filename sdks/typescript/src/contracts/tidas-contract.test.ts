@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import {
   getAvailableTidasContractKinds,
   getTidasContractPack,
@@ -9,41 +11,41 @@ import {
 
 describe('TIDAS contract helpers', () => {
   it('normalizes singular, plural, and dashed kind aliases', () => {
-    expect(normalizeTidasContractKind('processes')).toBe('process');
-    expect(normalizeTidasContractKind('life-cycle-model')).toBe(
+    assert.strictEqual(normalizeTidasContractKind('processes'), 'process');
+    assert.strictEqual(
+      normalizeTidasContractKind('life-cycle-model'),
       'lifecyclemodel'
     );
-    expect(getAvailableTidasContractKinds()).toContain('flow');
+    assert.ok(getAvailableTidasContractKinds().includes('flow'));
   });
 
   it('returns full schema text for process and flow contracts', () => {
-    expect(JSON.parse(getTidasSchemaText('process'))).toHaveProperty(
-      'properties'
-    );
-    expect(JSON.parse(getTidasSchemaText('flow'))).toHaveProperty(
-      'properties'
-    );
+    assert.ok('properties' in JSON.parse(getTidasSchemaText('process')));
+    assert.ok('properties' in JSON.parse(getTidasSchemaText('flow')));
   });
 
   it('returns bundled methodology YAML text where available', () => {
-    expect(getTidasMethodologyText('process')).toContain(
-      'Process Dataset Content Rules'
+    assert.ok(
+      getTidasMethodologyText('process')?.includes(
+        'Process Dataset Content Rules'
+      )
     );
-    expect(getTidasMethodologyText('flow')).toContain(
-      'Flow Dataset Content Rules'
+    assert.ok(
+      getTidasMethodologyText('flow')?.includes('Flow Dataset Content Rules')
     );
-    expect(getTidasMethodologyText('source')).toBeNull();
+    assert.strictEqual(getTidasMethodologyText('source'), null);
   });
 
   it('filters runtime rulesets by canonical kind', () => {
     const processRuleset = getTidasRuntimeRuleset('process') as {
       rules?: Array<{ dataset_type?: string }>;
     };
-    expect(processRuleset.rules?.length).toBeGreaterThan(0);
-    expect(
-      processRuleset.rules?.every((rule) => rule.dataset_type === 'process')
-    ).toBe(true);
-    expect(getTidasRuntimeRuleset('source')).toBeNull();
+    assert.ok((processRuleset.rules?.length ?? 0) > 0);
+    assert.strictEqual(
+      processRuleset.rules?.every((rule) => rule.dataset_type === 'process'),
+      true
+    );
+    assert.strictEqual(getTidasRuntimeRuleset('source'), null);
   });
 
   it('builds a reproducible AI context pack manifest', () => {
@@ -52,11 +54,11 @@ describe('TIDAS contract helpers', () => {
       includeAiContext: true,
     });
 
-    expect(pack.manifest.kind).toBe('process');
-    expect(pack.manifest.profile).toBe('ai-import');
-    expect(pack.manifest.schema?.sha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(pack.manifest.methodology?.sha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(pack.manifest.ruleset?.sha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(pack.aiContext?.instructions.join(' ')).toContain('Foundry');
+    assert.strictEqual(pack.manifest.kind, 'process');
+    assert.strictEqual(pack.manifest.profile, 'ai-import');
+    assert.match(pack.manifest.schema?.sha256 ?? '', /^[a-f0-9]{64}$/);
+    assert.match(pack.manifest.methodology?.sha256 ?? '', /^[a-f0-9]{64}$/);
+    assert.match(pack.manifest.ruleset?.sha256 ?? '', /^[a-f0-9]{64}$/);
+    assert.ok(pack.aiContext?.instructions.join(' ').includes('Foundry'));
   });
 });

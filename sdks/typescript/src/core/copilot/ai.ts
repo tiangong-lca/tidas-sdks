@@ -317,7 +317,8 @@ const extractJson = (output: any, schema: Schema, returnSingle = true): any => {
   } catch (error) {
     console.error('JSON extraction failed:', error);
     throw new Error(
-      `Failed to extract valid JSON: ${(error as Error).message}`
+      `Failed to extract valid JSON: ${(error as Error).message}`,
+      { cause: error }
     );
   }
 };
@@ -435,7 +436,9 @@ export async function extractValidJsonWithRetry(
           return fixedData;
         }
 
-        throw new Error('AI-fixed data does not match original structure');
+        throw new Error('AI-fixed data does not match original structure', {
+          cause: extractError,
+        });
       }
     } catch (error) {
       lastError = error as Error;
@@ -682,7 +685,9 @@ Output your answer as JSON in this exact format:
 
     return parsed;
   } catch (error) {
-    throw new Error(`Review failed: ${(error as Error).message}`);
+    throw new Error(`Review failed: ${(error as Error).message}`, {
+      cause: error,
+    });
   }
 }
 
@@ -875,9 +880,13 @@ export async function suggestEntireObject(
     setValueByPath(improvedData, improvement.path, improvement.suggested);
   }
 
+  const methodologyLabel =
+    typeof methodologyType === 'string'
+      ? methodologyType
+      : 'custom methodology';
   const endTime = Date.now();
   console.log(
-    `\nCompleted ${methodologyType} Suggestion in ${endTime - startTime}ms`
+    `\nCompleted ${methodologyLabel} Suggestion in ${endTime - startTime}ms`
   );
   console.log(
     `Applied ${improvements.length} improvements out of ${allRulePaths.length} possible paths`

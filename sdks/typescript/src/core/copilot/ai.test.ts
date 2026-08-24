@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { afterEach, describe, it } from 'node:test';
 import type { Schema } from '../../utils/object-utils';
 import { extractJson, getModel } from './ai';
 
@@ -6,7 +8,6 @@ describe('OpenAI-compatible copilot helpers', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    jest.restoreAllMocks();
   });
 
   it('extracts fenced and direct JSON without an external parser', () => {
@@ -17,18 +18,26 @@ describe('OpenAI-compatible copilot helpers', () => {
       },
     };
 
-    expect(extractJson('{"name":"steel"}', schema)).toEqual({
+    assert.deepStrictEqual(extractJson('{"name":"steel"}', schema), {
       name: 'steel',
     });
-    expect(extractJson('```json\n{"name":"steel"}\n```', schema)).toEqual({
-      name: 'steel',
-    });
+    assert.deepStrictEqual(
+      extractJson('```json\n{"name":"steel"}\n```', schema),
+      {
+        name: 'steel',
+      }
+    );
   });
 
   it('posts to an OpenAI-compatible chat completions endpoint', async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
-    global.fetch = jest.fn(async (url, init) => {
-      calls.push({ url: String(url), init: init as RequestInit });
+    global.fetch = (async (
+      url: Parameters<typeof fetch>[0],
+      init?: Parameters<typeof fetch>[1]
+    ) => {
+      const requestUrl =
+        typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+      calls.push({ url: requestUrl, init: init as RequestInit });
       return new Response(
         JSON.stringify({
           choices: [
@@ -53,17 +62,20 @@ describe('OpenAI-compatible copilot helpers', () => {
     });
     const result = await model.invoke('hello');
 
-    expect(calls).toHaveLength(1);
-    expect(calls[0].url).toBe('https://example.test/v1/chat/completions');
-    expect(calls[0].init.headers).toEqual({
+    assert.strictEqual(calls.length, 1);
+    assert.strictEqual(
+      calls[0].url,
+      'https://example.test/v1/chat/completions'
+    );
+    assert.deepStrictEqual(calls[0].init.headers, {
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
     });
-    expect(JSON.parse(calls[0].init.body as string)).toEqual({
+    assert.deepStrictEqual(JSON.parse(calls[0].init.body as string), {
       model: 'test-model',
       messages: [{ role: 'user', content: 'hello' }],
       temperature: 0,
     });
-    expect(result.content).toBe('{"ok":true}');
+    assert.strictEqual(result.content, '{"ok":true}');
   });
 });

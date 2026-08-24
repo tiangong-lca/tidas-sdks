@@ -358,6 +358,7 @@ export function getAvailableDataTypes(): string[] {
 // Default export for convenience
 export default {
   suggestData,
+  // oxlint-disable-next-line typescript/no-deprecated -- Keep the legacy default-export member until the next major release.
   suggestRawData, // Deprecated, kept for backward compatibility
   batchSuggest,
   validateApiKey,

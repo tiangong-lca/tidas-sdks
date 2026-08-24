@@ -327,7 +327,7 @@ interface TidasProxyResult<T> {
 /**
  * Create enhanced proxy with TIDAS-specific functionality
  */
-function createTidasProxy<T extends z.ZodSchema>(
+function createTidasProxy<T extends z.ZodType>(
   schema: T,
   options: TidasProxyOptions = {}
 ): TidasProxyResult<z.infer<T>> {
@@ -517,7 +517,7 @@ export function createZodLifeCycleModel(
 /**
  * Utility function to create a proxy from any schema
  */
-export function createZodTidasProxy<T extends z.ZodSchema>(
+export function createZodTidasProxy<T extends z.ZodType>(
   schema: T,
   options: TidasProxyOptions = {}
 ): TidasProxyResult<z.infer<T>> {

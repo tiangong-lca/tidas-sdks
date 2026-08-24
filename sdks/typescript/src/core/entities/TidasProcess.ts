@@ -358,7 +358,10 @@ export class TidasProcess extends TidasEntity<Process> {
     if (refId === undefined || refId === null) return {};
     const exchanges = ensureArray<any>((dataset as any)?.exchanges?.exchange);
     const refExchange = exchanges.find(
-      item => String(item?.['@dataSetInternalID'] ?? item?.dataSetInternalId ?? '') === String(refId)
+      (item) =>
+        String(
+          item?.['@dataSetInternalID'] ?? item?.dataSetInternalId ?? ''
+        ) === refId
     );
     if (!refExchange) return {};
     const refFlow = (refExchange as any).referenceToFlowDataSet;

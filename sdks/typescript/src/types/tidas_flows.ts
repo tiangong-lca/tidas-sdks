@@ -64,10 +64,7 @@ export interface Flows {
     modellingAndValidation: {
       LCIMethod: {
         typeOfDataSet:
-          | 'Elementary flow'
-          | 'Product flow'
-          | 'Waste flow'
-          | 'Other flow';
+          'Elementary flow' | 'Product flow' | 'Waste flow' | 'Other flow';
         'common:other'?: CommonOther;
       };
       complianceDeclarations: {
@@ -75,17 +72,13 @@ export interface Flows {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }[];
         'common:other'?: CommonOther;
@@ -117,17 +110,10 @@ export interface Flows {
             minimumValue?: Real;
             maximumValue?: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             dataDerivationTypeStatus?:
-              | 'Measured'
-              | 'Calculated'
-              | 'Estimated'
-              | 'Unknown derivation';
+              'Measured' | 'Calculated' | 'Estimated' | 'Unknown derivation';
             generalComment?: StringMultiLang;
             'common:other'?: CommonOther;
           }
@@ -138,17 +124,10 @@ export interface Flows {
             minimumValue?: Real;
             maximumValue?: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             dataDerivationTypeStatus?:
-              | 'Measured'
-              | 'Calculated'
-              | 'Estimated'
-              | 'Unknown derivation';
+              'Measured' | 'Calculated' | 'Estimated' | 'Unknown derivation';
             generalComment?: StringMultiLang;
             'common:other'?: CommonOther;
           }[];

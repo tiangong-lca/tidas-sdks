@@ -322,8 +322,10 @@ export function createTidasEntity<T>(
         data as Partial<LifeCycleModel>,
         validationConfig
       );
-    default:
-      throw new Error(`Unknown entity type: ${entityType}`);
+    default: {
+      const unsupportedEntityType: string = entityType;
+      throw new Error(`Unknown entity type: ${unsupportedEntityType}`);
+    }
   }
 }
 
