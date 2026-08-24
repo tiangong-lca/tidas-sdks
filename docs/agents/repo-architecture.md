@@ -26,7 +26,7 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
 lastReviewedNote: "Reviewed for issue #101 after independent review: the architecture now records active Draft-07 helpers, the 0.2 compatibility boundary, and executable consumer/example gates."
 related:
   - ../../AGENTS.md

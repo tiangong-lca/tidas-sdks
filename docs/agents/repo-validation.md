@@ -28,7 +28,7 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
 lastReviewedNote: "Reviewed for issue #101 after independent review: validation now proves active Draft-07 semantics, real tarball exports, maintained examples, lint categories, and coverage ratchets."
 related:
   - ../../AGENTS.md
@@ -53,7 +53,7 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
-| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `npm run test:coverage` when testable behavior changes | This covers the frozen TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations and proves the consumer inherits no compiler tooling. Coverage ratchets are lines 95%, branches 75%, functions 70%. |
+| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `npm run test:coverage` when testable behavior changes | This covers the frozen TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the consumer inherits no compiler tooling. Coverage ratchets are lines 95%, branches 75%, functions 70%. |
 | JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `npm run verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |

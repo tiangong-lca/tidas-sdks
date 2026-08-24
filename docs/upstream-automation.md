@@ -18,7 +18,7 @@ checkPaths:
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
 lastReviewedNote: "Reviewed for issue #101 after independent review: automated refreshes must preserve TS7 closure, active-keyword proof, executable consumers, and explicit compatibility bumps."
 related:
   - ../AGENTS.md

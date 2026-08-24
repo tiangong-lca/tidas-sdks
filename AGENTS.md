@@ -31,7 +31,7 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
 lastReviewedNote: "Reviewed for issue #101 after independent review: the 0.2 SDK boundary now includes active Draft-07 semantics, real consumers/examples, coverage ratchets, and governed TS7 paths."
 related:
   - .docpact/config.yaml
