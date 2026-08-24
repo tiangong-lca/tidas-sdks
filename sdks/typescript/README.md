@@ -161,7 +161,7 @@ git clone https://github.com/tiangong-lca/tidas-sdk.git
 cd tidas-sdk/sdks/typescript
 
 # Install dependencies
-npm install
+npm ci --workspaces=false
 
 # Build the SDK
 npm run build
@@ -198,7 +198,21 @@ npm run build
 
 # Refresh packaged runtime assets from the upstream tidas-tools checkout
 npm run sync-runtime-assets
+
+# Compare a generator candidate with a prebuilt baseline
+npm run verify:schema-generation-parity
 ```
+
+This package uses only `typescript@7.x`. Oxlint performs type-aware linting,
+Node 24 runs the tests through `tsx`, and the Zod generator reads locked JSON
+Schema assets directly without a TypeScript Compiler API dependency. The
+toolchain contract also installs the packed SDK into a clean temporary consumer
+and requires that no TypeScript compiler is installed transitively.
+
+For generator parity, build the baseline before modifying the generator. The
+default baseline is `dist/schemas`; override it with
+`TIDAS_ZOD_BASELINE_DIR` when comparing another artifact. Candidate output is
+generated in a disposable directory and cleaned automatically.
 
 ### Testing
 

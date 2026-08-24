@@ -27,9 +27,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: automation regressions prove generated review metadata and untagged-version release recovery."
+lastReviewedAt: 2026-08-24
+lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
+lastReviewedNote: "Reviewed for issue #101: validation now proves TS7-only closure, clean packed consumers, direct schema generation, and Node 24 test behavior."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -53,7 +53,8 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
-| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run one focused example or narrow package command when the change is isolated | This verify script covers build, tests, generated artifacts, and packability. When the change touches validation behavior, also record one smoke result that proves the normalized `validationIssues` payload still exposes stable `code`, `path`, `severity`, optional `params`, and `rawCode`. |
+| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run one focused example or narrow package command when the change is isolated | This verify script covers the frozen TS7 install, Oxlint, both TS7 typechecks, Node tests, generated artifacts, build, and packability. The toolchain contracts also install the tarball into a clean consumer and prove it does not pull in TypeScript. |
+| JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `npm run verify:schema-generation-parity` and record the exact baseline/candidate source | The parity runner checks stable success plus issue code/path for CAS, localized text, `common:other`, Flow, Process, and Source cases. Use `TIDAS_ZOD_BASELINE_DIR` or `TIDAS_ZOD_CANDIDATE_DIR` when the default prebuilt `dist/schemas` and generated candidate are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |
 | release setup, tag, or publish workflows | run both verify scripts and `python3 ./scripts/ci/test-automation-contracts.py` | inspect `.github/workflows/**` and record any tag or environment assumptions checked locally | Tag creation and registry publication are separate from local package verification. Release detection must distinguish an untagged pending version from an already-tagged version. |
@@ -76,6 +77,12 @@ Facts that matter:
 - clean TypeScript generation and verification both install dependencies through
   `scripts/ci/lib/typescript-dependencies.sh`, which requires the committed
   lockfile and runs `npm ci --workspaces=false`
+- `sdks/typescript/tests/toolchain-contract.test.mjs` rejects TypeScript majors
+  below 7, legacy Compiler API consumers, removed tsconfig options, and packed
+  consumers that inherit compiler tooling
+- generator changes should build the baseline before editing, then run
+  `npm run verify:schema-generation-parity`; its automatic candidate directory
+  is always cleaned and can be replaced by explicit baseline/candidate paths
 - if you intentionally validate against a local checkout, record both its path
   and exact commit in the PR note
 

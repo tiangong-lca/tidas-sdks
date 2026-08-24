@@ -109,7 +109,7 @@ repair can recover an interrupted release without inventing a replacement versio
 
 ```bash
 cd sdks/typescript
-npm install
+npm ci --workspaces=false
 npm run build
 npm test
 ```
@@ -143,6 +143,11 @@ from that catalog and commits a matching `runtime-assets/asset-lock.v1.json`;
 it does not discover assets through the upstream Python package layout. When a
 clean refresh needs generator dependencies, it requires the committed
 TypeScript lockfile and installs it with `npm ci --workspaces=false`.
+
+The TypeScript package uses a single `typescript@7.x` compiler track. Zod
+schemas are generated directly from the locked JSON Schema assets, Oxlint owns
+type-aware lint, and Node 24 owns the test runner. Packed consumers do not
+inherit the compiler or generator toolchain.
 
 ### Release Workflow
 

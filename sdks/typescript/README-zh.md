@@ -404,7 +404,10 @@ npm run run-validation # 验证配置演示
 
 ## 🔧 开发
 
-此仓库包含 SDK 的源代码。示例使用已发布的 npm 包。
+此仓库包含 SDK 的源代码。TypeScript 工具链只使用 `typescript@7.x`：
+Oxlint 负责类型感知 lint，Node 24 与 `tsx` 负责测试，Zod schema 直接从锁定的
+JSON Schema 资产生成，不依赖 TypeScript Compiler API。发布包不会把编译器或
+生成工具传递给下游消费者。示例使用已发布的 npm 包。
 
 ### 构建命令
 
@@ -413,6 +416,7 @@ npm run build               # 编译 TypeScript
 npm run dev                 # 监视模式
 npm run generate-types      # 从模式生成类型
 npm run generate-schemas    # 生成 Zod 模式
+npm run verify:schema-generation-parity # 与预构建基线比较生成器行为
 npm run test                # 运行测试
 npm run lint                # 代码检查
 npm run format              # 格式化代码

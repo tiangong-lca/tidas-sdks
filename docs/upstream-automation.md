@@ -17,9 +17,9 @@ checkPaths:
   - .github/workflows/sync-from-tidas-tools.yml
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: refresh PRs record governed-doc review metadata and release detection recovers merged versions whose tag is absent."
+lastReviewedAt: 2026-08-24
+lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
+lastReviewedNote: "Reviewed for issue #101: automated TypeScript refreshes now use the single TS7 tree and direct locked-JSON-Schema Zod generator."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -145,9 +145,12 @@ Recommended responsibilities:
 
 Validation-contract safeguard for TypeScript refreshes:
 
+- require the frozen install and toolchain contracts to prove every resolved TypeScript compiler is 7.x and the packed SDK carries no compiler or generator tooling
+- render Zod modules directly from the asset-lock-selected JSON Schema directory; do not restore an intermediate TypeScript parser or permissive fallback generator
 - when regeneration touches localized-text schemas or validation helpers, keep the post-processing that injects `params.validationCode` into custom localized-text issues
 - when Flow schemas contain cross-field `if` / `then` conditions, keep the generated Zod/Pydantic type-aware validator post-processing
 - confirm the committed TypeScript package still normalizes raw Zod issues into stable `validationIssues` codes for downstream consumers
+- for generator implementation changes, compare the candidate against a pre-change baseline with `npm run verify:schema-generation-parity` before replacing the baseline build
 - call this out in the release-prep PR when the machine-readable validation contract changes
 
 Recommended branch name:

@@ -50,6 +50,21 @@ If the repository later adds a protected GitHub environment for npm releases, ap
 - `npm run build`
 - `npm pack --dry-run`
 
+The package-local test suite also proves that the complete frozen dependency
+tree contains only TypeScript 7 and that installing the tarball in a clean
+consumer does not install TypeScript or generator tooling.
+
+When the JSON Schema to Zod generator changes, build the pre-change baseline
+first and run:
+
+```bash
+npm run verify:schema-generation-parity
+```
+
+The default baseline is `dist/schemas`. Use `TIDAS_ZOD_BASELINE_DIR` and
+`TIDAS_ZOD_CANDIDATE_DIR` for explicit artifacts, and record the exact upstream
+schema source in the PR validation note.
+
 If generation needs a specific local checkout of `tidas-tools`, provide it explicitly:
 
 ```bash
