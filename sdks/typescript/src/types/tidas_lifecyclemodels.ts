@@ -84,8 +84,7 @@ export interface Lifecyclemodels {
                 scalingFactors?: Real;
                 groups?: {
                   memberOf?:
-                    | { '@groupId'?: string }
-                    | { '@groupId'?: string }[];
+                    { '@groupId'?: string } | { '@groupId'?: string }[];
                 };
                 parameters?: {
                   parameter?: { '@name'?: MatV } | { '@name'?: MatV }[];
@@ -142,8 +141,7 @@ export interface Lifecyclemodels {
                 scalingFactors?: Real;
                 groups?: {
                   memberOf?:
-                    | { '@groupId'?: string }
-                    | { '@groupId'?: string }[];
+                    { '@groupId'?: string } | { '@groupId'?: string }[];
                 };
                 parameters?: {
                   parameter?:
@@ -226,57 +224,33 @@ export interface Lifecyclemodels {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }[];
         'common:other'?: CommonOther;

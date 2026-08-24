@@ -31,7 +31,10 @@ describe('OpenAI-compatible copilot helpers', () => {
 
   it('posts to an OpenAI-compatible chat completions endpoint', async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
-    global.fetch = (async (url, init) => {
+    global.fetch = (async (
+      url: Parameters<typeof fetch>[0],
+      init?: Parameters<typeof fetch>[1]
+    ) => {
       calls.push({ url: String(url), init: init as RequestInit });
       return new Response(
         JSON.stringify({

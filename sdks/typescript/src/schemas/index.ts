@@ -1,6 +1,6 @@
 /**
  * Automatically generated index file for all Zod schemas
- * Generated with dependency analysis
+ * Generated directly from the locked TIDAS JSON Schema assets
  */
 
 // Export all schemas

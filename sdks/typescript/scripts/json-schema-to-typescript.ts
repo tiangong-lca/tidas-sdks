@@ -421,7 +421,7 @@ class JsonSchemaToTypeScript {
 
     // Skip nested property constraints for union types (anyOf/oneOf) to avoid
     // incorrectly applying property-level constraints to the union type itself.
-    // ts-to-zod will naturally infer constraints from the inline object structures.
+    // The downstream schema generator infers constraints from inline object structures.
     if (!schema.anyOf && !schema.oneOf) {
       const nestedConstraints = this.extractNestedPropertyConstraints(schema);
       if (nestedConstraints.length > 0) {
@@ -465,7 +465,7 @@ class JsonSchemaToTypeScript {
   }
 
   private addDirectConstraints(schema: any, annotations: string[]): void {
-    // String constraints (using correct ts-to-zod format - NO curly braces!)
+    // String constraints use the JSDoc format consumed by schema generation.
     if (schema.minLength !== undefined) {
       annotations.push(`@minLength ${schema.minLength}`);
     }
@@ -476,7 +476,7 @@ class JsonSchemaToTypeScript {
       annotations.push(`@pattern ${schema.pattern}`);
     }
 
-    // Numeric constraints (using correct ts-to-zod format - NO curly braces!)
+    // Numeric constraints use the JSDoc format consumed by schema generation.
     if (schema.minimum !== undefined) {
       annotations.push(`@minimum ${schema.minimum}`);
     }
@@ -493,7 +493,7 @@ class JsonSchemaToTypeScript {
       annotations.push(`@multipleOf ${schema.multipleOf}`);
     }
 
-    // Array constraints (using correct ts-to-zod format - NO curly braces!)
+    // Array constraints use the JSDoc format consumed by schema generation.
     if (schema.minItems !== undefined) {
       annotations.push(`@minItems ${schema.minItems}`);
     }
@@ -504,7 +504,7 @@ class JsonSchemaToTypeScript {
       annotations.push(`@uniqueItems`);
     }
 
-    // Format annotation (using correct ts-to-zod format - NO curly braces!)
+    // Format annotation consumed by schema generation.
     if (schema.format !== undefined) {
       annotations.push(`@format ${schema.format}`);
     }

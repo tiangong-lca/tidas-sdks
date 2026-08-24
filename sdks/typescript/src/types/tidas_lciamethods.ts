@@ -84,14 +84,11 @@ export interface Lciamethods {
       };
       geography?: {
         interventionLocation?:
-          | { '#text'?: string; '@latitudeAndLongitude'?: GIS }
-          | string;
+          { '#text'?: string; '@latitudeAndLongitude'?: GIS } | string;
         intervensionSubLocation?:
-          | { '#text'?: string; '@latitudeAndLongitude'?: GIS }
-          | string;
+          { '#text'?: string; '@latitudeAndLongitude'?: GIS } | string;
         impactLocation?:
-          | { '#text'?: string; '@latitudeAndLongitude'?: GIS }
-          | string;
+          { '#text'?: string; '@latitudeAndLongitude'?: GIS } | string;
         geographicalRepresentativenessDescription?: FTMultiLang;
         'common:other'?: CommonOther;
       };
@@ -227,57 +224,33 @@ export interface Lciamethods {
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }
           | {
               'common:referenceToComplianceSystem': GlobalReferenceType;
               'common:approvalOfOverallCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:nomenclatureCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:methodologicalCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:reviewCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:documentationCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:qualityCompliance':
-                | 'Fully compliant'
-                | 'Not compliant'
-                | 'Not defined';
+                'Fully compliant' | 'Not compliant' | 'Not defined';
               'common:other'?: CommonOther;
             }[];
         'common:other'?: CommonOther;
@@ -344,11 +317,7 @@ export interface Lciamethods {
             minimumValue?: Real;
             maximumValue?: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             dataDerivationTypeStatus?:
               | 'Measured'
@@ -375,11 +344,7 @@ export interface Lciamethods {
             minimumValue?: Real;
             maximumValue?: Real;
             uncertaintyDistributionType?:
-              | 'undefined'
-              | 'log-normal'
-              | 'normal'
-              | 'triangular'
-              | 'uniform';
+              'undefined' | 'log-normal' | 'normal' | 'triangular' | 'uniform';
             relativeStandardDeviation95In?: Perc;
             dataDerivationTypeStatus?:
               | 'Measured'
