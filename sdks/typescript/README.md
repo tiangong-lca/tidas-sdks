@@ -1,75 +1,101 @@
 # TIDAS TypeScript SDK
 
-TypeScript SDK for TIDAS (TianGong Life Cycle Assessment data format) providing type-safe data manipulation, validation, and comprehensive schema support.
+TypeScript SDK for the TIDAS (TianGong Life Cycle Assessment data format)
+contracts, runtime validation, XML conversion, and package-level parity tools.
 
-## 🚀 Status
+Published package: [@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk).
+Read the installed package metadata or npm registry for the current version.
 
-**Version**: 0.1.20 (Production Ready)
-**Published**: [@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk)
+Node.js 24 or newer is required.
 
-## ✨ Features
-
-- ✅ **Type-Safe Operations**: Full TypeScript support with generated types
-- ✅ **Runtime Validation**: Zod schema validation for all TIDAS data types
-- ✅ **Complete Schema Coverage**: Support for all 18 TIDAS data types
-- ✅ **Property Access**: Convenient API for accessing nested properties
-- ✅ **Object Utilities**: Factory functions and manipulation utilities
-- ✅ **JSON Conversion**: Seamless serialization/deserialization
-- ✅ **tidas-tools Parity APIs**: Package-level validation compatibility
-- ✅ **XML Conversion**: `xmltodict`-backed XML <-> JS object helpers
-- ✅ **Directory Tools**: Batch `.json <-> .xml` conversion plus runtime asset copying
-
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @tiangong-lca/tidas-sdk
 ```
 
-Node.js `24+` is required.
+## Public entry points
 
-## 🔧 Quick Start
+| Entry point | Purpose |
+| --- | --- |
+| `@tiangong-lca/tidas-sdk` | Combined public API |
+| `@tiangong-lca/tidas-sdk/core` | Entity classes and current factory functions |
+| `@tiangong-lca/tidas-sdk/types` | Generated TIDAS TypeScript types |
+| `@tiangong-lca/tidas-sdk/schemas` | Generated Zod schemas and validation helpers |
+| `@tiangong-lca/tidas-sdk/contracts` | TIDAS context and methodology contracts |
+| `@tiangong-lca/tidas-sdk/parity` | Package-directory JSON Schema validation |
+| `@tiangong-lca/tidas-sdk/xml` | XML parsing and serialization |
+| `@tiangong-lca/tidas-sdk/tools` | Directory conversion and runtime assets |
+| `@tiangong-lca/tidas-sdk/utils` | General SDK utilities |
 
-### Basic Usage
+Every entry point is exercised through CJS, ESM, and TypeScript declaration
+consumer tests before release.
 
-```typescript
-import { createTidasContact, TidasContact } from '@tiangong-lca/tidas-sdk';
+## Current factory API
 
-// Create a contact using factory function
-const contact = createTidasContact({
-  name: 'Example Organization',
-  email: 'contact@example.com',
-});
-
-// Access properties with type safety
-console.log(contact.name); // "Example Organization"
-
-// Convert to JSON
-const json = contact.toJSON();
-```
-
-### Advanced Usage
+The maintained entity factories are:
 
 ```typescript
 import {
-  TidasProcess,
-  createTidasProcess,
-  validateTidasData,
-} from '@tiangong-lca/tidas-sdk';
+  createContact,
+  createFlow,
+  createFlowProperty,
+  createLCIAMethod,
+  createLifeCycleModel,
+  createProcess,
+  createSource,
+  createUnitGroup,
+} from '@tiangong-lca/tidas-sdk/core';
+```
 
-// Create and validate complex objects
-const process = createTidasProcess({
-  name: 'Manufacturing Process',
-  description: 'Production of electronic components',
-});
+Each entity also has `FromJSON` and plural `Batch` variants. Multilingual
+fields use the standard TIDAS item or item-array representation; the SDK does
+not expose `setText`/`getText` methods.
 
-// Validate data
-const validation = validateTidasData(process, 'Process');
-if (!validation.success) {
-  console.error('Validation errors:', validation.errors);
+```typescript
+import { createContact } from '@tiangong-lca/tidas-sdk/core';
+
+const contact = createContact();
+const information =
+  contact.contactDataSet.contactInformation.dataSetInformation;
+
+information['common:name'] = [
+  { '@xml:lang': 'en', '#text': 'Example data steward' },
+];
+
+const result = contact.validate();
+if (!result.success) {
+  console.error(result.error.issues);
 }
 ```
 
-### tidas-tools Parity APIs
+A complete, valid contact draft is maintained at
+[`examples/01-basic-usage/contact-draft.ts`](./examples/01-basic-usage/contact-draft.ts).
+
+## Schema validation
+
+```typescript
+import {
+  ContactSchema,
+  parseWithZod,
+  validateWithZod,
+} from '@tiangong-lca/tidas-sdk/schemas';
+
+const result = validateWithZod(value, ContactSchema);
+const parsed = parseWithZod(jsonText, ContactSchema);
+```
+
+Generated schemas come directly from the asset-lock-selected Draft-07 JSON
+Schema documents. Named domain overlays preserve CAS checks, multilingual
+validation codes, `common:other`, required multilingual values, Flow name
+conditions, and review conditions. Generation fails when it encounters a
+validation keyword or overlay location that is not explicitly supported.
+
+For stable programmatic error handling, entity callers should prefer
+`validateEnhanced()` and consume normalized `validationIssues` rather than
+parsing Zod message text.
+
+## Package parity validation
 
 ```typescript
 import { validatePackageDir } from '@tiangong-lca/tidas-sdk/parity';
@@ -80,240 +106,80 @@ if (!report.ok) {
 }
 ```
 
-### XML Conversion APIs
+## XML and directory conversion
 
 ```typescript
 import { datasetFromXml, datasetToXml } from '@tiangong-lca/tidas-sdk/xml';
+import { convertDirectory } from '@tiangong-lca/tidas-sdk/tools';
 
 const dataset = datasetFromXml(xmlPayload);
 const xml = datasetToXml(dataset);
-```
-
-### Directory Conversion Tools
-
-```typescript
-import { convertDirectory } from '@tiangong-lca/tidas-sdk/tools';
 
 await convertDirectory('./input', './output', { toXml: true });
 await convertDirectory('./eilcd-data', './tidas-output', { toXml: false });
 ```
 
-`convertDirectory()` mirrors the non-export behavior of the unified native
-`tidas convert` command:
+Database export, ZIP publishing, and S3 workflows remain owned by
+[`tidas-tools`](https://github.com/tiangong-lca/tidas-tools).
 
-- converts `.json -> .xml` or `.xml -> .json`
-- copies non-converted files into `output/data`
-- copies the packaged `schemas/`, `stylesheets/`, or `methodologies/` assets into the output root
-
-Database export, ZIP publishing, and S3-related workflows remain in `tidas-tools`.
-
-## 🏗️ Architecture
-
-### Module Structure
-
-```typescript
-// Core imports
-import {
-  // Types
-  TidasContact,
-  TidasProcess,
-  TidasFlow,
-  // ... all 18 TIDAS types
-
-  // Factory functions
-  createTidasContact,
-  createTidasProcess,
-  createTidasFlow,
-  // ... all factory functions
-
-  // Utilities
-  validateTidasData,
-  convertToJSON,
-  convertFromJSON,
-} from '@tiangong-lca/tidas-sdk';
-
-// Individual modules
-import { TidasContact } from '@tiangong-lca/tidas-sdk/core';
-import { TidasTypes } from '@tiangong-lca/tidas-sdk/types';
-import { TidasSchemas } from '@tiangong-lca/tidas-sdk/schemas';
-import { TidasUtils } from '@tiangong-lca/tidas-sdk/utils';
-```
-
-### Supported TIDAS Data Types
-
-- TidasContact
-- TidasFlow
-- TidasProcess
-- TidasSource
-- TidasFlowProperty
-- TidasUnitGroup
-- TidasLCIAMethod
-- TidasLifeCycleModel
-- And 10 additional specialized types
-
-## 🧪 Development
-
-### Setup
+## Development
 
 ```bash
-# Clone repository
-git clone https://github.com/tiangong-lca/tidas-sdk.git
-cd tidas-sdk/sdks/typescript
-
-# Install dependencies
+cd sdks/typescript
 npm ci --workspaces=false
-
-# Build the SDK
-npm run build
-
-# Run tests
-npm test
-```
-
-### Development Commands
-
-```bash
-# Development mode (watch)
-npm run dev
-
-# Type checking
-npm run typecheck
-
-# Linting
 npm run lint
-npm run lint:fix
-
-# Formatting
-npm run format
-npm run format:check
-
-# Testing
+npm run typecheck
 npm test
-npm run test:watch
-npm run test:coverage
-
-# Build
-npm run clean
+npm run check:examples
 npm run build
+```
 
-# Refresh packaged runtime assets from the upstream tidas-tools checkout
-npm run sync-runtime-assets
+The package uses a single `typescript@7.x` compiler track. Oxlint performs
+type-aware linting, Node 24 runs tests through `tsx`, and the published tarball
+does not carry compiler, generator, lint, or test tooling into consumers.
 
-# Compare a generator candidate with a prebuilt baseline
+Useful commands:
+
+```bash
+npm run generate-types
+npm run generate-schemas
 npm run verify:schema-generation-parity
-```
-
-This package uses only `typescript@7.x`. Oxlint performs type-aware linting,
-Node 24 runs the tests through `tsx`, and the Zod generator reads locked JSON
-Schema assets directly without a TypeScript Compiler API dependency. The
-toolchain contract also installs the packed SDK into a clean temporary consumer
-and requires that no TypeScript compiler is installed transitively.
-
-For generator parity, build the baseline before modifying the generator. The
-default baseline is `dist/schemas`; override it with
-`TIDAS_ZOD_BASELINE_DIR` when comparing another artifact. Candidate output is
-generated in a disposable directory and cleaned automatically.
-
-### Testing
-
-```bash
-# Run all tests
-npm test
-
-# Watch mode
-npm run test:watch
-
-# Coverage report
 npm run test:coverage
+npm run format:check
 ```
 
-## 📚 Examples
+For generator parity, build the baseline before editing the generator. The
+default baseline is `dist/schemas`; `TIDAS_ZOD_BASELINE_DIR` and
+`TIDAS_ZOD_CANDIDATE_DIR` can select explicit artifacts. Automatic candidate
+output is always cleaned.
 
-See the [examples](./examples/) directory for comprehensive usage examples:
+The maintained examples are executable contracts:
 
-- [01-basic-usage](./examples/01-basic-usage/) - Basic object creation and manipulation
-- [02-object-oriented-usage](./examples/02-object-oriented-usage/) - Advanced patterns
-- [03-complete-tidas-entities](./examples/03-complete-tidas-entities/) - All data types
+- `examples/01-basic-usage/contact-draft.ts`
+- `examples/02-xml-roundtrip/xml-roundtrip.ts`
+- `examples/test-imports.ts`
 
-## 🔗 API Reference
+Run all of them with `npm --prefix examples run check`.
 
-### Factory Functions
+## Release
 
-All TIDAS types have corresponding factory functions:
-
-```typescript
-// General pattern
-createTidas{Type}(data: Partial<Tidas{Type}>): Tidas{Type}
-
-// Examples
-createTidasContact(data)
-createTidasProcess(data)
-createTidasFlow(data)
-```
-
-### Validation
-
-```typescript
-// Validate any TIDAS data
-const result = validateTidasData(data, 'Contact');
-if (result.success) {
-  // Data is valid
-} else {
-  // Handle validation errors
-  console.error(result.errors);
-}
-```
-
-### Property Access
-
-```typescript
-// Access nested properties with type safety
-const contact = createTidasContact(data);
-const email = contact.email; // Type: string | undefined
-const address = contact.address?.street; // Type: string | undefined
-```
-
-## 📖 Documentation
-
-- **Repository Workflow**: [../../AGENTS.md](../../AGENTS.md)
-- **Release Setup**: [../../docs/release-setup.md](../../docs/release-setup.md)
-- **Release Guide**: [RELEASE.md](./RELEASE.md)
-
-## 🚀 Release
-
-Normal releases are tag-driven:
+The normal release path is documented in [RELEASE.md](./RELEASE.md). Before a
+release PR, run the repository wrapper from the repository root:
 
 ```bash
-# Validate the package before opening the release PR
 ./scripts/ci/verify-typescript-package.sh
-
-# After the release PR merges, tag the exact merged commit
-git tag typescript-vX.Y.Z
-git push origin typescript-vX.Y.Z
 ```
 
-Version prep helpers are available if you want to update `package.json` locally before committing:
+After merge, the exact merged commit is tagged as `typescript-vX.Y.Z` and the
+repository-owned Trusted Publishing workflow publishes it.
 
-```bash
-npm run release:prepare:patch
-npm run release:prepare:minor
-npm run release:prepare:major
-```
+## Repository documentation
 
-## 🤝 Contributing
+- [Repository contract](../../AGENTS.md)
+- [Validation guide](../../docs/agents/repo-validation.md)
+- [Release setup](../../docs/release-setup.md)
+- [Upstream automation](../../docs/upstream-automation.md)
 
-We welcome contributions! Please:
+## License
 
-1. Follow the development guidelines
-2. Add tests for new functionality
-3. Ensure all tests pass and code is properly formatted
-4. Update documentation as needed
-
-## 📄 License
-
-MIT License - see [LICENSE](../LICENSE) file for details.
-
-## 🔗 Related Packages
-
-- [tidas-tools](https://github.com/tiangong-lca/tidas-tools): native `tidas` CLI and integrity-locked upstream schema/methodology assets
-- [tidas-python-sdk](../python/): Python SDK (in development)
+MIT — see [LICENSE](./LICENSE).

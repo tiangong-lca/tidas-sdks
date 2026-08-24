@@ -1,549 +1,183 @@
 # TIDAS TypeScript SDK
 
-[English](README.md) | [中文](README-zh.md)
+[English](README.md) | 中文
 
-一个用于 ILCD/TIDAS 数据管理的 TypeScript SDK，为生命周期评估（LCA）数据结构提供类型安全的数据操作。
+面向 TIDAS（天工生命周期评价数据格式）的 TypeScript SDK，提供类型契约、
+运行时验证、XML 转换和包级 parity 工具。
 
-## 🚀 快速开始
+发布包：[@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk)。
+当前版本以已安装包或 npm registry 为准，文档不重复维护版本号。
 
-### 安装
+运行环境要求 Node.js 24 或更高版本。
+
+## 安装
 
 ```bash
 npm install @tiangong-lca/tidas-sdk
 ```
 
-需要 Node.js `24+`。
+## 公开入口
 
-### 基本用法
+| 入口 | 用途 |
+| --- | --- |
+| `@tiangong-lca/tidas-sdk` | 汇总公开 API |
+| `@tiangong-lca/tidas-sdk/core` | 实体类和当前工厂函数 |
+| `@tiangong-lca/tidas-sdk/types` | 生成的 TIDAS TypeScript 类型 |
+| `@tiangong-lca/tidas-sdk/schemas` | 生成的 Zod schema 与验证助手 |
+| `@tiangong-lca/tidas-sdk/contracts` | TIDAS 上下文和方法学契约 |
+| `@tiangong-lca/tidas-sdk/parity` | 数据包目录的 JSON Schema 验证 |
+| `@tiangong-lca/tidas-sdk/xml` | XML 解析和序列化 |
+| `@tiangong-lca/tidas-sdk/tools` | 目录转换和运行时资产 |
+| `@tiangong-lca/tidas-sdk/utils` | 通用 SDK 工具 |
 
-```typescript
-import { createContact } from '@tiangong-lca/tidas-sdk/core';
+发布前会用 CJS、ESM 和 TypeScript declaration consumer 对全部入口做真实加载。
 
-// 创建一个新的联系人实体
-const contact = createContact();
-
-// 设置多语言名称（推荐用 setText 方法）
-contact.contactDataSet.contactInformation.dataSetInformation['common:name'].setText?.('张博士', 'zh');
-contact.contactDataSet.contactInformation.dataSetInformation['common:name'].setText?.('Dr. Jane Smith', 'en');
-
-// 也可以直接设置多语言数组
-contact.contactDataSet.contactInformation.dataSetInformation['common:shortName'] = [
-  { '@xml:lang': 'zh', '#text': '张博士' },
-  { '@xml:lang': 'en', '#text': 'J. Smith' },
-];
-
-// 获取指定语言的名称
-const zhName = contact.contactDataSet.contactInformation.dataSetInformation['common:name'].getText?.('zh');
-
-// 校验实体
-const validation = contact.validate();
-console.log('数据有效:', validation.success);
-
-// 转为 JSON 字符串
-const json = contact.toJSONString(2);
-console.log(json);
-```
-
-## 📦 包结构
-
-SDK 为不同的使用场景提供了多个入口点：
-
-```typescript
-// 核心功能（推荐）
-import { createContact, createFlow } from '@tiangong-lca/tidas-sdk/core';
-
-// 类型定义
-import { Contact, Flow } from '@tiangong-lca/tidas-sdk/types';
-
-// 用于验证的 Zod 模式
-import { ContactSchema } from '@tiangong-lca/tidas-sdk/schemas';
-
-// 工具函数
-import { objectUtils } from '@tiangong-lca/tidas-sdk/utils';
-
-// 全部导入（方便但包体积较大）
-import * from '@tiangong-lca/tidas-sdk';
-```
-
-## 🏗️ 功能特性
-
-- **类型安全**：基于 ILCD 模式生成的完整 TypeScript 支持
-- **运行时验证**：基于 Zod 的验证，支持可配置模式（严格/宽松/忽略）
-- **8 种实体类型**：支持所有核心 TIDAS 实体
-- **JSON 互操作性**：对象与 JSON 之间的无缝转换
-- **XML 转换**：基于 `xmltodict` 的 XML <-> JS 对象双向机械转换
-- **目录工具**：批量 `.json <-> .xml` 转换，并自动复制 `schemas/`、`stylesheets/`、`methodologies/` 等静态资源
-- **批量操作**：高效处理多个实体
-- **多语言支持**：内置多语言文本字段支持
-- **性能优化**：为性能关键场景提供可配置验证
-- **AI 驱动的建议**：使用 TIDAS 方法规则改进数据质量
-
-数据库导出、ZIP 发布、S3 下载等功能仍保留在 `tidas-tools`，不在 TypeScript SDK 的职责范围内。
-
-## 📚 使用指南
-
-### 1. 创建实体
-
-SDK 支持所有 8 种 TIDAS 实体类型：
+## 当前工厂 API
 
 ```typescript
 import {
   createContact,
   createFlow,
-  createProcess,
-  createSource,
   createFlowProperty,
-  createUnitGroup,
   createLCIAMethod,
   createLifeCycleModel,
+  createProcess,
+  createSource,
+  createUnitGroup,
 } from '@tiangong-lca/tidas-sdk/core';
-
-// 创建单个实体
-const contact = createContact();
-const flow = createFlow();
-const process = createProcess();
-
-// 从已有数据创建实体
-const existingData = { /* TIDAS 数据结构 */ };
-const processWithData = createProcess(existingData);
 ```
 
-### 2. 使用多语言字段
-
-TIDAS 实体支持多语言文本字段：
+每种实体还提供 `FromJSON` 和复数 `Batch` 变体。多语言字段使用标准 TIDAS
+单项或数组结构；SDK 不提供 `setText` / `getText` 方法。
 
 ```typescript
-// 使用 setText/getText 方法（推荐）
-flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.setText?.('水', 'zh');
-flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.setText?.('Water', 'en');
-flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.setText?.('Wasser', 'de');
+import { createContact } from '@tiangong-lca/tidas-sdk/core';
 
-// 获取特定语言的文本
-const chineseName = flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.getText?.('zh');
+const contact = createContact();
+const information =
+  contact.contactDataSet.contactInformation.dataSetInformation;
 
-// 直接赋值数组
-flow.flowDataSet.flowInformation.dataSetInformation['common:generalComment'] = [
-  { '@xml:lang': 'zh', '#text': '用于工业过程的纯水' },
-  { '@xml:lang': 'en', '#text': 'Pure water for industrial processes' },
-  { '@xml:lang': 'de', '#text': 'Reines Wasser für industrielle Prozesse' },
+information['common:name'] = [
+  { '@xml:lang': 'zh', '#text': '示例数据管理员' },
+  { '@xml:lang': 'en', '#text': 'Example data steward' },
 ];
+
+const result = contact.validate();
+if (!result.success) {
+  console.error(result.error.issues);
+}
 ```
 
-### 3. 验证模式
+完整且有效的联系人草稿见
+[`examples/01-basic-usage/contact-draft.ts`](./examples/01-basic-usage/contact-draft.ts)。
 
-SDK 提供三种验证模式来平衡数据质量和性能：
+## Schema 验证
 
 ```typescript
 import {
-  createProcess,
-  setGlobalValidationMode,
-  getGlobalValidationMode
-} from '@tiangong-lca/tidas-sdk/core';
+  ContactSchema,
+  parseWithZod,
+  validateWithZod,
+} from '@tiangong-lca/tidas-sdk/schemas';
 
-// 严格验证（默认）- 完整的模式验证，任何错误都会拒绝
-const strictProcess = createProcess({}, { mode: 'strict' });
-const result = strictProcess.validate();
-
-// 宽松验证 - 非关键问题变为警告
-const weakProcess = createProcess({}, { mode: 'weak', includeWarnings: true });
-const enhanced = weakProcess.validateEnhanced();
-console.log('警告:', enhanced.warnings);
-
-// 忽略验证 - 跳过验证以获得最大性能
-const fastProcess = createProcess({}, { mode: 'ignore' });
-// 总是通过验证 - 适合批量操作
-
-// 全局验证配置
-setGlobalValidationMode('weak'); // 应用于所有新实体
-const process = createProcess(); // 使用宽松验证
-
-// 运行时配置更改
-process.setValidationMode('strict');
-console.log('当前模式:', process.getValidationConfig().mode);
+const result = validateWithZod(value, ContactSchema);
+const parsed = parseWithZod(jsonText, ContactSchema);
 ```
 
-### 4. 批量操作
+生成器直接读取 asset lock 选定的 Draft-07 JSON Schema。命名的领域 overlay
+保留 CAS、多语言 validation code、`common:other`、必填多语言字段、Flow 名称条件
+以及 review 条件。遇到未明确支持的验证关键字或 overlay 位置时，生成必须失败。
 
-高效创建和处理多个实体：
+需要稳定的程序化错误处理时，应优先使用 `validateEnhanced()` 返回的
+`validationIssues`，不要解析 Zod 的自然语言消息。
 
-```typescript
-import { createFlowsBatch, createContactsBatch } from '@tiangong-lca/tidas-sdk/core';
-
-// 一次创建多个实体
-const flowsData = [
-  { flowDataSet: { /* 数据 1 */ } },
-  { flowDataSet: { /* 数据 2 */ } },
-  { flowDataSet: { /* 数据 3 */ } },
-];
-
-const flows = createFlowsBatch(flowsData, { mode: 'weak' });
-
-// 批量处理
-flows.forEach((flow, index) => {
-  flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.setText?.(
-    `流 ${index + 1}`,
-    'zh'
-  );
-});
-
-// 批量验证
-const validationResults = flows.map(flow => flow.validate());
-const successCount = validationResults.filter(r => r.success).length;
-console.log(`${successCount}/${flows.length} 个流有效`);
-```
-
-### 5. JSON 操作
-
-实体与 JSON 之间的转换：
+## 数据包 parity 验证
 
 ```typescript
-// 导出为 JSON
-const jsonString = process.toJSONString(2); // 格式化输出，2 空格缩进
-const jsonObject = process.toJSON();
+import { validatePackageDir } from '@tiangong-lca/tidas-sdk/parity';
 
-// 从 JSON 字符串导入
-import { createProcess } from '@tiangong-lca/tidas-sdk/core';
-
-const jsonData = '{ "processDataSet": { ... } }';
-const parsedData = JSON.parse(jsonData);
-const importedProcess = createProcess(parsedData);
-
-// 验证导入的数据
-const validation = importedProcess.validate();
-if (validation.success) {
-  console.log('成功导入并验证');
+const report = validatePackageDir('/path/to/tidas-package');
+if (!report.ok) {
+  console.error(report.issues);
 }
 ```
 
-### 6. 实体克隆
-
-创建实体的副本：
+## XML 与目录转换
 
 ```typescript
-// 克隆现有实体
-const originalContact = createContact();
-originalContact.contactDataSet.contactInformation.dataSetInformation['common:name'].setText?.('张博士', 'zh');
+import { datasetFromXml, datasetToXml } from '@tiangong-lca/tidas-sdk/xml';
+import { convertDirectory } from '@tiangong-lca/tidas-sdk/tools';
 
-const clonedContact = originalContact.clone();
+const dataset = datasetFromXml(xmlPayload);
+const xml = datasetToXml(dataset);
 
-// 独立修改克隆体
-clonedContact.contactDataSet.contactInformation.dataSetInformation['common:name'] = [
-  { '@xml:lang': 'zh', '#text': '张博士（副本）' }
-];
-
-// 如需手动生成 UUID，可先从 @tiangong-lca/tidas-sdk/utils 引入 randomUUID
-
-// 为克隆体生成新的 UUID
-clonedContact.contactDataSet.contactInformation.dataSetInformation['common:UUID'] = randomUUID();
+await convertDirectory('./input', './output', { toXml: true });
+await convertDirectory('./eilcd-data', './tidas-output', { toXml: false });
 ```
 
-### 7. 实体关系
+数据库导出、ZIP 发布和 S3 工作流仍由
+[`tidas-tools`](https://github.com/tiangong-lca/tidas-tools) 负责。
 
-构建不同实体类型之间的关系：
-
-```typescript
-// 创建相关实体
-const massUnitGroup = createUnitGroup();
-massUnitGroup.unitGroupDataSet.unitGroupInformation.dataSetInformation['common:name'] = [
-  { '@xml:lang': 'zh', '#text': '质量单位' }
-];
-
-const massFlowProperty = createFlowProperty();
-massFlowProperty.flowPropertyDataSet.flowPropertiesInformation.dataSetInformation['common:name'] = [
-  { '@xml:lang': 'zh', '#text': '质量' }
-];
-
-// 在流属性中引用单位组
-const unitGroupUUID = massUnitGroup.unitGroupDataSet.unitGroupInformation.dataSetInformation['common:UUID'];
-massFlowProperty.flowPropertyDataSet.flowPropertiesInformation.quantitativeReference.referenceToReferenceUnitGroup = {
-  '@type': 'unit group data set',
-  '@refObjectId': unitGroupUUID,
-  '@version': '1.0.0',
-  '@uri': '',
-  'common:shortDescription': [{ '@xml:lang': 'zh', '#text': '质量单位' }],
-};
-
-// 创建使用此流属性的流
-const co2Flow = createFlow();
-const flowPropertyUUID = massFlowProperty.flowPropertyDataSet.flowPropertiesInformation.dataSetInformation['common:UUID'];
-co2Flow.flowDataSet.flowProperties.flowProperty = {
-  '@dataSetInternalID': '0',
-  referenceToFlowPropertyDataSet: {
-    '@type': 'flow property data set',
-    '@refObjectId': flowPropertyUUID,
-    '@version': '1.0.0',
-    '@uri': '',
-    'common:shortDescription': [{ '@xml:lang': 'zh', '#text': '质量' }],
-  },
-  meanValue: '1.0',
-};
-```
-
-### 8. AI 驱动的数据改进
-
-使用 AI 改进数据质量并符合 TIDAS 方法规则：
-
-```typescript
-import { createProcess, suggestData } from '@tiangong-lca/tidas-sdk';
-
-// 设置 OpenAI API 密钥（必需）
-process.env.OPENAI_API_KEY = 'your-api-key';
-// 可选：使用 OpenAI-compatible 服务
-process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1';
-process.env.OPENAI_CHAT_MODEL = 'gpt-4.1-mini';
-
-// 方法 1：使用实体的 suggest 方法
-const process = createProcess({ processDataSet: { /* 不完整的数据 */ } });
-const result = await process.suggest({
-  outputDiffSummary: true,  // 获取文本差异摘要
-  outputDiffHTML: true,      // 获取 HTML 差异查看器
-});
-
-console.log(result.data);        // 改进后的实体
-console.log(result.diffSummary); // 文本差异摘要
-console.log(result.diffHTML);    // HTML 差异可视化
-
-// 方法 2：使用 suggestData 服务函数
-const improvedResult = await suggestData(
-  { processDataSet: { /* 数据 */ } },
-  'process',
-  {
-    skipPaths: ['administrativeInformation'],  // 跳过某些路径
-    maxRetries: 2,                              // 验证失败时重试
-    outputDiffSummary: true,
-    modelConfig: {
-      baseURL: process.env.OPENAI_BASE_URL,     // 兼容 OpenAI-style /v1 API
-      model: process.env.OPENAI_CHAT_MODEL,
-    },
-  }
-);
-
-// 方法 3：批量建议
-import { batchSuggest } from '@tiangong-lca/tidas-sdk';
-
-const results = await batchSuggest([
-  { data: processData1, type: 'process' },
-  { data: flowData, type: 'flow' },
-  { data: contactData, type: 'contact' }
-]);
-```
-
-### 9. 验证错误处理
-
-优雅地处理验证错误：
-
-```typescript
-// 基本验证
-const process = createProcess();
-const validation = process.validate();
-
-if (!validation.success) {
-  console.log('验证错误:', validation.error.issues);
-  validation.error.issues.forEach(issue => {
-    console.log(`- ${issue.path.join('.')}: ${issue.message}`);
-  });
-}
-
-// 带警告的增强验证
-const weakProcess = createProcess({}, { mode: 'weak', includeWarnings: true });
-const enhanced = weakProcess.validateEnhanced();
-
-if (enhanced.warnings) {
-  console.log('验证警告:');
-  enhanced.warnings.forEach(warning => {
-    console.log(`[${warning.severity}] ${warning.path.join('.')}: ${warning.message}`);
-  });
-}
-```
-
-### 10. 性能优化
-
-对于性能关键场景：
-
-```typescript
-// 批量操作使用忽略模式
-const startTime = performance.now();
-const manyFlows = createFlowsBatch(
-  Array(1000).fill({}),
-  { mode: 'ignore' }  // 跳过验证以获得最大速度
-);
-const endTime = performance.now();
-console.log(`创建 1000 个流耗时 ${endTime - startTime}ms`);
-
-// 配置属性而不产生验证开销
-manyFlows.forEach((flow, index) => {
-  flow.flowDataSet.flowInformation.dataSetInformation.name.baseName.setText?.(
-    `流 ${index}`,
-    'zh'
-  );
-});
-
-// 仅在需要时验证
-const validationResults = manyFlows.map(f => f.validate());
-```
-
-## 📚 示例
-
-`examples/` 目录包含了全面的使用示例：
-
-- `01-basic-usage/` - 简单的实体创建和基本操作
-- `02-advanced-features/` - 高级模式，包括批量操作和关系
-- `03-validation-modes/` - 全面的验证配置示例
-
-运行示例：
+## 开发
 
 ```bash
-cd examples
-npm install
-npm run run-basic      # 基本实体使用
-npm run run-advanced   # 高级使用模式
-npm run run-validation # 验证配置演示
+cd sdks/typescript
+npm ci --workspaces=false
+npm run lint
+npm run typecheck
+npm test
+npm run check:examples
+npm run build
 ```
 
-详细信息请参见 [examples/README.md](examples/README.md)。
+该包只使用一个 `typescript@7.x` 编译器轨道。Oxlint 负责类型感知 lint，
+Node 24 通过 `tsx` 运行测试；发布 tarball 不会向消费者传递编译器、生成器、
+lint 或测试工具。
 
-## 🔧 开发
-
-此仓库包含 SDK 的源代码。TypeScript 工具链只使用 `typescript@7.x`：
-Oxlint 负责类型感知 lint，Node 24 与 `tsx` 负责测试，Zod schema 直接从锁定的
-JSON Schema 资产生成，不依赖 TypeScript Compiler API。发布包不会把编译器或
-生成工具传递给下游消费者。示例使用已发布的 npm 包。
-
-### 构建命令
+常用命令：
 
 ```bash
-npm run build               # 编译 TypeScript
-npm run dev                 # 监视模式
-npm run generate-types      # 从模式生成类型
-npm run generate-schemas    # 生成 Zod 模式
-npm run verify:schema-generation-parity # 与预构建基线比较生成器行为
-npm run test                # 运行测试
-npm run lint                # 代码检查
-npm run format              # 格式化代码
+npm run generate-types
+npm run generate-schemas
+npm run verify:schema-generation-parity
+npm run test:coverage
+npm run format:check
 ```
 
-### 项目结构
+修改生成器前先构建 baseline。默认 baseline 是 `dist/schemas`；也可通过
+`TIDAS_ZOD_BASELINE_DIR` 和 `TIDAS_ZOD_CANDIDATE_DIR` 指定产物。自动生成的
+candidate 始终会清理。
 
-```
-tidas-typescript/
-├── src/
-│   ├── types/           # 生成的 TypeScript 类型（18 个文件）
-│   ├── schemas/         # 生成的 Zod 模式（18 个文件）
-│   ├── core/            # 核心功能
-│   │   ├── base/        # TidasEntity 基类
-│   │   ├── entities/    # 8 个实体类
-│   │   ├── factories/   # 工厂函数
-│   │   └── config/      # 验证配置
-│   ├── utils/           # 工具函数
-│   └── services/        # AI 建议服务
-├── examples/            # 使用示例
-├── scripts/             # 代码生成脚本
-└── dist/               # 编译输出
+维护中的示例都是可执行契约：
+
+- `examples/01-basic-usage/contact-draft.ts`
+- `examples/02-xml-roundtrip/xml-roundtrip.ts`
+- `examples/test-imports.ts`
+
+运行全部示例：
+
+```bash
+npm --prefix examples run check
 ```
 
-## 🤝 贡献
+## 发布
 
-1. Fork 仓库
-2. 创建功能分支
-3. 进行更改
-4. 添加测试和示例
-5. 提交 Pull Request
+正常发布流程见 [RELEASE.md](./RELEASE.md)。提交发布 PR 前，在仓库根目录运行：
 
-## 📄 许可证
-
-MIT 许可证 - 详情请参见 [LICENSE](LICENSE) 文件。
-
-## 🏷️ 版本
-
-当前版本：0.1.16
-
-## 🔗 链接
-
-- [npm 包](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk)
-- [GitHub 仓库](https://github.com/tiangong-lca/tidas-sdk)
-
-## 📖 API 参考
-
-### 核心实体
-
-所有实体类型遵循相同的模式：
-
-- `TidasContact` - 联系人/组织信息
-- `TidasFlow` - 物质或能量流
-- `TidasProcess` - 过程数据集
-- `TidasSource` - 文献来源
-- `TidasFlowProperty` - 流属性（例如质量、能量）
-- `TidasUnitGroup` - 测量单位组
-- `TidasLCIAMethod` - LCIA 方法数据
-- `TidasLifeCycleModel` - 生命周期模型
-
-### 工厂函数
-
-- `createContact(data?, config?)` - 创建联系人实体
-- `createFlow(data?, config?)` - 创建流实体
-- `createProcess(data?, config?)` - 创建过程实体
-- `createSource(data?, config?)` - 创建来源实体
-- `createFlowProperty(data?, config?)` - 创建流属性实体
-- `createUnitGroup(data?, config?)` - 创建单位组实体
-- `createLCIAMethod(data?, config?)` - 创建 LCIA 方法实体
-- `createLifeCycleModel(data?, config?)` - 创建生命周期模型实体
-
-批量工厂函数：
-
-- `createContactsBatch(dataArray, config?)` - 创建多个联系人
-- `createFlowsBatch(dataArray, config?)` - 创建多个流
-- `createProcessesBatch(dataArray, config?)` - 创建多个过程
-- （所有实体类型都有类似的批量函数）
-
-### 实体方法
-
-所有实体从 `TidasEntity` 继承这些方法：
-
-- `validate()` - 验证实体数据（传统格式）
-- `validateEnhanced()` - 带警告的增强验证
-- `toJSON()` - 转换为普通 JavaScript 对象
-- `toJSONString(indent?)` - 转换为 JSON 字符串
-- `clone()` - 创建实体的深拷贝
-- `getValue(path)` - 使用点表示法获取嵌套值
-- `getValidationConfig()` - 获取当前验证配置
-- `setValidationMode(mode)` - 设置验证模式
-- `setValidationConfig(config)` - 设置验证配置
-- `suggest(options?)` - AI 驱动的数据改进
-
-### 验证配置
-
-```typescript
-interface ValidationConfig {
-  mode: 'strict' | 'weak' | 'ignore';
-  includeWarnings?: boolean;
-}
-
-// 全局配置函数
-setGlobalValidationMode(mode: 'strict' | 'weak' | 'ignore'): void
-getGlobalValidationMode(): 'strict' | 'weak' | 'ignore'
-setGlobalValidationConfig(config: Partial<ValidationConfig>): void
-resetGlobalConfig(): void
+```bash
+./scripts/ci/verify-typescript-package.sh
 ```
 
-### AI 建议服务
+合并后，对精确的合并提交创建 `typescript-vX.Y.Z` tag，由仓库自己的 Trusted
+Publishing workflow 完成发布。
 
-```typescript
-// 为数据建议改进
-suggestData(
-  data: any,
-  dataType: DataType,
-  options?: SuggestOptions
-): Promise<SuggestResult>
+## 仓库文档
 
-// 批量建议
-batchSuggest(
-  items: Array<{ data: any; type: DataType }>,
-  options?: SuggestOptions
-): Promise<SuggestResult[]>
+- [仓库契约](../../AGENTS.md)
+- [验证指南](../../docs/agents/repo-validation.md)
+- [发布配置](../../docs/release-setup.md)
+- [上游自动化](../../docs/upstream-automation.md)
 
-// 验证 API 密钥
-validateApiKey(): boolean
+## 许可证
 
-// 获取可用的数据类型
-getAvailableDataTypes(): string[]
-```
+MIT，参见 [LICENSE](./LICENSE)。

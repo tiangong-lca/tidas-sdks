@@ -31,8 +31,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
-lastReviewedNote: "Reviewed for issue #101: the TypeScript SDK now uses one TS7 toolchain, JSON-Schema-native Zod generation, Oxlint, and Node 24 tests."
+lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedNote: "Reviewed for issue #101 after independent review: the 0.2 SDK boundary now includes active Draft-07 semantics, real consumers/examples, coverage ratchets, and governed TS7 paths."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -143,7 +143,9 @@ Route those tasks to:
 - TypeScript generation and verification must install generator dependencies from `sdks/typescript/package-lock.json` through the shared `npm ci --workspaces=false` helper; upstream refreshes must not fall back to `npm install`
 - the TypeScript SDK has one compiler track: standard `typescript@7.x`; legacy compiler consumers, aliases, `ts-node`, `ts-jest`, and TypeScript-ESLint are not valid fallbacks
 - Zod schemas are rendered directly from the locked upstream JSON Schema assets; generation must not parse generated TypeScript or invoke a package runner, and unsupported schema shapes must fail instead of emitting permissive fallback validators
+- the `0.2.x` validation boundary consumes every active locked Draft-07 keyword, uses exact-pointer allowlists for domain overlays, and fails generation on an unknown keyword, format, or overlay location
 - Oxlint owns JavaScript/TypeScript lint, including type-aware deprecation checks; Node 24's test runner owns package tests, while `tsc` remains the independent release typecheck
+- release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
 - Python generated models refresh from `tidas-tools`, not from the public docs repository

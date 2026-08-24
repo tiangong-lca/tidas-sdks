@@ -17,8 +17,8 @@ checkPaths:
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
-lastReviewedNote: "Reviewed for issue #101: the TS7 and generator changes do not alter tag names, Trusted Publishing identity, environments, or registry prerequisites."
+lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedNote: "Reviewed for issue #101 after independent review: release `0.2.0` still uses the existing tag names, Trusted Publishing identity, environments, and registry prerequisites."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

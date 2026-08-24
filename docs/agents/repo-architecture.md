@@ -26,8 +26,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
-lastReviewedNote: "Reviewed for issue #101: direct JSON Schema to Zod generation and the single TS7/Oxlint/Node-test toolchain are now explicit package layers."
+lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedNote: "Reviewed for issue #101 after independent review: the architecture now records active Draft-07 helpers, the 0.2 compatibility boundary, and executable consumer/example gates."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -85,6 +85,7 @@ It also owns the stable validation contract that downstream apps consume:
 - generated schemas can emit custom Zod issues for localized-text checks
 - `sdks/typescript/scripts/json-schema-to-zod.ts` renders the locked upstream JSON Schema AST directly, without the TypeScript Compiler API or an intermediate generated interface
 - `sdks/typescript/scripts/generate-zod-schemas.ts` applies the small named domain overlays for custom validation codes, recursive `common:other`, CAS checks, required localized text, and the Flow name condition
+- `sdks/typescript/src/core/validation/json-schema.ts` supplies browser/Node-compatible oneOf, conditional, dependency, tuple, and deep-unique semantics used by generated modules
 - unsupported structural schema shapes fail generation; there is no permissive fallback schema
 - `sdks/typescript/scripts/verify-zod-generation-parity.ts` compares a candidate generator against a previously built baseline with stable success and issue code/path signatures
 - `sdks/typescript/src/core/config/ValidationConfig.ts` normalizes raw Zod issues into the `validationIssues` payload returned by `validateEnhanced()`
@@ -94,6 +95,12 @@ The package toolchain is intentionally single-track: `typescript@7.x` is the
 only compiler, Oxlint performs type-aware lint, and Node 24 plus `tsx` executes
 the test suites. The published package does not carry compiler, generator,
 lint, or test tooling into downstream installations.
+
+The direct renderer intentionally establishes the pre-1.0 `0.2.x`
+compatibility boundary. Historical generated Zod schemas under-enforced parts
+of the authoritative Draft-07 inputs; downstream `^0.1.x` consumers do not
+receive those corrections automatically. Each consumer upgrades deliberately
+and runs its own real data cases.
 
 ### Python package
 

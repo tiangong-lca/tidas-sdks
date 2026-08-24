@@ -18,8 +18,8 @@ checkPaths:
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-24
-lastReviewedCommit: 2a288e7bb81852c1d26efa1202c59a207f9a8ed4
-lastReviewedNote: "Reviewed for issue #101: automated TypeScript refreshes now use the single TS7 tree and direct locked-JSON-Schema Zod generator."
+lastReviewedCommit: 43d59abe15928825f62b86f02720b45ed23b0bd2
+lastReviewedNote: "Reviewed for issue #101 after independent review: automated refreshes must preserve TS7 closure, active-keyword proof, executable consumers, and explicit compatibility bumps."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -151,6 +151,8 @@ Validation-contract safeguard for TypeScript refreshes:
 - when Flow schemas contain cross-field `if` / `then` conditions, keep the generated Zod/Pydantic type-aware validator post-processing
 - confirm the committed TypeScript package still normalizes raw Zod issues into stable `validationIssues` codes for downstream consumers
 - for generator implementation changes, compare the candidate against a pre-change baseline with `npm run verify:schema-generation-parity` before replacing the baseline build
+- do not default a generator semantics change to a patch: record the compatibility decision and choose a version that prevents existing consumers from receiving stricter validation implicitly (`0.2.0` for issue #101)
+- run the maintained examples and built-tarball CJS/ESM/declaration consumer contract before a release-prep PR is reviewable
 - call this out in the release-prep PR when the machine-readable validation contract changes
 
 Recommended branch name:

@@ -47,6 +47,7 @@ If the repository later adds a protected GitHub environment for npm releases, ap
 - `npm run lint`
 - `npm run typecheck`
 - `npm test`
+- `npm run check:examples`
 - `npm run build`
 - `npm pack --dry-run`
 
@@ -64,6 +65,25 @@ npm run verify:schema-generation-parity
 The default baseline is `dist/schemas`. Use `TIDAS_ZOD_BASELINE_DIR` and
 `TIDAS_ZOD_CANDIDATE_DIR` for explicit artifacts, and record the exact upstream
 schema source in the PR validation note.
+
+## `0.2.0` compatibility boundary
+
+Issue #101 deliberately prepares `0.2.0`, rather than a `0.1.x` patch. The
+direct renderer corrects historical Zod under-validation for active Draft-07
+semantics, including exact oneOf, review conditionals, taxonomy dependencies,
+integer values, deep uniqueness, tuple additional-items behavior, formats, and
+additional-properties policy. Existing `^0.1.x` consumers therefore do not
+receive stricter validation automatically.
+
+Before upgrading a consumer, run its real data cases and fix data that violates
+the locked schema. Stable named CAS, localized-text, `common:other`, Required
+MultiLang, and Flow issue code/path behavior remains covered by parity tests.
+
+The coverage gate records the current ratchets:
+
+- lines: 95%
+- branches: 75%
+- functions: 70%
 
 If generation needs a specific local checkout of `tidas-tools`, provide it explicitly:
 
