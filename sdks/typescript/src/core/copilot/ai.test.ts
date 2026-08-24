@@ -35,7 +35,9 @@ describe('OpenAI-compatible copilot helpers', () => {
       url: Parameters<typeof fetch>[0],
       init?: Parameters<typeof fetch>[1]
     ) => {
-      calls.push({ url: String(url), init: init as RequestInit });
+      const requestUrl =
+        typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+      calls.push({ url: requestUrl, init: init as RequestInit });
       return new Response(
         JSON.stringify({
           choices: [

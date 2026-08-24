@@ -725,8 +725,10 @@ export class ValidationUtils {
           mode: config.mode,
         };
 
-      default:
-        throw new Error(`Unknown validation mode: ${config.mode}`);
+      default: {
+        const unsupportedMode: string = config.mode;
+        throw new Error(`Unknown validation mode: ${unsupportedMode}`);
+      }
     }
   }
 }

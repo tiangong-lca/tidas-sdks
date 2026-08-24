@@ -1,13 +1,13 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "categories": {
-    "correctness": "off",
+    "correctness": "error",
     "nursery": "off",
     "pedantic": "off",
     "perf": "off",
     "restriction": "off",
     "style": "off",
-    "suspicious": "off"
+    "suspicious": "error"
   },
   "env": {
     "es2022": true,
@@ -24,7 +24,16 @@
     "typeAware": true
   },
   "plugins": ["typescript"],
+  "overrides": [
+    {
+      "files": ["scripts/json-schema-to-typescript.ts"],
+      "rules": {
+        "typescript/require-array-sort-compare": "off"
+      }
+    }
+  ],
   "rules": {
+    "no-underscore-dangle": "off",
     "no-useless-escape": "warn",
     "no-unused-vars": [
       "warn",
@@ -34,6 +43,11 @@
         "varsIgnorePattern": "^_"
       }
     ],
-    "typescript/no-deprecated": "error"
+    "typescript/no-deprecated": "error",
+    "typescript/no-duplicate-type-constituents": "off",
+    "typescript/no-extraneous-class": "off",
+    "typescript/no-redundant-type-constituents": "off",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/no-unsafe-type-assertion": "off"
   }
 }

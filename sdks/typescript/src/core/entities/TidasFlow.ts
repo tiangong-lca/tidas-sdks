@@ -300,7 +300,7 @@ export class TidasFlow extends TidasEntity<Flow> {
     if (refId === undefined || refId === null) return {};
     const properties = ensureArray<any>(dataset?.flowProperties?.flowProperty);
     const refItem = properties.find(
-      (item) => String(item?.['@dataSetInternalID'] ?? '') === String(refId)
+      (item) => String(item?.['@dataSetInternalID'] ?? '') === refId
     );
     if (!refItem) return {};
     const refInfo = (refItem as any).referenceToFlowPropertyDataSet;

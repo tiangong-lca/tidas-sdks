@@ -8,7 +8,8 @@ export function isValidCASNumber(value: unknown): value is string {
 
   const [bodyPart, middlePart, checkDigitPart] = value.split('-');
   const digits = `${bodyPart}${middlePart}`;
-  const checksum = [...digits]
+  const checksum = digits
+    .split('')
     .reverse()
     .reduce((sum, digit, index) => sum + Number(digit) * (index + 1), 0);
 
