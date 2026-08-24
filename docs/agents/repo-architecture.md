@@ -25,9 +25,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-24
-lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
-lastReviewedNote: "Reviewed for issue #101 after independent review: the architecture now records active Draft-07 helpers, the 0.2 compatibility boundary, and executable consumer/example gates."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: the TS7 SDK and examples now share the pinned pnpm 11.23.0 root workspace, one frozen root lockfile, and pnpm-only development and release flows."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -43,11 +43,14 @@ This repo packages two SDK surfaces under one root:
 - `sdks/python/`
 
 The root owns generation, verification, tagging, and publish automation.
+It also owns the Node package graph through `pnpm-workspace.yaml`, the exact
+`pnpm@11.23.0` declaration, and the single root `pnpm-lock.yaml`.
 
 ## Stable Vs Generated Paths
 
 | Path group | Role |
 | --- | --- |
+| `pnpm-workspace.yaml`, `pnpm-lock.yaml` | stable TypeScript SDK and examples workspace topology plus frozen dependency graph |
 | `scripts/ci/**` | stable generation, verify, tag, and publish helpers |
 | `docs/release-setup.md` | stable release-environment contract |
 | `docs/upstream-automation.md` | stable upstream-sync design contract |
@@ -69,7 +72,7 @@ The practical executable chain today is:
 Important consequences:
 
 - `scripts/ci/tidas-tools-assets.mjs` validates the upstream Rust asset lock and derives schema, methodology, and runtime roots from catalog entries rather than package-layout assumptions
-- `scripts/ci/lib/typescript-dependencies.sh` gives clean generation and verification runs the same `npm ci --workspaces=false` dependency graph from the committed TypeScript lockfile
+- `scripts/ci/lib/typescript-dependencies.sh` gives clean generation and verification runs the same `pnpm install --frozen-lockfile` dependency graph from the root `pnpm-lock.yaml`
 - TypeScript runtime assets mirror the catalog-selected non-export roots and include the exact authoritative `asset-lock.v1.json`
 - Python generated models also refresh from `tidas-tools`
 - `tidas` remains important for public spec/docs content, but it is not the immediate generation source for current package refreshes
@@ -92,9 +95,10 @@ It also owns the stable validation contract that downstream apps consume:
 - downstream consumers should rely on normalized issue codes instead of parsing free-form error text when they need stable programmatic behavior
 
 The package toolchain is intentionally single-track: `typescript@7.x` is the
-only compiler, Oxlint performs type-aware lint, and Node 24 plus `tsx` executes
-the test suites. The published package does not carry compiler, generator,
-lint, or test tooling into downstream installations.
+only compiler, `pnpm@11.23.0` owns the root workspace and dependency graph,
+Oxlint performs type-aware lint, and Node 24 plus `tsx` executes the test suites.
+The published package does not carry compiler, generator, lint, or test tooling
+into downstream installations.
 
 The direct renderer intentionally establishes the pre-1.0 `0.2.x`
 compatibility boundary. Historical generated Zod schemas under-enforced parts

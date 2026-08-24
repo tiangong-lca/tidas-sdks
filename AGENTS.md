@@ -30,9 +30,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-24
-lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
-lastReviewedNote: "Reviewed for issue #101 after independent review: the 0.2 SDK boundary now includes active Draft-07 semantics, real consumers/examples, coverage ratchets, and governed TS7 paths."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: the TS7 package graph is now a pnpm 11.23.0 root workspace with one frozen root lockfile and pnpm-based consumer, verification, and release commands."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -83,7 +83,8 @@ Read in this order:
 
 Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-validation.md`, and the release / automation docs for fuller detail.
 
-- root package manager: `npm`
+- root package manager: `pnpm@11.23.0`
+- root workspace and lockfile: `pnpm-workspace.yaml` and `pnpm-lock.yaml`
 - routine branch base: `main`
 - routine PR base: `main`
 - published packages:
@@ -140,7 +141,9 @@ Route those tasks to:
 
 - do not treat `tidas` as the immediate code-generation upstream when package refresh behavior actually depends on `tidas-tools`
 - TypeScript runtime assets are selected and integrity-checked through the upstream Rust `assets/asset-lock.v1.json`; the committed package copy includes that authoritative lock
-- TypeScript generation and verification must install generator dependencies from `sdks/typescript/package-lock.json` through the shared `npm ci --workspaces=false` helper; upstream refreshes must not fall back to `npm install`
+- TypeScript generation and verification must install the complete workspace dependency graph from the root `pnpm-lock.yaml` through the shared `pnpm install --frozen-lockfile` helper; package-local lockfiles and npm fallback installs are not valid
+- keep pnpm 11's default minimum-release-age protection; any latest-stable exception in `pnpm-workspace.yaml` must name an exact reviewed package version and must not use an unversioned package or wildcard
+- GitHub TypeScript jobs use the pinned `pnpm/setup` successor action for pnpm 11 and Node 24; `pnpm/action-setup` is a pnpm 10-or-older path and must not be restored
 - the TypeScript SDK has one compiler track: standard `typescript@7.x`; legacy compiler consumers, aliases, `ts-node`, `ts-jest`, and TypeScript-ESLint are not valid fallbacks
 - Zod schemas are rendered directly from the locked upstream JSON Schema assets; generation must not parse generated TypeScript or invoke a package runner, and unsupported schema shapes must fail instead of emitting permissive fallback validators
 - the `0.2.x` validation boundary consumes every active locked Draft-07 keyword, uses exact-pointer allowlists for domain overlays, and fails generation on an unknown keyword, format, or overlay location

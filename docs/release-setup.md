@@ -16,9 +16,9 @@ checkPaths:
   - .github/workflows/publish.yml
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
-lastReviewedAt: 2026-08-24
-lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
-lastReviewedNote: "Reviewed for issue #101 after independent review: release `0.2.0` still uses the existing tag names, Trusted Publishing identity, environments, and registry prerequisites."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: TypeScript publishing keeps the npm Trusted Publisher identity while verification and package publication run from the pinned pnpm 11.23.0 workspace."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -130,6 +130,12 @@ If the PyPI project does not exist yet, register a pending publisher first so th
 
 ## Operational Notes
 
+- the TypeScript publish job activates the exact `pnpm@11.23.0` declared at the
+  repository root and verifies the frozen `pnpm-lock.yaml` before publication.
+- pnpm 11 and Node 24 are installed through the SHA-pinned `pnpm/setup` successor
+  action; the legacy `pnpm/action-setup` path is not compatible with this track.
+- the TypeScript package pins its public publish target to
+  `https://registry.npmjs.org/`; do not rely on runner-level registry defaults.
 - `publish.yml` validates that the Git tag matches the package version before upload.
 - post-merge tag detection treats an absent `typescript-vX.Y.Z` or `python-vX.Y.Z`
   tag for the current package version as a pending release; an existing matching

@@ -19,9 +19,9 @@ checkPaths:
   - sdks/typescript/**
   - sdks/python/**
   - scripts/ci/**
-lastReviewedAt: 2026-08-20
-lastReviewedCommit: 726cbfacb6c4f01f9c024d54c80a903558454142
-lastReviewedNote: "Reviewed for issue #92: automated SDK refresh PRs include Docpact review records and release recovery handles merged versions whose tag is still absent."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: TypeScript development, consumers, verification, and releases now use the pinned pnpm 11.23.0 root workspace and frozen root lockfile."
 ---
 
 # TIDAS SDKs
@@ -42,7 +42,7 @@ For AI-first repo work, load docs in this order:
 ### TypeScript SDK
 
 ```bash
-npm install @tiangong-lca/tidas-sdk
+pnpm add @tiangong-lca/tidas-sdk
 ```
 
 ### Python SDK (Development)
@@ -65,7 +65,7 @@ cargo install tidas --locked
 
 - Status: production package
 - Features: type-safe data manipulation, validation, XML conversion, directory tools, and packaged runtime assets
-- Installation: `npm install @tiangong-lca/tidas-sdk`
+- Installation: `pnpm add @tiangong-lca/tidas-sdk`
 - Location: `sdks/typescript/`
 
 ### tidas-sdk (Python, Development)
@@ -100,7 +100,7 @@ repair can recover an interrupted release without inventing a replacement versio
 
 ### Prerequisites
 
-- TypeScript SDK: Node.js 24+, npm
+- TypeScript SDK: Node.js 24+, pnpm 11.23.0
 - Python SDK: Python 3.12+, uv
 
 ### Setup
@@ -108,10 +108,9 @@ repair can recover an interrupted release without inventing a replacement versio
 #### TypeScript SDK
 
 ```bash
-cd sdks/typescript
-npm ci --workspaces=false
-npm run build
-npm test
+pnpm install --frozen-lockfile
+pnpm --filter @tiangong-lca/tidas-sdk build
+pnpm --filter @tiangong-lca/tidas-sdk test
 ```
 
 #### Python SDK
@@ -141,8 +140,9 @@ The generators validate every asset hash and byte count from
 `assets/asset-lock.v1.json`. The TypeScript refresh derives its runtime roots
 from that catalog and commits a matching `runtime-assets/asset-lock.v1.json`;
 it does not discover assets through the upstream Python package layout. When a
-clean refresh needs generator dependencies, it requires the committed
-TypeScript lockfile and installs it with `npm ci --workspaces=false`.
+clean refresh needs generator dependencies, it requires the root
+`pnpm-lock.yaml` and installs the complete workspace with
+`pnpm install --frozen-lockfile`.
 
 The TypeScript package uses a single `typescript@7.x` compiler track. Zod
 schemas are generated directly from the locked JSON Schema assets, Oxlint owns
