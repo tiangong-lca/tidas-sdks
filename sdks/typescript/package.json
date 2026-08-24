@@ -70,7 +70,7 @@
     "typecheck": "tsc --noEmit && tsc --project tsconfig.tools.json",
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
     "test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
-    "test:coverage": "node --import tsx --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=75 --test-coverage-functions=70 \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-include=\"scripts/**\" --test-coverage-include=\"../../scripts/ci/tidas-tools-assets.mjs\" --test-coverage-lines=95 --test-coverage-branches=75 --test-coverage-functions=70 \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
     "check:examples": "pnpm --filter tidas-sdk-examples check",
     "verify:release": "bash ../../scripts/ci/verify-typescript-package.sh",
     "release:prepare:patch": "pnpm version patch --no-git-tag-version",

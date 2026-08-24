@@ -218,6 +218,21 @@ test('dependency-tree inspection is recursive from the pnpm workspace root', () 
   );
 });
 
+test('package-manager subprocesses do not inherit Node test bookkeeping', () => {
+  const environment = {
+    NODE_TEST_CONTEXT: 'child-v8',
+    NODE_V8_COVERAGE: '/tmp/parent-node-coverage',
+    PATH: '/fixture/bin',
+  };
+  const options = commandOptions(REPOSITORY_ROOT, environment);
+
+  assert.equal(options.env.PATH, '/fixture/bin');
+  assert.equal(Object.hasOwn(options.env, 'NODE_TEST_CONTEXT'), false);
+  assert.equal(Object.hasOwn(options.env, 'NODE_V8_COVERAGE'), false);
+  assert.equal(environment.NODE_TEST_CONTEXT, 'child-v8');
+  assert.equal(environment.NODE_V8_COVERAGE, '/tmp/parent-node-coverage');
+});
+
 test('package, config, and script surfaces contain no banned legacy tooling', () => {
   const governedFiles = [
     join(REPOSITORY_ROOT, 'package.json'),
@@ -384,9 +399,20 @@ test('all package tsconfigs avoid TypeScript 7 removed module resolution options
   );
 });
 
-test('the Node coverage command enforces the recorded coverage ratchets', () => {
+test('the Node coverage command scopes first-party code and enforces the recorded ratchets', () => {
   const coverageCommand = PACKAGE_JSON.scripts?.['test:coverage'] ?? '';
+  const coverageIncludes = [
+    ...coverageCommand.matchAll(
+      /--test-coverage-include=(?:"([^"]+)"|'([^']+)'|(\S+))/g
+    ),
+  ].map((match) => match[1] ?? match[2] ?? match[3]);
 
+  assert.deepEqual(coverageIncludes, [
+    'src/**',
+    'scripts/**',
+    '../../scripts/ci/tidas-tools-assets.mjs',
+  ]);
+  assert.doesNotMatch(coverageCommand, /--test-coverage-include='/);
   assert.match(coverageCommand, /--test-coverage-lines=95(?:\s|$)/);
   assert.match(coverageCommand, /--test-coverage-branches=75(?:\s|$)/);
   assert.match(coverageCommand, /--test-coverage-functions=70(?:\s|$)/);
@@ -662,11 +688,15 @@ test('schema generator source invokes neither npx, ts-to-zod, nor Compiler API',
   );
 });
 
-function commandOptions(cwd) {
+function commandOptions(cwd, environment = process.env) {
+  const env = { ...environment };
+  delete env.NODE_TEST_CONTEXT;
+  delete env.NODE_V8_COVERAGE;
+
   return {
     cwd,
     encoding: 'utf8',
-    env: process.env,
+    env,
     stdio: ['ignore', 'pipe', 'pipe'],
   };
 }
