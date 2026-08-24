@@ -47,6 +47,9 @@ echo "[typescript] typecheck"
 echo "[typescript] test"
 (cd "$TS_ROOT" && npm test)
 
+echo "[typescript] examples"
+(cd "$TS_ROOT" && npm run check:examples)
+
 echo "[typescript] build"
 (cd "$TS_ROOT" && npm run build)
 

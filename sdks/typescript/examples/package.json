@@ -4,15 +4,11 @@
   "private": true,
   "description": "Examples for @tiangong-lca/tidas-sdk",
   "scripts": {
-    "install-examples": "npm install",
-    "test-imports": "tsx test-imports.ts",
-    "run-basic": "tsx 01-basic-usage/entities-usage.ts",
-    "run-simple": "tsx 01-basic-usage/simple-entities-demo.ts",
-    "run-markdown": "tsx 01-basic-usage/markdown-from-json.ts",
-    "run-validation": "tsx 01-basic-usage/validation-config-demo.ts",
-    "run-advanced": "tsx 02-advanced-features/advanced-usage-patterns.ts",
-    "run-validation-modes": "tsx 03-validation-modes/validation-config-demo.ts",
-    "run-ai-suggestion": "tsx 04-integration/ai-suggestion.ts"
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "test-imports": "tsx --tsconfig tsconfig.json test-imports.ts",
+    "run-contact-draft": "tsx --tsconfig tsconfig.json 01-basic-usage/contact-draft.ts",
+    "run-xml-roundtrip": "tsx --tsconfig tsconfig.json 02-xml-roundtrip/xml-roundtrip.ts",
+    "check": "npm run typecheck && npm run test-imports && npm run run-contact-draft && npm run run-xml-roundtrip"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
@@ -20,6 +16,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@tiangong-lca/tidas-sdk": "^0.1.29"
+    "@tiangong-lca/tidas-sdk": "file:.."
   }
 }
