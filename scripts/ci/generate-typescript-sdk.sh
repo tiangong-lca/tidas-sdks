@@ -84,23 +84,11 @@ validate_inputs() {
 check_dependencies() {
     log_step "Checking dependencies..."
 
-    # 检查 Node.js
-    if ! command -v node &> /dev/null; then
-        log_error "node not found. Please install Node.js 14+"
+    local node_version
+    if ! node_version="$(require_typescript_node_runtime)"; then
         exit 1
     fi
-
-    local node_version=$(node --version)
     log_info "✓ Node.js version: $node_version"
-
-    # 检查 npm
-    if ! command -v npm &> /dev/null; then
-        log_error "npm not found. Please install npm"
-        exit 1
-    fi
-
-    local npm_version=$(npm --version)
-    log_info "✓ npm version: $npm_version"
 
     # 检查 package.json
     if [ ! -f "$SDK_ROOT/package.json" ]; then
@@ -108,12 +96,13 @@ check_dependencies() {
         exit 1
     fi
 
-    # 检查是否安装了依赖
-    if [ ! -d "$SDK_ROOT/node_modules" ]; then
-        log_warn "node_modules not found, installing dependencies..."
-        install_typescript_dependencies "$SDK_ROOT"
-    fi
+    # 无条件验证精确 pnpm 版本、根锁文件，并执行冻结安装。
+    log_info "Verifying the frozen pnpm workspace dependencies..."
+    install_typescript_dependencies "$REPO_ROOT"
 
+    local pnpm_version
+    pnpm_version=$(pnpm --version)
+    log_info "✓ root-pinned pnpm version: $pnpm_version"
     log_info "✓ All dependencies satisfied"
 }
 
@@ -121,14 +110,14 @@ check_dependencies() {
 generate_sdk() {
     log_step "Generating TypeScript SDK..."
 
-    cd "$SDK_ROOT"
+    cd "$REPO_ROOT"
 
     log_info "Running TypeScript type generation..."
 
     # Step 1: Generate TypeScript types from JSON schemas
-    if grep -q '"generate-types"' package.json; then
+    if grep -q '"generate-types"' "$SDK_ROOT/package.json"; then
         log_info "Step 1/4: Generating TypeScript types from schemas..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" npm run generate-types; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-types; then
             log_info "✓ TypeScript types generated successfully"
         else
             log_error "TypeScript type generation failed"
@@ -140,9 +129,9 @@ generate_sdk() {
     fi
 
     # Step 2: Generate Zod validation schemas
-    if grep -q '"generate-schemas"' package.json; then
+    if grep -q '"generate-schemas"' "$SDK_ROOT/package.json"; then
         log_info "Step 2/4: Generating Zod validation schemas..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" npm run generate-schemas; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-schemas; then
             log_info "✓ Zod schemas generated successfully"
         else
             log_error "Zod schema generation failed"
@@ -154,18 +143,18 @@ generate_sdk() {
     fi
 
     # Step 3: Bundle methodologies (根据 build script)
-    if grep -q '"bundle-methodologies"' package.json; then
+    if grep -q '"bundle-methodologies"' "$SDK_ROOT/package.json"; then
         log_info "Step 3/4: Bundling LCIA methodologies..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" npm run bundle-methodologies; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run bundle-methodologies; then
             log_info "✓ Methodologies bundled successfully"
         else
             log_warn "Methodology bundling failed (non-critical)"
         fi
     fi
 
-    if grep -q '"sync-runtime-assets"' package.json; then
+    if grep -q '"sync-runtime-assets"' "$SDK_ROOT/package.json"; then
         log_info "Step 4/4: Syncing runtime conversion assets..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" npm run sync-runtime-assets; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run sync-runtime-assets; then
             log_info "✓ Runtime assets synced successfully"
         else
             log_error "Runtime asset sync failed"
@@ -185,9 +174,9 @@ generate_sdk() {
 run_typecheck() {
     log_step "Running type check..."
 
-    cd "$SDK_ROOT"
+    cd "$REPO_ROOT"
 
-    if npm run typecheck > /dev/null 2>&1; then
+    if pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run typecheck > /dev/null 2>&1; then
         log_info "✓ Type check passed"
     else
         log_warn "Type check failed - this may be expected if schemas are not yet complete"
@@ -249,10 +238,10 @@ Generation includes:
   ✅ Runtime assets for XML conversion and directory tools
 
 Next steps:
-1. Run validation: cd sdks/typescript && npm run lint
-2. Run type check: cd sdks/typescript && npm run typecheck
-3. Run tests: cd sdks/typescript && npm test
-4. Build: cd sdks/typescript && npm run build
+1. Run validation: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run lint
+2. Run type check: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run typecheck
+3. Run tests: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run test
+4. Build: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run build
 
 EOF
 }

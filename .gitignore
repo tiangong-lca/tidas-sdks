@@ -57,9 +57,6 @@ test/
 output/
 sdks/typescript/src/.zod-candidate/
 
-# package lock file
-package-lock.json
-
 # uv lock file
 uv.lock
 

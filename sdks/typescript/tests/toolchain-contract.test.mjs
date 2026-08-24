@@ -13,12 +13,31 @@ import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
+import { parse as parseYaml } from 'yaml';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(TEST_DIR);
 const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT));
+const REPOSITORY_PACKAGE_JSON_PATH = join(REPOSITORY_ROOT, 'package.json');
+const PNPM_WORKSPACE_PATH = join(REPOSITORY_ROOT, 'pnpm-workspace.yaml');
 const PACKAGE_JSON_PATH = join(PACKAGE_ROOT, 'package.json');
+const REPOSITORY_PACKAGE_JSON = readJson(REPOSITORY_PACKAGE_JSON_PATH);
 const PACKAGE_JSON = readJson(PACKAGE_JSON_PATH);
+const PACKAGE_MANAGER = 'pnpm@11.23.0';
+const PACKAGE_MANAGER_VERSION = PACKAGE_MANAGER.slice('pnpm@'.length);
+
+const PACKAGE_LOCKFILE_NAMES = new Set([
+  'bun.lock',
+  'bun.lockb',
+  'npm-shrinkwrap.json',
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'pnpm-lock.yml',
+  'yarn.lock',
+]);
+
+const NPM_PACKAGE_COMMAND_PATTERN =
+  /(?:\bnpx\b|\bnpm\b[^\r\n]*\b(?:add|audit|cache|ci|config|dedupe|exec|fund|i|install|link|list|ls|outdated|pack|pkg|prune|publish|rebuild|remove|run|test|uninstall|unlink|update|version|view|whoami)\b)/i;
 
 const BANNED_LEGACY_TOOLS = [
   'ts-to-zod',
@@ -94,42 +113,108 @@ test('all first-party manifests declare only direct TypeScript 7.x', () => {
   );
 });
 
-test('the complete installed and locked npm trees contain no TypeScript below 7', () => {
-  const npmTree = npmList(PACKAGE_ROOT, 'typescript');
-  const installed = collectDependencyVersions(npmTree, 'typescript');
+test('the root pins the exact supported pnpm version', () => {
+  assert.equal(REPOSITORY_PACKAGE_JSON.packageManager, PACKAGE_MANAGER);
+
+  const installedVersion = execFileSync(
+    'pnpm',
+    ['--version'],
+    commandOptions(REPOSITORY_ROOT)
+  ).trim();
+  assert.equal(
+    installedVersion,
+    PACKAGE_MANAGER_VERSION,
+    `the active pnpm must match ${PACKAGE_MANAGER}, received ${installedVersion}`
+  );
+});
+
+test('pnpm-lock.yaml is the repository only package-manager lockfile', () => {
+  const lockfiles = findFiles(REPOSITORY_ROOT, (path) =>
+    PACKAGE_LOCKFILE_NAMES.has(basename(path))
+  ).map(displayPath);
+
+  assert.deepEqual(
+    lockfiles,
+    ['pnpm-lock.yaml'],
+    `remove non-pnpm or nested package-manager lockfiles:\n${formatJson(lockfiles)}`
+  );
+});
+
+test('pnpm supply-chain exceptions are exact, versioned Oxlint artifacts', () => {
+  const workspace = parseYaml(readFileSync(PNPM_WORKSPACE_PATH, 'utf8'));
+  const exceptions = workspace.minimumReleaseAgeExclude ?? [];
+
+  assert.equal(
+    exceptions.length,
+    20,
+    'the reviewed Oxlint release consists of the package and 19 platform bindings'
+  );
+  assert.deepEqual(
+    exceptions.filter(
+      (entry) =>
+        !/^(?:oxlint|@oxlint\/binding-[a-z0-9-]+)@1\.80\.0$/.test(entry)
+    ),
+    [],
+    `minimum-release-age exceptions must stay exact and versioned:\n${formatJson(exceptions)}`
+  );
+});
+
+test('the complete installed and locked pnpm workspace trees contain only TypeScript 7', () => {
+  const installedTree = pnpmList(REPOSITORY_ROOT, 'typescript', {
+    recursive: true,
+  });
+  const installed = collectDependencyVersions(installedTree, 'typescript');
 
   assert.ok(
     installed.length > 0,
-    'the installed tree must contain direct TypeScript 7.x'
+    'the recursive pnpm workspace tree must contain direct TypeScript 7.x'
   );
   assert.deepEqual(
-    installed.filter(({ version }) => majorVersion(version) < 7),
+    installed.filter(({ version }) => majorVersion(version) !== 7),
     [],
-    `npm install tree contains legacy TypeScript:\n${formatJson(installed)}`
+    `pnpm workspace install tree contains non-7 TypeScript:\n${formatJson(installed)}`
   );
 
-  const lockPaths = findFiles(
-    PACKAGE_ROOT,
-    (path) => basename(path) === 'package-lock.json'
-  );
-  const locked = lockPaths.flatMap((lockPath) => {
-    const lock = readJson(lockPath);
-    return Object.entries(lock.packages ?? {})
-      .filter(([packagePath]) =>
-        /(?:^|\/)node_modules\/typescript$/.test(packagePath)
-      )
-      .map(([packagePath, metadata]) => ({
-        lockfile: displayPath(lockPath),
-        packagePath,
-        version: metadata.version,
-      }));
+  const lockedTree = pnpmList(REPOSITORY_ROOT, 'typescript', {
+    recursive: true,
+    lockfileOnly: true,
   });
+  const locked = collectDependencyVersions(lockedTree, 'typescript');
 
-  assert.ok(locked.length > 0, 'the lockfile must pin direct TypeScript 7.x');
+  assert.ok(
+    locked.length > 0,
+    'the recursive pnpm lock tree must pin direct TypeScript 7.x'
+  );
   assert.deepEqual(
-    locked.filter(({ version }) => majorVersion(version) < 7),
+    locked.filter(({ version }) => majorVersion(version) !== 7),
     [],
-    `npm lock tree contains legacy TypeScript:\n${formatJson(locked)}`
+    `pnpm workspace lock tree contains non-7 TypeScript:\n${formatJson(locked)}`
+  );
+});
+
+test('dependency-tree inspection is recursive from the pnpm workspace root', () => {
+  assert.deepEqual(pnpmListArguments('typescript', { recursive: true }), [
+    'list',
+    'typescript',
+    '--recursive',
+    '--depth',
+    'Infinity',
+    '--json',
+  ]);
+  assert.deepEqual(
+    pnpmListArguments('typescript', {
+      recursive: true,
+      lockfileOnly: true,
+    }),
+    [
+      'list',
+      'typescript',
+      '--recursive',
+      '--depth',
+      'Infinity',
+      '--json',
+      '--lockfile-only',
+    ]
   );
 });
 
@@ -166,6 +251,81 @@ test('package, config, and script surfaces contain no banned legacy tooling', ()
   );
 });
 
+test('active package-management commands use pnpm instead of npm or npx', () => {
+  const findings = [];
+  const manifestPaths = [
+    REPOSITORY_PACKAGE_JSON_PATH,
+    ...findFiles(PACKAGE_ROOT, (path) => basename(path) === 'package.json'),
+  ];
+
+  for (const manifestPath of manifestPaths) {
+    const scripts = readJson(manifestPath).scripts ?? {};
+    for (const [name, command] of Object.entries(scripts)) {
+      if (NPM_PACKAGE_COMMAND_PATTERN.test(command)) {
+        findings.push({
+          file: displayPath(manifestPath),
+          surface: `scripts.${name}`,
+          command,
+        });
+      }
+    }
+  }
+
+  const workflowRoot = join(REPOSITORY_ROOT, '.github', 'workflows');
+  for (const workflowPath of findFiles(workflowRoot, (path) =>
+    /\.ya?ml$/.test(path)
+  )) {
+    collectCommandLines(workflowPath, findings);
+  }
+
+  const automationRoots = [
+    join(REPOSITORY_ROOT, 'scripts'),
+    join(REPOSITORY_ROOT, '.specify', 'scripts'),
+  ];
+  for (const automationRoot of automationRoots) {
+    for (const scriptPath of findFiles(automationRoot, (path) =>
+      /\.(?:bash|sh|zsh)$/.test(path)
+    )) {
+      collectCommandLines(scriptPath, findings);
+    }
+  }
+
+  const hookRoot = join(REPOSITORY_ROOT, '.githooks');
+  for (const hookPath of findFiles(hookRoot, () => true)) {
+    collectCommandLines(hookPath, findings);
+  }
+
+  assert.deepEqual(
+    findings,
+    [],
+    `active npm or npx package-management commands remain:\n${formatJson(findings)}`
+  );
+});
+
+test('every maintained example script enters through pnpm', () => {
+  const examplesPackagePath = join(PACKAGE_ROOT, 'examples', 'package.json');
+  const examplesPackage = readJson(examplesPackagePath);
+  const scripts = examplesPackage.scripts ?? {};
+  const findings = Object.entries(scripts)
+    .filter(([, command]) => !/^pnpm(?:\s|$)/.test(command))
+    .map(([name, command]) => ({ name, command }));
+
+  assert.equal(
+    examplesPackage.dependencies?.[PACKAGE_JSON.name],
+    'workspace:*',
+    'examples must refuse a registry fallback for the local SDK workspace'
+  );
+  assert.ok(
+    Object.keys(scripts).length > 0,
+    'example scripts must be declared'
+  );
+  assert.deepEqual(
+    findings,
+    [],
+    `example scripts must use pnpm explicitly:\n${formatJson(findings)}`
+  );
+});
+
 test('published dependencies contain no compiler, generator, lint, or test tooling', () => {
   const publishedDependencies = Object.keys(PACKAGE_JSON.dependencies ?? {});
   const forbiddenDependencies = publishedDependencies.filter(
@@ -180,6 +340,13 @@ test('published dependencies contain no compiler, generator, lint, or test tooli
     [],
     `move build-only tooling out of published dependencies: ${forbiddenDependencies.join(', ')}`
   );
+});
+
+test('the package publishes only to the public npm registry', () => {
+  assert.deepEqual(PACKAGE_JSON.publishConfig, {
+    access: 'public',
+    registry: 'https://registry.npmjs.org/',
+  });
 });
 
 test('all package tsconfigs avoid TypeScript 7 removed module resolution options', () => {
@@ -217,9 +384,20 @@ test('all package tsconfigs avoid TypeScript 7 removed module resolution options
   );
 });
 
-test('the Node coverage command enforces the recorded coverage ratchets', () => {
+test('the Node coverage command scopes first-party code and enforces the recorded ratchets', () => {
   const coverageCommand = PACKAGE_JSON.scripts?.['test:coverage'] ?? '';
+  const coverageIncludes = [
+    ...coverageCommand.matchAll(
+      /--test-coverage-include=(?:"([^"]+)"|'([^']+)'|(\S+))/g
+    ),
+  ].map((match) => match[1] ?? match[2] ?? match[3]);
 
+  assert.deepEqual(coverageIncludes, [
+    'src/**',
+    'scripts/**',
+    '../../scripts/ci/tidas-tools-assets.mjs',
+  ]);
+  assert.doesNotMatch(coverageCommand, /--test-coverage-include='/);
   assert.match(coverageCommand, /--test-coverage-lines=95(?:\s|$)/);
   assert.match(coverageCommand, /--test-coverage-branches=75(?:\s|$)/);
   assert.match(coverageCommand, /--test-coverage-functions=70(?:\s|$)/);
@@ -237,21 +415,21 @@ test(
       mkdirSync(packRoot);
       mkdirSync(consumerRoot);
 
-      // `npm pack` does not run `prepublishOnly`; always prove that the tarball
+      // `pnpm pack` does not run `prepublishOnly`; always prove that the tarball
       // was produced from a fresh build instead of a stale local `dist/` tree.
-      execFileSync('npm', ['run', 'build'], commandOptions(PACKAGE_ROOT));
+      execFileSync('pnpm', ['run', 'build'], commandOptions(PACKAGE_ROOT));
       const packOutput = execFileSync(
-        'npm',
+        'pnpm',
         ['pack', '--json', '--pack-destination', packRoot],
         commandOptions(PACKAGE_ROOT)
       );
       const packMetadata = JSON.parse(packOutput);
       assert.equal(
-        packMetadata.length,
-        1,
-        'npm pack must describe one tarball'
+        packMetadata.name,
+        PACKAGE_JSON.name,
+        'pnpm pack must describe the SDK tarball'
       );
-      assertPackedExports(packMetadata[0].files ?? []);
+      assertPackedExports(packMetadata.files ?? []);
 
       const tarball = readdirSync(packRoot)
         .filter((file) => file.endsWith('.tgz'))
@@ -259,29 +437,44 @@ test(
       assert.equal(
         tarball.length,
         1,
-        `expected one npm tarball, received ${tarball.length}`
+        `expected one pnpm tarball, received ${tarball.length}`
       );
 
       writeFileSync(
         join(consumerRoot, 'package.json'),
-        `${JSON.stringify({ name: 'tidas-sdk-pack-consumer', private: true }, null, 2)}\n`,
+        `${JSON.stringify(
+          {
+            name: 'tidas-sdk-pack-consumer',
+            private: true,
+            packageManager: PACKAGE_MANAGER,
+            dependencies: {
+              [PACKAGE_JSON.name]: `file:${tarball[0]}`,
+              zod: PACKAGE_JSON.dependencies.zod,
+            },
+          },
+          null,
+          2
+        )}\n`,
         { encoding: 'utf8', flag: 'wx' }
       );
       execFileSync(
-        'npm',
+        'pnpm',
         [
           'install',
           '--ignore-scripts',
-          '--no-audit',
-          '--no-fund',
-          '--package-lock=false',
-          tarball[0],
+          '--no-frozen-lockfile',
+          '--no-lockfile',
         ],
         commandOptions(consumerRoot)
       );
 
       const exportSpecifiers = Object.keys(PACKAGE_JSON.exports).map(
         packageSpecifier
+      );
+      assert.equal(
+        exportSpecifiers.length,
+        9,
+        `the packed consumer contract expects nine SDK exports, received ${exportSpecifiers.length}`
       );
       writeFileSync(
         join(consumerRoot, 'require-check.cjs'),
@@ -380,9 +573,7 @@ test(
         commandOptions(consumerRoot)
       );
 
-      const consumerTree = npmList(consumerRoot, 'typescript', {
-        allowAbsent: true,
-      });
+      const consumerTree = pnpmList(consumerRoot, 'typescript');
       const installedTypeScript = collectDependencyVersions(
         consumerTree,
         'typescript'
@@ -486,61 +677,106 @@ function commandOptions(cwd) {
   return {
     cwd,
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      npm_config_audit: 'false',
-      npm_config_fund: 'false',
-      npm_config_update_notifier: 'false',
-    },
+    env: process.env,
     stdio: ['ignore', 'pipe', 'pipe'],
   };
 }
 
-function npmList(cwd, dependency, { allowAbsent = false } = {}) {
+function pnpmList(
+  cwd,
+  dependency,
+  { recursive = false, lockfileOnly = false } = {}
+) {
   const result = spawnSync(
-    'npm',
-    ['ls', dependency, '--all', '--json'],
+    'pnpm',
+    pnpmListArguments(dependency, { recursive, lockfileOnly }),
     commandOptions(cwd)
   );
 
   assert.ifError(result.error);
-  const tree = JSON.parse(result.stdout);
-  const dependencyIsAbsent =
-    collectDependencyVersions(tree, dependency).length === 0;
-  const expectedAbsentExit =
-    allowAbsent &&
-    result.status === 1 &&
-    dependencyIsAbsent &&
-    (tree.problems?.length ?? 0) === 0;
-  assert.ok(
-    result.status === 0 || expectedAbsentExit,
-    `npm ls failed in ${cwd}:\n${result.stderr || result.stdout}`
+  assert.equal(
+    result.status,
+    0,
+    `pnpm list failed in ${cwd}:\n${result.stderr || result.stdout}`
   );
-  return tree;
+  return JSON.parse(result.stdout || '[]');
 }
 
-function collectDependencyVersions(tree, dependencyName, ancestry = []) {
+function pnpmListArguments(
+  dependency,
+  { recursive = false, lockfileOnly = false } = {}
+) {
+  const args = ['list', dependency];
+  if (recursive) {
+    args.push('--recursive');
+  }
+  args.push('--depth', 'Infinity', '--json');
+  if (lockfileOnly) {
+    args.push('--lockfile-only');
+  }
+  return args;
+}
+
+function collectDependencyVersions(tree, dependencyName) {
+  const roots = Array.isArray(tree) ? tree : [tree];
+  return roots.flatMap((root) =>
+    collectDependencyVersionsFromNode(root, dependencyName, [])
+  );
+}
+
+function collectDependencyVersionsFromNode(tree, dependencyName, ancestry) {
   const matches = [];
-  for (const [name, metadata] of Object.entries(tree.dependencies ?? {})) {
-    const entry = `${name}@${metadata.version ?? 'unknown'}`;
-    const dependencyPath = [...ancestry, entry];
-    if (name === dependencyName) {
-      matches.push({
-        version: metadata.version,
-        path: dependencyPath.join(' > '),
-      });
+  for (const section of [
+    'dependencies',
+    'devDependencies',
+    'optionalDependencies',
+  ]) {
+    for (const [name, metadata] of Object.entries(tree?.[section] ?? {})) {
+      const entry = `${name}@${metadata.version ?? 'unknown'}`;
+      const dependencyPath = [...ancestry, entry];
+      if (name === dependencyName) {
+        matches.push({
+          version: metadata.version,
+          path: dependencyPath.join(' > '),
+        });
+      }
+      matches.push(
+        ...collectDependencyVersionsFromNode(
+          metadata,
+          dependencyName,
+          dependencyPath
+        )
+      );
     }
-    matches.push(
-      ...collectDependencyVersions(metadata, dependencyName, dependencyPath)
-    );
   }
   return matches;
+}
+
+function collectCommandLines(path, findings) {
+  const lines = readFileSync(path, 'utf8').split(/\r?\n/);
+  for (const [index, line] of lines.entries()) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('#') || !NPM_PACKAGE_COMMAND_PATTERN.test(line)) {
+      continue;
+    }
+    findings.push({
+      file: displayPath(path),
+      line: index + 1,
+      command: trimmed,
+    });
+  }
 }
 
 function findFiles(root, predicate) {
   const files = [];
   for (const entry of readdirSync(root, { withFileTypes: true })) {
-    if (entry.name === 'dist' || entry.name === 'node_modules') {
+    if (
+      entry.name === '.git' ||
+      entry.name === '.pnpm-store' ||
+      entry.name === 'coverage' ||
+      entry.name === 'dist' ||
+      entry.name === 'node_modules'
+    ) {
       continue;
     }
     const path = join(root, entry.name);

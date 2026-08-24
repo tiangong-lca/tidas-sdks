@@ -1,18 +1,19 @@
 {
   "name": "tidas-sdk",
   "private": true,
-  "workspaces": [
-    "sdks/typescript",
-    "sdks/typescript/examples"
-  ],
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": "11.23.0"
+  },
   "scripts": {
-    "bootstrap": "npm install --workspaces",
-    "build:typescript": "npm --workspace @tiangong-lca/tidas-sdk run build",
-    "test:typescript": "npm --workspace @tiangong-lca/tidas-sdk run test",
+    "bootstrap": "pnpm install --frozen-lockfile",
+    "build:typescript": "pnpm --filter @tiangong-lca/tidas-sdk build",
+    "test:typescript": "pnpm --filter @tiangong-lca/tidas-sdk test",
     "verify:typescript": "./scripts/ci/verify-typescript-package.sh",
     "verify:python": "./scripts/ci/verify-python-package.sh",
-    "release:prepare:patch:typescript": "npm --workspace @tiangong-lca/tidas-sdk run release:prepare:patch",
-    "release:prepare:minor:typescript": "npm --workspace @tiangong-lca/tidas-sdk run release:prepare:minor",
-    "release:prepare:major:typescript": "npm --workspace @tiangong-lca/tidas-sdk run release:prepare:major"
+    "release:prepare:patch:typescript": "pnpm --filter @tiangong-lca/tidas-sdk release:prepare:patch",
+    "release:prepare:minor:typescript": "pnpm --filter @tiangong-lca/tidas-sdk release:prepare:minor",
+    "release:prepare:major:typescript": "pnpm --filter @tiangong-lca/tidas-sdk release:prepare:major"
   }
 }

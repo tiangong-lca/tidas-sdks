@@ -27,9 +27,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-08-24
-lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
-lastReviewedNote: "Reviewed for issue #101 after independent review: validation now proves active Draft-07 semantics, real tarball exports, maintained examples, lint categories, and coverage ratchets."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: validation now freezes the pnpm 11.23.0 workspace graph, root lockfile, pnpm command surface, and package-manager-clean consumer install."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -53,8 +53,8 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
-| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `npm run test:coverage` when testable behavior changes | This covers the frozen TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the consumer inherits no compiler tooling. Coverage ratchets are lines 95%, branches 75%, functions 70%. |
-| JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `npm run verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
+| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `pnpm --filter @tiangong-lca/tidas-sdk test:coverage` when testable behavior changes | This covers the frozen pnpm/TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the pnpm consumer inherits no compiler tooling. Coverage is explicitly scoped to first-party package source/generation helpers so package-manager runtime code cannot dilute it; ratchets are lines 95%, branches 75%, functions 70%. |
+| JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |
 | release setup, tag, or publish workflows | run both verify scripts and `python3 ./scripts/ci/test-automation-contracts.py` | inspect `.github/workflows/**` and record any tag or environment assumptions checked locally | Tag creation and registry publication are separate from local package verification. Release detection must distinguish an untagged pending version from an already-tagged version. |
@@ -75,14 +75,17 @@ Facts that matter:
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds
 - clean TypeScript generation and verification both install dependencies through
-  `scripts/ci/lib/typescript-dependencies.sh`, which requires the committed
-  lockfile and runs `npm ci --workspaces=false`
+  `scripts/ci/lib/typescript-dependencies.sh`, which requires the root
+  `pnpm-lock.yaml` and runs `pnpm install --frozen-lockfile` from the repository root
+- pnpm's default one-day release-age gate remains active; the toolchain contract
+  permits only exact, versioned exceptions recorded after reviewing a required
+  latest-stable release
 - `sdks/typescript/tests/toolchain-contract.test.mjs` rejects TypeScript majors
   below 7, legacy Compiler API consumers, removed tsconfig options, missing
   coverage ratchets, unusable tarball exports, and consumers that inherit
   compiler tooling
 - generator changes should build the baseline before editing, then run
-  `npm run verify:schema-generation-parity`; its automatic candidate directory
+  `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity`; its automatic candidate directory
   is always cleaned and can be replaced by explicit baseline/candidate paths
 - if you intentionally validate against a local checkout, record both its path
   and exact commit in the PR note

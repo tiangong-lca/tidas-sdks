@@ -6,12 +6,13 @@ contracts, runtime validation, XML conversion, and package-level parity tools.
 Published package: [@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk).
 Read the installed package metadata or npm registry for the current version.
 
-Node.js 24 or newer is required.
+Node.js 24 or newer and the root-pinned `pnpm@11.23.0` are required for
+development.
 
 ## Installation
 
 ```bash
-npm install @tiangong-lca/tidas-sdk
+pnpm add @tiangong-lca/tidas-sdk
 ```
 
 ## Public entry points
@@ -125,27 +126,29 @@ Database export, ZIP publishing, and S3 workflows remain owned by
 ## Development
 
 ```bash
-cd sdks/typescript
-npm ci --workspaces=false
-npm run lint
-npm run typecheck
-npm test
-npm run check:examples
-npm run build
+# Run from the repository root with the exact pnpm version in package.json.
+pnpm install --frozen-lockfile
+pnpm --filter @tiangong-lca/tidas-sdk lint
+pnpm --filter @tiangong-lca/tidas-sdk typecheck
+pnpm --filter @tiangong-lca/tidas-sdk test
+pnpm --filter @tiangong-lca/tidas-sdk check:examples
+pnpm --filter @tiangong-lca/tidas-sdk build
 ```
 
-The package uses a single `typescript@7.x` compiler track. Oxlint performs
-type-aware linting, Node 24 runs tests through `tsx`, and the published tarball
-does not carry compiler, generator, lint, or test tooling into consumers.
+The root `pnpm-workspace.yaml` and `pnpm-lock.yaml` are the only workspace and
+dependency-lock sources. The package uses a single `typescript@7.x` compiler
+track. Oxlint performs type-aware linting, Node 24 runs tests through `tsx`, and
+the published tarball does not carry compiler, generator, lint, or test tooling
+into consumers.
 
 Useful commands:
 
 ```bash
-npm run generate-types
-npm run generate-schemas
-npm run verify:schema-generation-parity
-npm run test:coverage
-npm run format:check
+pnpm --filter @tiangong-lca/tidas-sdk generate-types
+pnpm --filter @tiangong-lca/tidas-sdk generate-schemas
+pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity
+pnpm --filter @tiangong-lca/tidas-sdk test:coverage
+pnpm --filter @tiangong-lca/tidas-sdk format:check
 ```
 
 For generator parity, build the baseline before editing the generator. The
@@ -159,7 +162,7 @@ The maintained examples are executable contracts:
 - `examples/02-xml-roundtrip/xml-roundtrip.ts`
 - `examples/test-imports.ts`
 
-Run all of them with `npm --prefix examples run check`.
+Run all of them with `pnpm --filter tidas-sdk-examples check`.
 
 ## Release
 

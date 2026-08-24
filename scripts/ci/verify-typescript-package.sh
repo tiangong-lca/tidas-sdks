@@ -4,8 +4,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-TS_ROOT="$REPO_ROOT/sdks/typescript"
-source "$SCRIPT_DIR/lib/typescript-dependencies.sh"
 
 snapshot_path_state() {
     local target="$1"
@@ -28,9 +26,6 @@ require_stable_generation_output() {
     fi
 }
 
-echo "[typescript] installing dependencies"
-install_typescript_dependencies "$TS_ROOT"
-
 before_generated_state="$(snapshot_path_state "sdks/typescript/src")"
 
 echo "[typescript] regenerating package sources"
@@ -39,21 +34,21 @@ TIDAS_TOOLS_SOURCE_MODE="${TIDAS_TOOLS_SOURCE_MODE:-clone}" \
 require_stable_generation_output "sdks/typescript/src" "$before_generated_state"
 
 echo "[typescript] lint"
-(cd "$TS_ROOT" && npm run lint)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run lint)
 
 echo "[typescript] typecheck"
-(cd "$TS_ROOT" && npm run typecheck)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run typecheck)
 
 echo "[typescript] test"
-(cd "$TS_ROOT" && npm test)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run test)
 
 echo "[typescript] examples"
-(cd "$TS_ROOT" && npm run check:examples)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run check:examples)
 
 echo "[typescript] build"
-(cd "$TS_ROOT" && npm run build)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run build)
 
 echo "[typescript] pack dry run"
-(cd "$TS_ROOT" && npm pack --dry-run >/dev/null)
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --dry-run >/dev/null)
 
 echo "[typescript] verification complete"

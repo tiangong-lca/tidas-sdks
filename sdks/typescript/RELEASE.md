@@ -41,15 +41,16 @@ If the repository later adds a protected GitHub environment for npm releases, ap
 
 `./scripts/ci/verify-typescript-package.sh` performs the same checks expected by CI:
 
-- `npm ci`
+- `pnpm install --frozen-lockfile` from the repository root, using the exact
+  `pnpm@11.23.0` declared in `package.json`
 - regenerate TypeScript artifacts from `tidas-tools`
 - fail if generated source changes are not committed
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run check:examples`
-- `npm run build`
-- `npm pack --dry-run`
+- `pnpm --filter @tiangong-lca/tidas-sdk lint`
+- `pnpm --filter @tiangong-lca/tidas-sdk typecheck`
+- `pnpm --filter @tiangong-lca/tidas-sdk test`
+- `pnpm --filter @tiangong-lca/tidas-sdk check:examples`
+- `pnpm --filter @tiangong-lca/tidas-sdk build`
+- `pnpm --filter @tiangong-lca/tidas-sdk pack --dry-run`
 
 The package-local test suite also proves that the complete frozen dependency
 tree contains only TypeScript 7 and that installing the tarball in a clean
@@ -59,7 +60,7 @@ When the JSON Schema to Zod generator changes, build the pre-change baseline
 first and run:
 
 ```bash
-npm run verify:schema-generation-parity
+pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity
 ```
 
 The default baseline is `dist/schemas`. Use `TIDAS_ZOD_BASELINE_DIR` and
@@ -96,9 +97,9 @@ TIDAS_TOOLS_SOURCE_MODE=auto TIDAS_TOOLS_PATH=../tidas-tools ./scripts/ci/verify
 If you want a local helper for version editing without publishing, use:
 
 ```bash
-npm run release:prepare:patch
-npm run release:prepare:minor
-npm run release:prepare:major
+pnpm release:prepare:patch:typescript
+pnpm release:prepare:minor:typescript
+pnpm release:prepare:major:typescript
 ```
 
 These commands only update local version metadata files. They do not publish, create a git tag, or push anything.
@@ -110,13 +111,13 @@ The publish workflow:
 - only reacts to `typescript-v*` tags
 - validates that the tag matches the version in source control
 - reruns package verification
-- publishes with npm provenance enabled
+- publishes to npm through pnpm with provenance enabled
 
 One-time maintainer configuration is documented in `../../docs/release-setup.md`.
 
 ## Fallback Publishing
 
-Local `npm publish` is not the normal path.
+Local `pnpm publish` is not the normal path.
 
 Only use a local fallback if GitHub Actions or trusted publishing is unavailable and a maintainer explicitly decides to bypass CI. If that happens:
 
@@ -130,7 +131,7 @@ Only use a local fallback if GitHub Actions or trusted publishing is unavailable
 - Smoke-test install if the change is high risk:
 
 ```bash
-npm install @tiangong-lca/tidas-sdk@X.Y.Z
+pnpm add @tiangong-lca/tidas-sdk@X.Y.Z
 ```
 
 - Create or update GitHub release notes if useful for consumers.

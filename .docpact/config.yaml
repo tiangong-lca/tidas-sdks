@@ -1,7 +1,7 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-08-24"
-lastReviewedCommit: "6b18b475e2aa0ea6100acf2931bcab8c7968391d"
+lastReviewedAt: "2026-08-25"
+lastReviewedCommit: "7bbf298a6ad44969c406be79c1a1574640390207"
 
 catalog:
   repos:
@@ -33,7 +33,6 @@ ownership:
       paths:
         include:
           - sdks/typescript/package.json
-          - sdks/typescript/package-lock.json
           - sdks/typescript/README.md
           - sdks/typescript/README-zh.md
           - sdks/typescript/RELEASE.md
@@ -61,6 +60,8 @@ ownership:
       paths:
         include:
           - package.json
+          - pnpm-lock.yaml
+          - pnpm-workspace.yaml
           - scripts/ci/**
           - .github/workflows/ci.yml
           - .github/workflows/publish.yml
@@ -90,9 +91,10 @@ coverage:
     - docs/release-setup.md
     - docs/upstream-automation.md
     - package.json
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
     - scripts/ci/**
     - sdks/typescript/package.json
-    - sdks/typescript/package-lock.json
     - sdks/typescript/README.md
     - sdks/typescript/README-zh.md
     - sdks/typescript/RELEASE.md
@@ -146,8 +148,9 @@ routing:
         - scripts/install-git-hooks.sh
     typescript-sdk:
       paths:
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
         - sdks/typescript/package.json
-        - sdks/typescript/package-lock.json
         - sdks/typescript/README.md
         - sdks/typescript/README-zh.md
         - sdks/typescript/RELEASE.md
@@ -181,6 +184,8 @@ routing:
     generation-and-release:
       paths:
         - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
         - scripts/ci/**
         - .github/workflows/ci.yml
         - .github/workflows/publish.yml
@@ -203,6 +208,8 @@ routing:
         - docs/release-setup.md
         - docs/upstream-automation.md
         - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
         - scripts/ci/**
         - sdks/typescript/package.json
         - sdks/typescript/scripts/**
@@ -282,8 +289,6 @@ rules:
     triggers:
       - path: sdks/typescript/package.json
         kind: package-metadata
-      - path: sdks/typescript/package-lock.json
-        kind: package-lock
       - path: sdks/typescript/README.md
         kind: package-doc
       - path: sdks/typescript/README-zh.md
@@ -353,6 +358,10 @@ rules:
     repo: tidas-sdk
     triggers:
       - path: package.json
+        kind: workspace-runtime
+      - path: pnpm-lock.yaml
+        kind: package-lock
+      - path: pnpm-workspace.yaml
         kind: workspace-runtime
       - path: scripts/ci/**
         kind: generation-or-release

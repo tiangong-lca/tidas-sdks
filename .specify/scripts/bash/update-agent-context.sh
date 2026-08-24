@@ -251,7 +251,7 @@ get_commands_for_language() {
             echo "cargo test && cargo clippy"
             ;;
         *"JavaScript"*|*"TypeScript"*)
-            echo "npm test \\&\\& npm run lint"
+            echo "pnpm test \\&\\& pnpm lint"
             ;;
         *)
             echo "# Add commands for $lang"
@@ -769,4 +769,3 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
-

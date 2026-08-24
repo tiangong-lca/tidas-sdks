@@ -17,9 +17,9 @@ checkPaths:
   - .github/workflows/sync-from-tidas-tools.yml
   - .github/workflows/tag-release-from-merge.yml
   - .docpact/config.yaml
-lastReviewedAt: 2026-08-24
-lastReviewedCommit: 6b18b475e2aa0ea6100acf2931bcab8c7968391d
-lastReviewedNote: "Reviewed for issue #101 after independent review: automated refreshes must preserve TS7 closure, active-keyword proof, executable consumers, and explicit compatibility bumps."
+lastReviewedAt: 2026-08-25
+lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
+lastReviewedNote: "Reviewed for issue #103: automated refreshes now install and execute the TS7 SDK through the pinned pnpm 11.23.0 root workspace and frozen root lockfile."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -127,8 +127,8 @@ Recommended responsibilities:
 1. check out `tidas-sdk`
 2. check out `tiangong-lca/tidas-tools` at `client_payload.tidas_tools_sha`
 3. verify that checkout against its Rust `assets/asset-lock.v1.json`
-4. install TypeScript generator dependencies from the committed lockfile through
-   `npm ci --workspaces=false`
+4. install the TypeScript workspace dependency graph from the root
+   `pnpm-lock.yaml` through `pnpm install --frozen-lockfile`
 5. regenerate SDKs with:
    - `TIDAS_TOOLS_SOURCE_MODE=auto`
    - `TIDAS_TOOLS_PATH=<checked out tools path>`
@@ -145,12 +145,12 @@ Recommended responsibilities:
 
 Validation-contract safeguard for TypeScript refreshes:
 
-- require the frozen install and toolchain contracts to prove every resolved TypeScript compiler is 7.x and the packed SDK carries no compiler or generator tooling
+- require the frozen pnpm workspace install and toolchain contracts to prove every resolved TypeScript compiler is 7.x and the packed SDK carries no compiler or generator tooling
 - render Zod modules directly from the asset-lock-selected JSON Schema directory; do not restore an intermediate TypeScript parser or permissive fallback generator
 - when regeneration touches localized-text schemas or validation helpers, keep the post-processing that injects `params.validationCode` into custom localized-text issues
 - when Flow schemas contain cross-field `if` / `then` conditions, keep the generated Zod/Pydantic type-aware validator post-processing
 - confirm the committed TypeScript package still normalizes raw Zod issues into stable `validationIssues` codes for downstream consumers
-- for generator implementation changes, compare the candidate against a pre-change baseline with `npm run verify:schema-generation-parity` before replacing the baseline build
+- for generator implementation changes, compare the candidate against a pre-change baseline with `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity` before replacing the baseline build
 - do not default a generator semantics change to a patch: record the compatibility decision and choose a version that prevents existing consumers from receiving stricter validation implicitly (`0.2.0` for issue #101)
 - run the maintained examples and built-tarball CJS/ESM/declaration consumer contract before a release-prep PR is reviewable
 - call this out in the release-prep PR when the machine-readable validation contract changes
