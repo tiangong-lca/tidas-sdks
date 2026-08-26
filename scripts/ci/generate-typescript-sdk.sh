@@ -84,8 +84,17 @@ validate_inputs() {
 check_dependencies() {
     log_step "Checking dependencies..."
 
+    local node_pin_path="$REPO_ROOT/.nvmrc"
+    if [ ! -f "$node_pin_path" ]; then
+        log_error "Node.js pin not found: $node_pin_path"
+        exit 1
+    fi
+
+    local expected_node_version
+    expected_node_version="$(tr -d '[:space:]' <"$node_pin_path")"
+
     local node_version
-    if ! node_version="$(require_typescript_node_runtime)"; then
+    if ! node_version="$(require_typescript_node_runtime "$expected_node_version")"; then
         exit 1
     fi
     log_info "✓ Node.js version: $node_version"
