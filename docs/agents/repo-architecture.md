@@ -17,6 +17,7 @@ whenToUpdate:
 checkPaths:
   - docs/agents/repo-architecture.md
   - .docpact/config.yaml
+  - .nvmrc
   - scripts/ci/**
   - sdks/typescript/**
   - sdks/python/**
@@ -43,8 +44,9 @@ This repo packages two SDK surfaces under one root:
 - `sdks/python/`
 
 The root owns generation, verification, tagging, and publish automation.
-It also owns the Node package graph through `pnpm-workspace.yaml`, the exact
-`pnpm@11.23.0` declaration, and the single root `pnpm-lock.yaml`.
+It also owns the Node package graph through the exact Node `24.19.0` `.nvmrc`
+pin, `pnpm-workspace.yaml`, the exact `pnpm@11.24.0` declaration, and the single
+root `pnpm-lock.yaml`.
 
 ## Stable Vs Generated Paths
 
@@ -95,8 +97,9 @@ It also owns the stable validation contract that downstream apps consume:
 - downstream consumers should rely on normalized issue codes instead of parsing free-form error text when they need stable programmatic behavior
 
 The package toolchain is intentionally single-track: `typescript@7.x` is the
-only compiler, `pnpm@11.23.0` owns the root workspace and dependency graph,
-Oxlint performs type-aware lint, and Node 24 plus `tsx` executes the test suites.
+only compiler, `pnpm@11.24.0` owns the root workspace and dependency graph,
+Oxlint performs type-aware lint, and Node 24.19.0 plus `tsx` executes the test
+suites.
 The published package does not carry compiler, generator, lint, or test tooling
 into downstream installations.
 

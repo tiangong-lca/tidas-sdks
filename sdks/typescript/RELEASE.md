@@ -42,7 +42,7 @@ If the repository later adds a protected GitHub environment for npm releases, ap
 `./scripts/ci/verify-typescript-package.sh` performs the same checks expected by CI:
 
 - `pnpm install --frozen-lockfile` from the repository root, using the exact
-  `pnpm@11.23.0` declared in `package.json`
+  Node `24.19.0` from `.nvmrc` and `pnpm@11.24.0` declared in `package.json`
 - regenerate TypeScript artifacts from `tidas-tools`
 - fail if generated source changes are not committed
 - `pnpm --filter @tiangong-lca/tidas-sdk lint`

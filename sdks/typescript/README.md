@@ -6,8 +6,8 @@ contracts, runtime validation, XML conversion, and package-level parity tools.
 Published package: [@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk).
 Read the installed package metadata or npm registry for the current version.
 
-Node.js 24 or newer and the root-pinned `pnpm@11.23.0` are required for
-development.
+Exact Node.js 24.19.0 and the root-pinned `pnpm@11.24.0` are required for
+development and release verification.
 
 ## Installation
 
@@ -137,7 +137,7 @@ pnpm --filter @tiangong-lca/tidas-sdk build
 
 The root `pnpm-workspace.yaml` and `pnpm-lock.yaml` are the only workspace and
 dependency-lock sources. The package uses a single `typescript@7.x` compiler
-track. Oxlint performs type-aware linting, Node 24 runs tests through `tsx`, and
+track. Oxlint performs type-aware linting, Node 24.19.0 runs tests through `tsx`, and
 the published tarball does not carry compiler, generator, lint, or test tooling
 into consumers.
 

@@ -16,6 +16,8 @@ checkPaths:
   - scripts/ci/**
   - .github/workflows/sync-from-tidas-tools.yml
   - .github/workflows/tag-release-from-merge.yml
+  - .nvmrc
+  - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-25
 lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
@@ -127,8 +129,9 @@ Recommended responsibilities:
 1. check out `tidas-sdk`
 2. check out `tiangong-lca/tidas-tools` at `client_payload.tidas_tools_sha`
 3. verify that checkout against its Rust `assets/asset-lock.v1.json`
-4. install the TypeScript workspace dependency graph from the root
-   `pnpm-lock.yaml` through `pnpm install --frozen-lockfile`
+4. install the TypeScript workspace dependency graph with exact Node `24.19.0`
+   and `pnpm@11.24.0` from the root `pnpm-lock.yaml` through
+   `pnpm install --frozen-lockfile`
 5. regenerate SDKs with:
    - `TIDAS_TOOLS_SOURCE_MODE=auto`
    - `TIDAS_TOOLS_PATH=<checked out tools path>`
@@ -145,7 +148,7 @@ Recommended responsibilities:
 
 Validation-contract safeguard for TypeScript refreshes:
 
-- require the frozen pnpm workspace install and toolchain contracts to prove every resolved TypeScript compiler is 7.x and the packed SDK carries no compiler or generator tooling
+- require the frozen pnpm 11.24.0 workspace install on Node 24.19.0 and toolchain contracts to prove every resolved TypeScript compiler is 7.x and the packed SDK carries no compiler or generator tooling
 - render Zod modules directly from the asset-lock-selected JSON Schema directory; do not restore an intermediate TypeScript parser or permissive fallback generator
 - when regeneration touches localized-text schemas or validation helpers, keep the post-processing that injects `params.validationCode` into custom localized-text issues
 - when Flow schemas contain cross-field `if` / `then` conditions, keep the generated Zod/Pydantic type-aware validator post-processing

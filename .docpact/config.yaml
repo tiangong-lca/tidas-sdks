@@ -59,6 +59,7 @@ ownership:
     - id: generation-and-release-automation
       paths:
         include:
+          - .nvmrc
           - package.json
           - pnpm-lock.yaml
           - pnpm-workspace.yaml
@@ -90,6 +91,7 @@ coverage:
     - docs/agents/**
     - docs/release-setup.md
     - docs/upstream-automation.md
+    - .nvmrc
     - package.json
     - pnpm-lock.yaml
     - pnpm-workspace.yaml
@@ -148,6 +150,7 @@ routing:
         - scripts/install-git-hooks.sh
     typescript-sdk:
       paths:
+        - .nvmrc
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
         - sdks/typescript/package.json
@@ -183,6 +186,7 @@ routing:
         - sdks/python/tests/**
     generation-and-release:
       paths:
+        - .nvmrc
         - package.json
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
@@ -204,6 +208,7 @@ routing:
         - .github/workflows/tag-release-from-merge.yml
     proof:
       paths:
+        - .nvmrc
         - docs/agents/repo-validation.md
         - docs/release-setup.md
         - docs/upstream-automation.md
@@ -357,6 +362,8 @@ rules:
     scope: repo
     repo: tidas-sdk
     triggers:
+      - path: .nvmrc
+        kind: workspace-runtime
       - path: package.json
         kind: workspace-runtime
       - path: pnpm-lock.yaml

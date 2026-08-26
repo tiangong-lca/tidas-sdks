@@ -21,6 +21,7 @@ checkPaths:
   - docs/agents/**
   - docs/release-setup.md
   - docs/upstream-automation.md
+  - .nvmrc
   - package.json
   - scripts/ci/**
   - sdks/typescript/**
@@ -83,7 +84,8 @@ Read in this order:
 
 Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-validation.md`, and the release / automation docs for fuller detail.
 
-- root package manager: `pnpm@11.23.0`
+- root Node.js runtime: exact `24.19.0` in `.nvmrc`, package engines, and TypeScript CI jobs
+- root package manager: `pnpm@11.24.0`
 - root workspace and lockfile: `pnpm-workspace.yaml` and `pnpm-lock.yaml`
 - routine branch base: `main`
 - routine PR base: `main`
@@ -143,11 +145,11 @@ Route those tasks to:
 - TypeScript runtime assets are selected and integrity-checked through the upstream Rust `assets/asset-lock.v1.json`; the committed package copy includes that authoritative lock
 - TypeScript generation and verification must install the complete workspace dependency graph from the root `pnpm-lock.yaml` through the shared `pnpm install --frozen-lockfile` helper; package-local lockfiles and npm fallback installs are not valid
 - keep pnpm 11's default minimum-release-age protection; any latest-stable exception in `pnpm-workspace.yaml` must name an exact reviewed package version and must not use an unversioned package or wildcard
-- GitHub TypeScript jobs use the pinned `pnpm/setup` successor action for pnpm 11 and Node 24; `pnpm/action-setup` is a pnpm 10-or-older path and must not be restored
+- GitHub TypeScript jobs use the pinned `pnpm/setup` successor action for pnpm 11.24.0 and Node 24.19.0; `pnpm/action-setup` is a pnpm 10-or-older path and must not be restored
 - the TypeScript SDK has one compiler track: standard `typescript@7.x`; legacy compiler consumers, aliases, `ts-node`, `ts-jest`, and TypeScript-ESLint are not valid fallbacks
 - Zod schemas are rendered directly from the locked upstream JSON Schema assets; generation must not parse generated TypeScript or invoke a package runner, and unsupported schema shapes must fail instead of emitting permissive fallback validators
 - the `0.2.x` validation boundary consumes every active locked Draft-07 keyword, uses exact-pointer allowlists for domain overlays, and fails generation on an unknown keyword, format, or overlay location
-- Oxlint owns JavaScript/TypeScript lint, including type-aware deprecation checks; Node 24's test runner owns package tests, while `tsc` remains the independent release typecheck
+- Oxlint owns JavaScript/TypeScript lint, including type-aware deprecation checks; Node 24.19.0's test runner owns package tests, while `tsc` remains the independent release typecheck
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
