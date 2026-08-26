@@ -11,11 +11,12 @@ trap 'find "$test_root" -depth -delete' EXIT
 
 workspace_root="$test_root/workspace"
 mkdir -p "$workspace_root/sdks/typescript"
-printf '%s\n' '{"packageManager":"pnpm@11.23.0"}' >"$workspace_root/package.json"
+printf '%s\n' '{"packageManager":"pnpm@11.24.0","engines":{"node":"24.19.0","pnpm":"11.24.0"}}' >"$workspace_root/package.json"
+printf '%s\n' '24.19.0' >"$workspace_root/.nvmrc"
 : >"$workspace_root/pnpm-workspace.yaml"
 : >"$workspace_root/pnpm-lock.yaml"
 
-fake_pnpm_version="11.23.0"
+fake_pnpm_version="11.24.0"
 pnpm() {
     if [ "${1:-}" = "--version" ]; then
         printf '%s\n' "$fake_pnpm_version"
@@ -56,7 +57,7 @@ if install_typescript_dependencies "$workspace_root" >"$test_root/version.stdout
     exit 1
 fi
 
-if ! grep -Fq "expected pnpm 11.23.0, found 11.22.0" "$test_root/version.stderr"; then
+if ! grep -Fq "expected pnpm 11.24.0, found 11.22.0" "$test_root/version.stderr"; then
     echo "error: pnpm version mismatch did not explain the contract" >&2
     exit 1
 fi
@@ -66,7 +67,7 @@ if [ "$(wc -l <"$pnpm_log" | tr -d ' ')" != "1" ]; then
     exit 1
 fi
 
-fake_pnpm_version="11.23.0"
+fake_pnpm_version="11.24.0"
 printf '%s\n' '{}' >"$workspace_root/package.json"
 if install_typescript_dependencies "$workspace_root" >"$test_root/missing-manager.stdout" 2>"$test_root/missing-manager.stderr"; then
     echo "error: dependency installation accepted a missing packageManager pin" >&2
@@ -94,26 +95,26 @@ if [ "$(wc -l <"$pnpm_log" | tr -d ' ')" != "1" ]; then
     exit 1
 fi
 
-printf '%s\n' '{"packageManager":"pnpm@11.23.0"}' >"$workspace_root/package.json"
+printf '%s\n' '{"packageManager":"pnpm@11.24.0","engines":{"node":"24.19.0","pnpm":"11.24.0"}}' >"$workspace_root/package.json"
 
 fake_node_version="v24.19.0"
 node() {
     printf '%s\n' "$fake_node_version"
 }
 
-actual_node_version="$(require_typescript_node_runtime)"
+actual_node_version="$(require_typescript_node_runtime "24.19.0")"
 if [ "$actual_node_version" != "$fake_node_version" ]; then
     echo "error: expected Node.js runtime '$fake_node_version', got '$actual_node_version'" >&2
     exit 1
 fi
 
-fake_node_version="v23.11.0"
-if require_typescript_node_runtime >"$test_root/node-version.stdout" 2>"$test_root/node-version.stderr"; then
-    echo "error: TypeScript automation accepted Node.js below 24" >&2
+fake_node_version="v24.18.0"
+if require_typescript_node_runtime "24.19.0" >"$test_root/node-version.stdout" 2>"$test_root/node-version.stderr"; then
+    echo "error: TypeScript automation accepted a different Node.js patch" >&2
     exit 1
 fi
 
-if ! grep -Fq "Node.js 24+ is required, found v23.11.0" "$test_root/node-version.stderr"; then
+if ! grep -Fq "Node.js 24.19.0 is required, found v24.18.0" "$test_root/node-version.stderr"; then
     echo "error: Node.js version mismatch did not explain the contract" >&2
     exit 1
 fi
