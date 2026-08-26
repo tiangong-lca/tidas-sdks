@@ -20,11 +20,21 @@ const PACKAGE_ROOT = dirname(TEST_DIR);
 const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT));
 const REPOSITORY_PACKAGE_JSON_PATH = join(REPOSITORY_ROOT, 'package.json');
 const PNPM_WORKSPACE_PATH = join(REPOSITORY_ROOT, 'pnpm-workspace.yaml');
+const NODE_PIN_PATH = join(REPOSITORY_ROOT, '.nvmrc');
 const PACKAGE_JSON_PATH = join(PACKAGE_ROOT, 'package.json');
 const REPOSITORY_PACKAGE_JSON = readJson(REPOSITORY_PACKAGE_JSON_PATH);
 const PACKAGE_JSON = readJson(PACKAGE_JSON_PATH);
-const PACKAGE_MANAGER = 'pnpm@11.23.0';
+const PACKAGE_MANAGER = 'pnpm@11.24.0';
 const PACKAGE_MANAGER_VERSION = PACKAGE_MANAGER.slice('pnpm@'.length);
+const NODE_VERSION = '24.19.0';
+const NODE_RUNTIME = `node@${NODE_VERSION}`;
+
+const TYPESCRIPT_WORKFLOWS = [
+  'ci.yml',
+  'publish.yml',
+  'sync-from-tidas-tools.yml',
+  'tag-release-from-merge.yml',
+];
 
 const PACKAGE_LOCKFILE_NAMES = new Set([
   'bun.lock',
@@ -113,8 +123,14 @@ test('all first-party manifests declare only direct TypeScript 7.x', () => {
   );
 });
 
-test('the root pins the exact supported pnpm version', () => {
+test('the workspace pins the exact supported pnpm and Node.js versions', () => {
   assert.equal(REPOSITORY_PACKAGE_JSON.packageManager, PACKAGE_MANAGER);
+  assert.deepEqual(REPOSITORY_PACKAGE_JSON.engines, {
+    node: NODE_VERSION,
+    pnpm: PACKAGE_MANAGER_VERSION,
+  });
+  assert.deepEqual(PACKAGE_JSON.engines, { node: NODE_VERSION });
+  assert.equal(readFileSync(NODE_PIN_PATH, 'utf8').trim(), NODE_VERSION);
 
   const installedVersion = execFileSync(
     'pnpm',
@@ -126,6 +142,35 @@ test('the root pins the exact supported pnpm version', () => {
     PACKAGE_MANAGER_VERSION,
     `the active pnpm must match ${PACKAGE_MANAGER}, received ${installedVersion}`
   );
+});
+
+test('every TypeScript workflow pins the exact supported Node.js runtime', () => {
+  for (const workflowName of TYPESCRIPT_WORKFLOWS) {
+    const workflowPath = join(
+      REPOSITORY_ROOT,
+      '.github',
+      'workflows',
+      workflowName
+    );
+    const workflow = parseYaml(readFileSync(workflowPath, 'utf8'));
+    const setupSteps = Object.values(workflow.jobs ?? {}).flatMap((job) =>
+      (job.steps ?? []).filter(
+        (step) =>
+          typeof step.uses === 'string' && step.uses.startsWith('pnpm/setup@')
+      )
+    );
+
+    assert.equal(
+      setupSteps.length,
+      1,
+      `${workflowName} must contain one pnpm/setup step`
+    );
+    assert.equal(
+      setupSteps[0].with?.runtime,
+      NODE_RUNTIME,
+      `${workflowName} must use ${NODE_RUNTIME}`
+    );
+  }
 });
 
 test('pnpm-lock.yaml is the repository only package-manager lockfile', () => {

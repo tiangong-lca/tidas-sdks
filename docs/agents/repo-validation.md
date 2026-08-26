@@ -17,6 +17,7 @@ whenToUpdate:
 checkPaths:
   - docs/agents/repo-validation.md
   - .docpact/config.yaml
+  - .nvmrc
   - scripts/ci/**
   - sdks/typescript/**
   - sdks/python/**
@@ -53,7 +54,7 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
-| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `pnpm --filter @tiangong-lca/tidas-sdk test:coverage` when testable behavior changes | This covers the frozen pnpm/TS7 install, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the pnpm consumer inherits no compiler tooling. Coverage is explicitly scoped to first-party package source/generation helpers so package-manager runtime code cannot dilute it; ratchets are lines 95%, branches 75%, functions 70%. |
+| TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `pnpm --filter @tiangong-lca/tidas-sdk test:coverage` when testable behavior changes | This covers the frozen pnpm 11.24.0/TS7 install on Node 24.19.0, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the pnpm consumer inherits no compiler tooling. Coverage is explicitly scoped to first-party package source/generation helpers so package-manager runtime code cannot dilute it; ratchets are lines 95%, branches 75%, functions 70%. |
 | JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |
@@ -76,7 +77,8 @@ Facts that matter:
   TypeScript runtime copy before generation succeeds
 - clean TypeScript generation and verification both install dependencies through
   `scripts/ci/lib/typescript-dependencies.sh`, which requires the root
-  `pnpm-lock.yaml` and runs `pnpm install --frozen-lockfile` from the repository root
+  `pnpm-lock.yaml`, exact `pnpm@11.24.0`, and exact Node `24.19.0` from `.nvmrc`,
+  then runs `pnpm install --frozen-lockfile` from the repository root
 - pnpm's default one-day release-age gate remains active; the toolchain contract
   permits only exact, versioned exceptions recorded after reviewing a required
   latest-stable release

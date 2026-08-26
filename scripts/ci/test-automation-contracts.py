@@ -167,7 +167,7 @@ class PnpmWorkflowContractTests(unittest.TestCase):
                     "# v2.0.2",
                     raw,
                 )
-                self.assertIn("runtime: node@24", raw)
+                self.assertIn("runtime: node@24.19.0", raw)
                 self.assertIn("install: false", raw)
                 self.assertIn("cache: true", raw)
                 self.assertNotIn("pnpm/action-setup", raw)

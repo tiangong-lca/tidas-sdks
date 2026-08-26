@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 
 require_typescript_node_runtime() {
+    local expected_node_version="${1:?exact Node.js version is required}"
     local node_version
-    local node_major
+
+    expected_node_version="${expected_node_version#v}"
+    if ! [[ "$expected_node_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "error: expected Node.js version must be an exact semantic version, found $expected_node_version" >&2
+        return 1
+    fi
 
     if ! command -v node >/dev/null 2>&1; then
-        echo "error: node not found. Please install Node.js 24+" >&2
+        echo "error: node not found. Please install Node.js $expected_node_version" >&2
         return 1
     fi
 
     node_version="$(node --version)"
-    node_major="${node_version#v}"
-    node_major="${node_major%%.*}"
-    if ! [[ "$node_major" =~ ^[0-9]+$ ]] || ((node_major < 24)); then
-        echo "error: Node.js 24+ is required, found $node_version" >&2
+    if [ "$node_version" != "v$expected_node_version" ]; then
+        echo "error: Node.js $expected_node_version is required, found $node_version" >&2
         return 1
     fi
 

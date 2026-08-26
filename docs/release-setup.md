@@ -15,6 +15,8 @@ checkPaths:
   - docs/release-setup.md
   - .github/workflows/publish.yml
   - .github/workflows/tag-release-from-merge.yml
+  - .nvmrc
+  - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-08-25
 lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
@@ -130,9 +132,9 @@ If the PyPI project does not exist yet, register a pending publisher first so th
 
 ## Operational Notes
 
-- the TypeScript publish job activates the exact `pnpm@11.23.0` declared at the
+- the TypeScript publish job activates the exact `pnpm@11.24.0` declared at the
   repository root and verifies the frozen `pnpm-lock.yaml` before publication.
-- pnpm 11 and Node 24 are installed through the SHA-pinned `pnpm/setup` successor
+- pnpm 11.24.0 and Node 24.19.0 are installed through the SHA-pinned `pnpm/setup` successor
   action; the legacy `pnpm/action-setup` path is not compatible with this track.
 - the TypeScript package pins its public publish target to
   `https://registry.npmjs.org/`; do not rely on runner-level registry defaults.

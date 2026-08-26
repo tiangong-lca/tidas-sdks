@@ -19,6 +19,7 @@ checkPaths:
   - sdks/typescript/**
   - sdks/python/**
   - scripts/ci/**
+  - .nvmrc
 lastReviewedAt: 2026-08-25
 lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
 lastReviewedNote: "Reviewed for issue #103: TypeScript development, consumers, verification, and releases now use the pinned pnpm 11.23.0 root workspace and frozen root lockfile."
@@ -100,7 +101,7 @@ repair can recover an interrupted release without inventing a replacement versio
 
 ### Prerequisites
 
-- TypeScript SDK: Node.js 24+, pnpm 11.23.0
+- TypeScript SDK: Node.js 24.19.0, pnpm 11.24.0
 - Python SDK: Python 3.12+, uv
 
 ### Setup
@@ -146,7 +147,7 @@ clean refresh needs generator dependencies, it requires the root
 
 The TypeScript package uses a single `typescript@7.x` compiler track. Zod
 schemas are generated directly from the locked JSON Schema assets, Oxlint owns
-type-aware lint, and Node 24 owns the test runner. Packed consumers do not
+type-aware lint, and Node 24.19.0 owns the test runner. Packed consumers do not
 inherit the compiler or generator toolchain.
 
 ### Release Workflow

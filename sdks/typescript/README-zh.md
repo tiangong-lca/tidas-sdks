@@ -8,7 +8,8 @@
 发布包：[@tiangong-lca/tidas-sdk](https://www.npmjs.com/package/@tiangong-lca/tidas-sdk)。
 当前版本以已安装包或 npm registry 为准，文档不重复维护版本号。
 
-开发环境要求 Node.js 24 或更高版本，并使用根目录固定的 `pnpm@11.23.0`。
+开发与发布验证环境要求精确的 Node.js 24.19.0，并使用根目录固定的
+`pnpm@11.24.0`。
 
 ## 安装
 
@@ -132,7 +133,7 @@ pnpm --filter @tiangong-lca/tidas-sdk build
 
 根目录的 `pnpm-workspace.yaml` 和 `pnpm-lock.yaml` 是唯一的工作区与依赖锁定
 来源。该包只使用一个 `typescript@7.x` 编译器轨道。Oxlint 负责类型感知 lint，
-Node 24 通过 `tsx` 运行测试；发布 tarball 不会向消费者传递编译器、生成器、
+Node 24.19.0 通过 `tsx` 运行测试；发布 tarball 不会向消费者传递编译器、生成器、
 lint 或测试工具。
 
 常用命令：

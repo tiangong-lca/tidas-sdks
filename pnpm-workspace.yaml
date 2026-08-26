@@ -8,7 +8,7 @@ allowBuilds:
   esbuild: true
   fsevents: false
 
-# pnpm 11 rejects packages released inside its default safety window. These
+# pnpm 11.24.0 rejects packages released inside its default safety window. These
 # exact latest-stable Oxlint artifacts were reviewed for this TS7 migration.
 minimumReleaseAgeExclude:
   - '@oxlint/binding-android-arm-eabi@1.80.0'
