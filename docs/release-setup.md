@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-08-25
-lastReviewedCommit: 7bbf298a6ad44969c406be79c1a1574640390207
-lastReviewedNote: "Reviewed for issue #103: TypeScript publishing keeps the npm Trusted Publisher identity while verification and package publication run from the pinned pnpm 11.23.0 workspace."
+lastReviewedAt: 2026-09-05
+lastReviewedCommit: 6385e7e46c5cbc047bf34f292a44cb863238b27c
+lastReviewedNote: "Reviewed for #108 / workspace #980 W11: remove only the macOS Intel Oxlint release-age exception. The frozen graph, supported-platform exceptions, upstream pin and package/release behavior remain unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
