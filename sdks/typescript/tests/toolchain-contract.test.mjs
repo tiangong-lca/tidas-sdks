@@ -191,9 +191,10 @@ test('pnpm supply-chain exceptions are exact, versioned Oxlint artifacts', () =>
 
   assert.equal(
     exceptions.length,
-    20,
-    'the reviewed Oxlint release consists of the package and 19 platform bindings'
+    19,
+    'the reviewed policy excludes the retired macOS Intel binding'
   );
+  assert.equal(exceptions.includes('@oxlint/binding-darwin-x64@1.80.0'), false);
   assert.deepEqual(
     exceptions.filter(
       (entry) =>
