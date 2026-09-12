@@ -1,13 +1,13 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-09-05"
-lastReviewedCommit: "6385e7e46c5cbc047bf34f292a44cb863238b27c"
+lastReviewedAt: 2026-09-13
+lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
 
 catalog:
   repos:
     - id: tidas-sdk
       path: .
-      canonicalRepo: tiangong-lca/tidas-sdk
+      canonicalRepo: tiangong-lca/tidas-sdks
       entryDoc: AGENTS.md
       workflowDocs:
         - docs/agents/repo-validation.md

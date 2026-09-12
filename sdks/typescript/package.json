@@ -89,7 +89,7 @@
   "description": "TypeScript SDK for ILCD/Tidas data management",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tiangong-lca/tidas-sdk.git",
+    "url": "git+https://github.com/tiangong-lca/tidas-sdks.git",
     "directory": "sdks/typescript"
   },
   "publishConfig": {

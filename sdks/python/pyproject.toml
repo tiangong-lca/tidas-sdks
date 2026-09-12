@@ -27,8 +27,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tiangong-lca/tidas-sdk"
-Repository = "https://github.com/tiangong-lca/tidas-sdk"
+Homepage = "https://github.com/tiangong-lca/tidas-sdks"
+Repository = "https://github.com/tiangong-lca/tidas-sdks"
 
 [build-system]
 requires = ["setuptools>=70", "wheel"]

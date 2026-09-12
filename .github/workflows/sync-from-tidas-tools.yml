@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tidas_tools_sha:
-        description: Exact 40-character tiangong-lca/tidas-tools commit SHA to sync from.
+        description: Exact 40-character tiangong-lca/tidas-toolkit commit SHA to sync from.
         required: true
         type: string
       packages:
@@ -140,7 +140,7 @@ jobs:
           set -euo pipefail
 
           UPSTREAM_DIR="$RUNNER_TEMP/tidas-tools-upstream"
-          CLONE_URL="https://x-access-token:${AUTOMATION_TOKEN}@github.com/tiangong-lca/tidas-tools.git"
+          CLONE_URL="https://github.com/tiangong-lca/tidas-toolkit.git"
 
           rm -rf "$UPSTREAM_DIR"
           git clone --quiet "$CLONE_URL" "$UPSTREAM_DIR"
@@ -148,7 +148,7 @@ jobs:
           git -C "$UPSTREAM_DIR" checkout --detach "$REQUESTED_SHA"
 
           RESOLVED_SHA="$(git -C "$UPSTREAM_DIR" rev-parse HEAD)"
-          if [ "${RESOLVED_SHA,,}" != "${REQUESTED_SHA,,}" ]; then
+          if [ "$(printf '%s' "$RESOLVED_SHA" | tr '[:upper:]' '[:lower:]')" != "$(printf '%s' "$REQUESTED_SHA" | tr '[:upper:]' '[:lower:]')" ]; then
             echo "error: resolved upstream commit does not match the request" >&2
             exit 1
           fi
@@ -351,7 +351,7 @@ jobs:
             echo "body<<$BODY_DELIMITER"
             echo "## Summary"
             echo
-            echo "- Sync generated SDK artifacts from \`tiangong-lca/tidas-tools\` commit \`$UPSTREAM_SHA\`."
+            echo "- Sync generated SDK artifacts from \`tiangong-lca/tidas-toolkit\` commit \`$UPSTREAM_SHA\`."
             if [ "$TYPESCRIPT_CHANGED" = "true" ]; then
               echo "- Release TypeScript package \`@tiangong-lca/tidas-sdk\` as \`$TYPESCRIPT_VERSION\` (\`$TYPESCRIPT_BUMP\` bump)."
             fi

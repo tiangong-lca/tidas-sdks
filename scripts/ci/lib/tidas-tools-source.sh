@@ -2,7 +2,7 @@
 
 # shellcheck shell=bash
 
-TIDAS_TOOLS_REPO_URL="${TIDAS_TOOLS_REPO_URL:-https://github.com/tiangong-lca/tidas-tools.git}"
+TIDAS_TOOLS_REPO_URL="${TIDAS_TOOLS_REPO_URL:-https://github.com/tiangong-lca/tidas-toolkit.git}"
 TIDAS_TOOLS_SHA="${TIDAS_TOOLS_SHA:-4032198caa8654faf573c795434653113b85a331}"
 TIDAS_TOOLS_SOURCE_MODE="${TIDAS_TOOLS_SOURCE_MODE:-auto}"
 
@@ -15,8 +15,6 @@ upstream_git() {
         unset GIT_ALTERNATE_OBJECT_DIRECTORIES
         unset GIT_COMMON_DIR
         unset GIT_CONFIG
-        unset GIT_CONFIG_COUNT
-        unset GIT_CONFIG_PARAMETERS
         unset GIT_DIR
         unset GIT_GRAFT_FILE
         unset GIT_INDEX_FILE
@@ -25,7 +23,17 @@ upstream_git() {
         unset GIT_REPLACE_REF_BASE
         unset GIT_SHALLOW_FILE
         unset GIT_WORK_TREE
-        command git "$@"
+        # Runtime config contains the selected account/rewrite context. Keep it,
+        # but force this helper's explicit checkout so a parent core.worktree or
+        # core.bare setting cannot redirect generation into another repository.
+        if [ "${1:-}" = "-C" ] && [ "$#" -ge 2 ]; then
+            local target
+            target="$(cd "$2" && pwd)" || return
+            shift 2
+            command git -C "$target" -c "core.worktree=$target" -c core.bare=false "$@"
+        else
+            command git "$@"
+        fi
     )
 }
 
@@ -100,6 +108,22 @@ resolve_tidas_tools_source() {
             ;;
         clone)
             ;;
+        verified-path)
+            # The caller already resolved and verified a source in this process tree
+            # Re-validate it fail-closed so a
+            # stale or hand-edited TIDAS_TOOLS_PATH can never bypass the pin, then
+            # reuse it without creating another temporary checkout. The caller owns
+            # the checkout lifetime (RESOLVED_TIDAS_TOOLS_IS_TEMP stays 0).
+            if [ -z "${TIDAS_TOOLS_PATH:-}" ] || ! is_tidas_tools_checkout "$TIDAS_TOOLS_PATH"; then
+                >&2 echo "[ERROR] verified-path mode requires TIDAS_TOOLS_PATH to be an already-resolved tidas-tools checkout"
+                return 1
+            fi
+            RESOLVED_TIDAS_TOOLS_PATH="$(cd "$TIDAS_TOOLS_PATH" && pwd)"
+            RESOLVED_TIDAS_TOOLS_IS_TEMP=0
+            verify_tidas_tools_commit "$RESOLVED_TIDAS_TOOLS_PATH"
+            verify_tidas_tools_assets "$RESOLVED_TIDAS_TOOLS_PATH"
+            return 0
+            ;;
         *)
             >&2 echo "[ERROR] Unsupported TIDAS_TOOLS_SOURCE_MODE: $TIDAS_TOOLS_SOURCE_MODE"
             return 1
@@ -107,6 +131,8 @@ resolve_tidas_tools_source() {
     esac
 
     RESOLVED_TIDAS_TOOLS_PATH="$(mktemp -d "${TMPDIR:-/tmp}/tidas-tools.XXXXXX")"
+    # Normalize now so every later stage compares an identical canonical path.
+    RESOLVED_TIDAS_TOOLS_PATH="$(cd "$RESOLVED_TIDAS_TOOLS_PATH" && pwd)"
     RESOLVED_TIDAS_TOOLS_IS_TEMP=1
 
     >&2 echo "[STEP] Syncing tidas-tools into a temporary checkout..."
