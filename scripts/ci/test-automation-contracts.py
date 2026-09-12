@@ -9,6 +9,7 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -347,13 +348,18 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         self.sibling_sha = write_tools_checkout(self.sibling, "sibling-set-Y")
         self.assertNotEqual(self.pin_sha, self.sibling_sha)
         self.resolver = SCRIPT_ROOT / "tidas-tools-assets.mjs"
-        self.ts_resolver = (
-            REPO_ROOT / "sdks" / "typescript" / "scripts" / "resolve-tidas-tools-path.ts"
-        )
         # Stage TMPDIR lives inside the fixture-owned directory so test checkouts
         # are always cleaned up with the fixture.
         self.fixture_tmp = self.root / "tmp"
         self.fixture_tmp.mkdir()
+        # The tag workflow runs these checks before package bootstrap. Fail loudly
+        # if a regression accidentally introduces a pnpm requirement again.
+        blocked_bin = self.root / "no-package-tooling"
+        blocked_bin.mkdir()
+        pnpm = blocked_bin / "pnpm"
+        pnpm.write_text("#!/bin/sh\necho 'pnpm is unavailable before package bootstrap' >&2\nexit 127\n")
+        pnpm.chmod(0o755)
+        self.env["PATH"] = str(blocked_bin) + os.pathsep + self.env["PATH"]
 
     def git(self, *args: str) -> str:
         return subprocess.check_output(["git", *args], env=self.env, text=True, stderr=subprocess.DEVNULL).strip()
@@ -375,60 +381,7 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         }
         return env
 
-    def resolve_and_build_resolution(self) -> dict:
-        """One bash process performs the verify-script sequence (resolve, export,
-        trap-guarded) AND the build-stage resolver probe while the verified clone
-        is still alive; the EXIT trap removes the temporary checkout afterwards."""
-        probe = (
-            'import { requireTidasToolsRepoRoot } from "'
-            + str(self.ts_resolver)
-            + '";\nprocess.stdout.write("RESOLVER=" + requireTidasToolsRepoRoot());'
-        )
-        probe_file = self.root / "resolver-probe.ts"
-        probe_file.write_text(probe)
-        lines = [
-            "source " + shlex.quote(str(SCRIPT_ROOT / "lib/tidas-tools-source.sh")),
-            'TIDAS_TOOLS_ASSET_RESOLVER="$SDK_RESOLVER"',
-            "TIDAS_TOOLS_SOURCE_MODE=clone",
-            "export TIDAS_TOOLS_SOURCE_MODE",
-            "trap cleanup_tidas_tools_source EXIT",
-            'resolve_tidas_tools_source "$SDK_TEST_ROOT"',
-            'export TIDAS_TOOLS_PATH="$RESOLVED_TIDAS_TOOLS_PATH"',
-            'printf "CLONE=%s\\n" "$TIDAS_TOOLS_PATH"',
-            'printf "CLONE_SHA=%s\\n" "$(upstream_git -C "$TIDAS_TOOLS_PATH" rev-parse HEAD)"',
-            "pnpm --filter @tiangong-lca/tidas-sdk exec tsx " + shlex.quote(str(probe_file)),
-            "",
-        ]
-        build = subprocess.run(
-            ["bash", "-e", "-c", "\n".join(lines)],
-            env={
-                **self.source_env(),
-                "SDK_TEST_ROOT": str(REPO_ROOT),
-                "SDK_RESOLVER": str(self.resolver),
-                "TMPDIR": str(self.fixture_tmp),
-            },
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(build.returncode, 0, build.stderr)
-        values = dict(line.split("=", 1) for line in build.stdout.splitlines() if "=" in line)
-        values["SIBLING"] = str(self.sibling)
-        values["SIBLING_SHA"] = self.sibling_sha
-        return values
-
-    def test_clone_resolution_ignores_the_injected_sibling_for_every_stage(self) -> None:
-        values = self.resolve_and_build_resolution()
-        clone = values["CLONE"]
-        self.assertNotEqual(clone, str(self.sibling))
-        self.assertIn("/tidas-tools.", clone)
-        self.assertEqual(values["CLONE_SHA"], self.pin_sha)
-        self.assertNotEqual(values["CLONE_SHA"], self.sibling_sha)
-        # The build stage resolver sees exactly the same verified checkout.
-        self.assertEqual(values["RESOLVER"], clone)
-        self.assertNotEqual(values["RESOLVER"], str(self.sibling))
-        self.assertFalse(Path(clone).exists(), "the owning process must clean its clone")
-
-    def test_verify_script_defaults_an_unset_mode_to_clone(self) -> None:
+    def test_verify_prelude_defaults_to_clone_and_exports_only_pinned_content(self) -> None:
         # Execute the real verify-typescript-package.sh prelude (SCRIPT_DIR through the
         # source/mode/trap/resolve wiring) with TIDAS_TOOLS_SOURCE_MODE unset: the script
         # must default to clone (a temp verified checkout), not the helper's auto default
@@ -444,15 +397,19 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
             count=1,
         )
         lines = [
-            "unset TIDAS_TOOLS_SOURCE_MODE TIDAS_TOOLS_PATH",
+            "unset TIDAS_TOOLS_SOURCE_MODE",
             prelude,
             'printf "MODE=%s\\n" "$TIDAS_TOOLS_SOURCE_MODE"',
             'printf "PATH=%s\\n" "$TIDAS_TOOLS_PATH"',
             'printf "SHA=%s\\n" "$(upstream_git -C "$TIDAS_TOOLS_PATH" rev-parse HEAD)"',
+            shlex.quote(sys.executable) + " -c " + shlex.quote(
+                "import os; from pathlib import Path; "
+                "print('CHILD_MARKER=' + (Path(os.environ['TIDAS_TOOLS_PATH']) / 'marker').read_text())"
+            ),
             "",
         ]
         unset_env = self.source_env()
-        unset_env.pop("TIDAS_TOOLS_PATH", None)
+        unset_env["TMPDIR"] = str(self.fixture_tmp)
         result = subprocess.run(
             ["bash", "-e", "-c", "\n".join(lines)],
             env=unset_env,
@@ -465,6 +422,8 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         self.assertIn("/tidas-tools.", values["PATH"])
         self.assertNotEqual(values["PATH"], str(self.sibling))
         self.assertEqual(values["SHA"], self.pin_sha)
+        self.assertEqual(values["CHILD_MARKER"], "fixture-set-X")
+        self.assertFalse(Path(values["PATH"]).exists(), "verify must clean its owned clone")
 
     def test_generate_verified_path_reuse_revalidates_and_rejects_foreign_checkouts(self) -> None:
         # generate re-resolves in verified-path mode inside the same live checkout
