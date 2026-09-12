@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-05
-lastReviewedCommit: 6385e7e46c5cbc047bf34f292a44cb863238b27c
-lastReviewedNote: "Reviewed for #108 / workspace #980 W11: remove only the macOS Intel Oxlint release-age exception. The frozen graph, supported-platform exceptions, upstream pin and package/release behavior remain unchanged."
+lastReviewedAt: 2026-09-13
+lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
+lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -126,3 +126,7 @@ Install the versioned local hook once per checkout:
 ```
 
 The `pre-push` hook runs `scripts/docpact-gate.sh`, which delegates CLI lookup to `scripts/docpact` and performs strict config validation plus enforced lint before the push leaves the machine. It then runs `./scripts/ci/verify-typescript-package.sh` and `./scripts/ci/verify-python-package.sh` as the local test gate. The wrapper checks `DOCPACT_BIN`, Cargo install locations, Homebrew install locations, and then `PATH`, so local agent shells should not fail only because bare `docpact` is unavailable. The default comparison base is `origin/main`. Override it for unusual stacks with `DOCPACT_BASE_REF=<ref>` or `scripts/docpact-gate.sh --base <ref>`. The gate writes its detailed report to a temporary file so normal pushes do not create `.docpact/runs/` artifacts. The GitHub `CI` workflow is manual-dispatch only.
+
+Upstream Git subprocesses clear inherited repository directory/index bindings but preserve process-scoped account configuration (`GIT_CONFIG_COUNT` / `GIT_CONFIG_PARAMETERS`). The explicit candidate checkout overrides inherited `core.worktree` / `core.bare` settings. Public upstream clones use credential-free canonical HTTPS; automation credentials remain confined to SDK write operations. Wrong SHA or asset locks still fail, and the default pin is unchanged.
+
+TypeScript verification defaults to a temporary clone and retains that exact verified checkout through generation, tests, build and packing. Nested generation uses `verified-path` mode to recheck the same SHA and asset lock without cloning again. The owning process cleans temporary sources on success and failure. Standalone builds retain their existing sibling/offline fallback; canonical verification never falls back to it. The automation regression suite exercises differing sibling contents, the default clone path, strict reuse and cleanup.

@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-05
-lastReviewedCommit: 6385e7e46c5cbc047bf34f292a44cb863238b27c
-lastReviewedNote: "Reviewed for #108 / workspace #980 W11: remove only the macOS Intel Oxlint release-age exception. The frozen graph, supported-platform exceptions, upstream pin and package/release behavior remain unchanged."
+lastReviewedAt: 2026-09-13
+lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
+lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -34,12 +34,12 @@ This document captures the one-time repository and registry configuration requir
 
 ## Cross-Repository Automation
 
-If you want `tiangong-lca/tidas-tools` changes to automatically rebuild and release the SDK packages in this repository, use the architecture described in [upstream-automation.md](./upstream-automation.md).
+If you want `tiangong-lca/tidas-toolkit` changes to automatically rebuild and release the SDK packages in this repository, use the architecture described in [upstream-automation.md](./upstream-automation.md).
 
 Recommended model:
 
 - `tidas-tools` detects SDK-relevant upstream changes
-- `tidas-tools` dispatches into `tiangong-lca/tidas-sdk`
+- `tidas-tools` dispatches into `tiangong-lca/tidas-sdks`
 - `tidas-sdk` regenerates SDKs from the exact upstream SHA and opens a release-prep PR
 - after merge, `tidas-sdk` creates package tags
 - the existing `publish.yml` workflow publishes from those tags
@@ -58,7 +58,7 @@ Important constraint:
 
 Operational preference:
 
-- keep registry ownership and Trusted Publishing configuration in `tiangong-lca/tidas-sdk`
+- keep registry ownership and Trusted Publishing configuration in `tiangong-lca/tidas-sdks`
 - keep `publish.yml` as the formal package release entrypoint
 - automate PR creation and tag creation, not cross-repository direct publishing
 - keep `.github/workflows/ci.yml` as manual-dispatch only; ordinary pushes rely on the local pre-push gate
@@ -66,22 +66,22 @@ Operational preference:
 
 Required secrets:
 
-- in `tiangong-lca/tidas-sdk`: `TIDAS_RELEASE_AUTOMATION_TOKEN`
-- in `tiangong-lca/tidas-tools`: `TIDAS_SDK_AUTOMATION_TOKEN`
+- in `tiangong-lca/tidas-sdks`: `TIDAS_RELEASE_AUTOMATION_TOKEN`
+- in `tiangong-lca/tidas-toolkit`: `TIDAS_SDK_AUTOMATION_TOKEN`
 
 The current workflows expect a token that can:
 
-- read `tiangong-lca/tidas-tools`
-- push automation branches to `tiangong-lca/tidas-sdk`
-- open PRs in `tiangong-lca/tidas-sdk`
-- create tag refs in `tiangong-lca/tidas-sdk`
-- create a repository dispatch event from `tiangong-lca/tidas-tools` into `tiangong-lca/tidas-sdk`
+- read `tiangong-lca/tidas-toolkit`
+- push automation branches to `tiangong-lca/tidas-sdks`
+- open PRs in `tiangong-lca/tidas-sdks`
+- create tag refs in `tiangong-lca/tidas-sdks`
+- create a repository dispatch event from `tiangong-lca/tidas-toolkit` into `tiangong-lca/tidas-sdks`
 
 If you prefer a GitHub App instead of a PAT, keep the same secret names but update the workflows to mint an installation token at runtime.
 
 ## GitHub Repository
 
-Create this protected environment in `tiangong-lca/tidas-sdk`:
+Create this protected environment in `tiangong-lca/tidas-sdks`:
 
 - `pypi-release`
 

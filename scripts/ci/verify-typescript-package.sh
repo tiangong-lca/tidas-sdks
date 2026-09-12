@@ -26,10 +26,28 @@ require_stable_generation_output() {
     fi
 }
 
+# Resolve the upstream source exactly once and keep the verified checkout alive for
+# every stage below. Without this, the build-stage bundle-methodologies/copy-runtime
+# re-resolution could silently fall back to an unverified sibling ../tidas-tools
+# checkout and rebuild packaged artifacts from a different source than the one this
+# script generated, linted, tested and pinned.
+# Capture the requested mode before sourcing the helper: the helper defaults an unset
+# mode to auto, while this canonical verification must default to clone.
+TIDAS_TOOLS_SOURCE_MODE="${TIDAS_TOOLS_SOURCE_MODE:-clone}"
+export TIDAS_TOOLS_SOURCE_MODE
+source "$SCRIPT_DIR/lib/tidas-tools-source.sh"
+TIDAS_TOOLS_ASSET_RESOLVER="$SCRIPT_DIR/tidas-tools-assets.mjs"
+# Install the cleanup trap before resolving so a fetch or asset-validation failure
+# still removes the temporary checkout this script created.
+trap cleanup_tidas_tools_source EXIT
+resolve_tidas_tools_source "$REPO_ROOT"
+export TIDAS_TOOLS_PATH="$RESOLVED_TIDAS_TOOLS_PATH"
+echo "[typescript] verified tidas-tools source: $TIDAS_TOOLS_PATH (pin $TIDAS_TOOLS_SHA)"
+
 before_generated_state="$(snapshot_path_state "sdks/typescript/src")"
 
 echo "[typescript] regenerating package sources"
-TIDAS_TOOLS_SOURCE_MODE="${TIDAS_TOOLS_SOURCE_MODE:-clone}" \
+TIDAS_TOOLS_SOURCE_MODE=verified-path \
     "$REPO_ROOT/scripts/ci/generate-typescript-sdk.sh"
 require_stable_generation_output "sdks/typescript/src" "$before_generated_state"
 

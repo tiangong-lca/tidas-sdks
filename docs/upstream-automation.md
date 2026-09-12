@@ -19,9 +19,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-05
-lastReviewedCommit: 6385e7e46c5cbc047bf34f292a44cb863238b27c
-lastReviewedNote: "Reviewed for #108 / workspace #980 W11: remove only the macOS Intel Oxlint release-age exception. The frozen graph, supported-platform exceptions, upstream pin and package/release behavior remain unchanged."
+lastReviewedAt: 2026-09-13
+lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
+lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -31,9 +31,9 @@ related:
 
 # Upstream Automation Design
 
-This document describes the recommended cross-repository automation path for keeping `tidas-sdk` in sync with upstream changes from `tiangong-lca/tidas-tools`.
+This document describes the recommended cross-repository automation path for keeping `tidas-sdk` in sync with upstream changes from `tiangong-lca/tidas-toolkit`.
 
-This is a design document, not a statement that the repository already runs this automation today. The current production release path remains the existing tag-driven workflow until the automation workflows and repository settings are actually introduced.
+The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
 The goal is:
 
@@ -56,7 +56,7 @@ The goal is:
 ```text
 tidas-tools push/merge
   -> detect SDK-relevant upstream change
-  -> repository_dispatch to tiangong-lca/tidas-sdk
+  -> repository_dispatch to tiangong-lca/tidas-sdks
   -> tidas-sdk sync workflow regenerates SDKs from exact tidas-tools SHA
   -> if no diff: stop
   -> if diff: bump package versions, commit bot branch, open PR
@@ -79,7 +79,7 @@ That avoids a fragile setup where one repository publishes another repository's 
 
 ### 1. `tidas-tools`: upstream change detector
 
-Add a workflow in `tiangong-lca/tidas-tools` that runs on merges to `main` and filters for SDK-relevant paths.
+The workflow in `tiangong-lca/tidas-toolkit` runs on merges to `main` and filters for SDK-relevant paths.
 
 Recommended responsibilities:
 
@@ -92,7 +92,7 @@ Recommended responsibilities:
   - `patch`
   - `minor`
   - `major`
-- send a `repository_dispatch` event to `tiangong-lca/tidas-sdk`
+- send a `repository_dispatch` event to `tiangong-lca/tidas-sdks`
 
 Recommended dispatch payload:
 
@@ -115,7 +115,7 @@ workflow rejects an empty value or branch/ref fallback.
 
 ### 2. `tidas-sdk`: sync and release-prep PR
 
-Add a workflow in `tiangong-lca/tidas-sdk` that runs on:
+The workflow in `tiangong-lca/tidas-sdks` runs on:
 
 - `repository_dispatch` with type `tidas_tools_changed`
 - optional manual `workflow_dispatch` for recovery or re-run
@@ -127,7 +127,7 @@ Current implementation file:
 Recommended responsibilities:
 
 1. check out `tidas-sdk`
-2. check out `tiangong-lca/tidas-tools` at `client_payload.tidas_tools_sha`
+2. check out `tiangong-lca/tidas-toolkit` at `client_payload.tidas_tools_sha`
 3. verify that checkout against its Rust `assets/asset-lock.v1.json`
 4. install the TypeScript workspace dependency graph with exact Node `24.19.0`
    and `pnpm@11.24.0` from the root `pnpm-lock.yaml` through
@@ -172,7 +172,7 @@ Recommended PR body content:
 
 ### 3. `tidas-sdk`: post-merge auto-tagging
 
-Add a workflow in `tiangong-lca/tidas-sdk` that runs after the automation PR merges to `main`.
+The workflow in `tiangong-lca/tidas-sdks` runs after the automation PR merges to `main`.
 
 Current implementation file:
 
@@ -225,7 +225,7 @@ In `tidas-tools`:
 
 - `TIDAS_SDK_AUTOMATION_TOKEN`
   - fine-grained PAT today, or a future GitHub App installation token minted at runtime
-  - must be able to dispatch into `tiangong-lca/tidas-sdk`
+  - must be able to dispatch into `tiangong-lca/tidas-sdks`
 
 In `tidas-sdk`:
 
@@ -245,7 +245,7 @@ Keep the existing protected release environment:
 
 Keep Trusted Publishing bound to:
 
-- repository: `tiangong-lca/tidas-sdk`
+- repository: `tiangong-lca/tidas-sdks`
 - workflow: `.github/workflows/publish.yml`
 
 If fully unattended publishing is desired, update environment protection rules and trusted publisher expectations deliberately. Otherwise keep release approvals in place and automate only up to tag creation.
@@ -289,3 +289,5 @@ Recommended safeguards:
   governance/automation change normally; tag-absence detection will retry that
   still-unpublished version without requiring a version bump
 - if publishing fails after tag creation, recover through the normal tag-based release process instead of rewriting history
+
+The migrated sync receiver clones the public canonical upstream without embedding the automation token in argv or the stored remote URL. Local verification keeps the selected Git account context while isolating repository-local Git bindings; exact upstream commit and asset-lock validation remain mandatory.

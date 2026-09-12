@@ -20,9 +20,9 @@ checkPaths:
   - sdks/python/**
   - scripts/ci/**
   - .nvmrc
-lastReviewedAt: 2026-09-05
-lastReviewedCommit: 6385e7e46c5cbc047bf34f292a44cb863238b27c
-lastReviewedNote: "Reviewed for #108 / workspace #980 W11: remove only the macOS Intel Oxlint release-age exception. The frozen graph, supported-platform exceptions, upstream pin and package/release behavior remain unchanged."
+lastReviewedAt: 2026-09-13
+lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
+lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
 ---
 
 # TIDAS SDKs
@@ -80,7 +80,7 @@ cargo install tidas --locked
 
 - Status: separate native Rust upstream
 - Role: generation source, upstream schemas/assets, and standalone conversion / export tooling
-- Repository: `tiangong-lca/tidas-tools`
+- Repository: `tiangong-lca/tidas-toolkit`
 
 ## Documentation
 
@@ -135,7 +135,7 @@ HEAD to match the exact `TIDAS_TOOLS_SHA` pin:
 
 1. `TIDAS_TOOLS_PATH`
 2. a sibling checkout at `../tidas-tools`
-3. a temporary clone of `tiangong-lca/tidas-tools` checked out at that SHA
+3. a temporary clone of `tiangong-lca/tidas-toolkit` checked out at that SHA
 
 The generators validate every asset hash and byte count from
 `assets/asset-lock.v1.json`. The TypeScript refresh derives its runtime roots
