@@ -20,8 +20,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-13
-lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
-lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
+lastReviewedCommit: 1e68bad5da6b55f63e1caeeca489ae82eeb8e7a0
+lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

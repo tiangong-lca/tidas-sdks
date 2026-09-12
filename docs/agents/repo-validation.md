@@ -29,8 +29,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-13
-lastReviewedCommit: 3ee8f841a6d2f27bb8501530cb47d6e5a3a6291b
-lastReviewedNote: "Reviewed for SDK #110: canonical repositories are tidas-sdks and tidas-toolkit. Account-scoped Git configuration and exact-source verification are preserved through generation, build and packing; package names, versions, upstream pin and locks are unchanged."
+lastReviewedCommit: 1e68bad5da6b55f63e1caeeca489ae82eeb8e7a0
+lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -130,3 +130,11 @@ The `pre-push` hook runs `scripts/docpact-gate.sh`, which delegates CLI lookup t
 Upstream Git subprocesses clear inherited repository directory/index bindings but preserve process-scoped account configuration (`GIT_CONFIG_COUNT` / `GIT_CONFIG_PARAMETERS`). The explicit candidate checkout overrides inherited `core.worktree` / `core.bare` settings. Public upstream clones use credential-free canonical HTTPS; automation credentials remain confined to SDK write operations. Wrong SHA or asset locks still fail, and the default pin is unchanged.
 
 TypeScript verification defaults to a temporary clone and retains that exact verified checkout through generation, tests, build and packing. Nested generation uses `verified-path` mode to recheck the same SHA and asset lock without cloning again. The owning process cleans temporary sources on success and failure. Standalone builds retain their existing sibling/offline fallback; canonical verification never falls back to it. The automation regression suite exercises differing sibling contents, the default clone path, strict reuse and cleanup.
+
+`python3 scripts/ci/test-automation-contracts.py` is a lightweight automation gate
+that runs before package bootstrap, including in the manual CI workflow. It uses
+Python, Git, Bash and the dependency-free Node asset resolver; it must not invoke
+pnpm, tsx or installed package tooling. The source-consistency fixture blocks pnpm
+and executes the real verification prelude, then checks the pinned content visible
+to a child process and cleanup. The full TypeScript package gate separately owns
+actual bundler, compiler, package tests and packing proof.
