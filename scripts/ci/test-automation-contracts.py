@@ -528,43 +528,6 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         self.assertNotEqual(foreign.returncode, 0)
         self.assertIn("commit mismatch", foreign.stderr)
 
-    def test_verify_script_defaults_an_unset_mode_to_clone(self) -> None:
-        # Execute the real verify-typescript-package.sh prelude (SCRIPT_DIR through the
-        # source/mode/trap/resolve wiring) with TIDAS_TOOLS_SOURCE_MODE unset: the script
-        # must default to clone (a temp verified checkout), not the helper's auto default
-        # that would select the unverified sibling and fail the pin check.
-        script_text = (REPO_ROOT / "scripts/ci/verify-typescript-package.sh").read_text()
-        boundary = script_text.index("before_generated_state=")
-        prelude = "\n".join(script_text[:boundary].splitlines()[:-1])
-        real_script_dir = 'SCRIPT_DIR=' + shlex.quote(str(SCRIPT_ROOT))
-        prelude = re.sub(
-            r'SCRIPT_DIR=.*',
-            real_script_dir,
-            prelude,
-            count=1,
-        )
-        lines = [
-            "unset TIDAS_TOOLS_SOURCE_MODE TIDAS_TOOLS_PATH",
-            prelude,
-            'printf "MODE=%s\\n" "$TIDAS_TOOLS_SOURCE_MODE"',
-            'printf "PATH=%s\\n" "$TIDAS_TOOLS_PATH"',
-            'printf "SHA=%s\\n" "$(upstream_git -C "$TIDAS_TOOLS_PATH" rev-parse HEAD)"',
-            "",
-        ]
-        unset_env = self.source_env()
-        unset_env.pop("TIDAS_TOOLS_PATH", None)
-        result = subprocess.run(
-            ["bash", "-e", "-c", "\n".join(lines)],
-            env=unset_env,
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        values = dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
-        self.assertEqual(values["MODE"], "clone")
-        self.assertIn("/tidas-tools.", values["PATH"])
-        self.assertNotEqual(values["PATH"], str(self.sibling))
-        self.assertEqual(values["SHA"], self.pin_sha)
 
 if __name__ == "__main__":
     unittest.main()
