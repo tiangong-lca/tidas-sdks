@@ -104,7 +104,7 @@ Do not rename that workflow file without updating the registry-side trusted publ
 Configure Trusted Publishing for `@tiangong-lca/tidas-sdk` on npm with:
 
 - organization or user: `tiangong-lca`
-- repository: `tidas-sdk`
+- repository: `tidas-sdks`
 - workflow filename: `publish.yml`
 
 The TypeScript publish job expects tags named `typescript-vX.Y.Z`.
@@ -116,7 +116,7 @@ Leave the environment name unset unless the workflow is explicitly updated to us
 Configure a Trusted Publisher for project `tidas-sdk` on PyPI with:
 
 - owner: `tiangong-lca`
-- repository name: `tidas-sdk`
+- repository name: `tidas-sdks`
 - workflow filename: `publish.yml`
 - environment name: `pypi-release`
 
