@@ -21,8 +21,8 @@ checkPaths:
   - scripts/ci/**
   - .nvmrc
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 57a76e619fa812048903b22c2c395413cc3f93d7
-lastReviewedNote: "Reviewed for SDK #114: the TypeScript package advances to 0.2.1 through the existing prepare helper while Python stays at 0.2.14 under the independent-release contract. The npm and PyPI publisher setup tuples now name the real repository tiangong-lca/tidas-sdks (live full_name/id 1020040810) while package names and local paths stay singular, and the TypeScript RELEASE.md normal path waits for the tag-release-from-merge automation instead of manual tagging. Locks, dependencies, upstream pins, generated/runtime assets and historical compatibility records are unchanged."
+lastReviewedCommit: 4db78ec4e4d8cb414f0d77ee6e61f88bf8932517
+lastReviewedNote: "Reviewed for SDK #116: README no longer claims the Python SDK is source-only - it documents the published PyPI package (pip install tidas-sdk, version 0.2.14) and separates package installation from the source-development workflow; the Python RELEASE.md normal path waits for the tag-release-from-merge automation from the exact merged main/package version, with environment approval conditional on configured protection rules and the recovery-only local publishing boundary retained. Versions, locks, upstream pins, workflows and generated/runtime assets are unchanged."
 ---
 
 # TIDAS SDKs
@@ -69,11 +69,12 @@ cargo install tidas --locked
 - Installation: `pnpm add @tiangong-lca/tidas-sdk`
 - Location: `sdks/typescript/`
 
-### tidas-sdk (Python, Development)
+### tidas-sdk (Python)
 
-- Status: in development
+- Status: in development (pre-1.0)
 - Features: generated Python models, validation helpers, and utilities
-- Installation: source-only for now
+- Installation: `pip install tidas-sdk` (published on PyPI)
+- Development: `cd sdks/python && uv sync` (see the Python SDK (Development) section above)
 - Location: `sdks/python/`
 
 ### tidas-tools (External Upstream)

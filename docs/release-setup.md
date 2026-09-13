@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 50ddc3e1c154c235b51edccab46188359d2a305b
-lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
+lastReviewedCommit: 4db78ec4e4d8cb414f0d77ee6e61f88bf8932517
+lastReviewedNote: "Reviewed for SDK #116: the Python documentation corrections (published-PyPI install wording and the automated tag-release normal path) do not touch this file; the npm/PyPI publisher tuples corrected to tiangong-lca/tidas-sdks in SDK #114 remain the authoritative registry binding. Versions, environments, secrets and workflow prerequisites are unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
