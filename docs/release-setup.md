@@ -18,8 +18,8 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-13
-lastReviewedCommit: 1e68bad5da6b55f63e1caeeca489ae82eeb8e7a0
+lastReviewedAt: 2026-09-14
+lastReviewedCommit: 50ddc3e1c154c235b51edccab46188359d2a305b
 lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
 related:
   - ../AGENTS.md

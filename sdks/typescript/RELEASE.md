@@ -20,7 +20,8 @@ Use this sequence for normal releases:
 4. Merge the PR.
 5. Wait for the existing `tag-release-from-merge.yml` automation: on the exact
    main merge it verifies the changed TypeScript package and creates
-   `typescript-v0.2.1` automatically. Do not create tags manually in the
+   `typescript-v<version>` from `sdks/typescript/package.json` automatically.
+   Do not create tags manually in the
    normal path; manual tagging remains only the documented recovery/backfill
    fallback for an already-merged main commit.
 

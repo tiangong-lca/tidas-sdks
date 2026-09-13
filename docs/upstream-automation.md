@@ -20,7 +20,7 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 57a76e619fa812048903b22c2c395413cc3f93d7
+lastReviewedCommit: 50ddc3e1c154c235b51edccab46188359d2a305b
 lastReviewedNote: "Reviewed for SDK #114: the TypeScript package advances to 0.2.1 through the existing prepare helper while Python stays at 0.2.14 under the independent-release contract. The npm and PyPI publisher setup tuples now name the real repository tiangong-lca/tidas-sdks (live full_name/id 1020040810) while package names and local paths stay singular, and the TypeScript RELEASE.md normal path waits for the tag-release-from-merge automation instead of manual tagging. Locks, dependencies, upstream pins, generated/runtime assets and historical compatibility records are unchanged."
 related:
   - ../AGENTS.md
