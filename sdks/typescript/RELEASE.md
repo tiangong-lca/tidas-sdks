@@ -18,12 +18,12 @@ Use this sequence for normal releases:
 ```
 
 4. Merge the PR.
-5. Create a tag on the merged commit:
-
-```bash
-git tag typescript-vX.Y.Z
-git push origin typescript-vX.Y.Z
-```
+5. Wait for the existing `tag-release-from-merge.yml` automation: on the exact
+   main merge it verifies the changed TypeScript package and creates
+   `typescript-v<version>` from `sdks/typescript/package.json` automatically.
+   Do not create tags manually in the
+   normal path; manual tagging remains only the documented recovery/backfill
+   fallback for an already-merged main commit.
 
 6. Confirm the publish workflow completes successfully.
 7. Confirm the new version is visible on npm and installable.

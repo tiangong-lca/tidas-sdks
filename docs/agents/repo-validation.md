@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-13
-lastReviewedCommit: 1e68bad5da6b55f63e1caeeca489ae82eeb8e7a0
-lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
+lastReviewedAt: 2026-09-14
+lastReviewedCommit: 50ddc3e1c154c235b51edccab46188359d2a305b
+lastReviewedNote: "Reviewed for SDK #114: the TypeScript package advances to 0.2.1 through the existing prepare helper while Python stays at 0.2.14 under the independent-release contract. The npm and PyPI publisher setup tuples now name the real repository tiangong-lca/tidas-sdks (live full_name/id 1020040810) while package names and local paths stay singular, and the TypeScript RELEASE.md normal path waits for the tag-release-from-merge automation instead of manual tagging. Locks, dependencies, upstream pins, generated/runtime assets and historical compatibility records are unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
