@@ -27,8 +27,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 4db78ec4e4d8cb414f0d77ee6e61f88bf8932517
-lastReviewedNote: "Reviewed for SDK #116: README no longer claims the Python SDK is source-only - it documents the published PyPI package (pip install tidas-sdk, version 0.2.14) and separates package installation from the source-development workflow; the Python RELEASE.md normal path waits for the tag-release-from-merge automation from the exact merged main/package version, with environment approval conditional on configured protection rules and the recovery-only local publishing boundary retained. Versions, locks, upstream pins, workflows and generated/runtime assets are unchanged."
+lastReviewedCommit: b2b5aaf6bebd6cf2563fb6313fe64bcf162548c1
+lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: the owning helper advanced pyproject.toml from 0.2.14 to 0.2.15 after live helper checks confirmed repo=latest=0.2.14 and 0.2.15 unpublished. Actual gates on this tree: verify-python-package.sh exit 0 (built and twine-checked tidas_sdk-0.2.15 wheel/sdist), verify-typescript-package.sh exit 0 (TypeScript stays 0.2.1), test-automation-contracts.py 10/10 OK, strict config and staged lint clean with the real regeneration showing no drift. Upstream pin 4032198caa8654faf573c795434653113b85a331, locks, workflows and generated/runtime assets are unchanged; publication stays blocked pending PyPI eligibility."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
