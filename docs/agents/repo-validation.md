@@ -67,7 +67,7 @@ Facts that matter:
 
 - TypeScript and Python generation resolve `tidas-tools` in this order:
   1. `TIDAS_TOOLS_PATH`
-  2. sibling `../tidas-tools`
+  2. sibling `../tidas-toolkit`, then the pre-rename `../tidas-tools`
   3. temporary clone
 - every source must be a Git checkout at the exact `TIDAS_TOOLS_SHA`; the default
   pin is immutable and advances in the same generated PR as the package assets;

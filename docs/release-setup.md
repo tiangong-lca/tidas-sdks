@@ -19,7 +19,7 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: b2b5aaf6bebd6cf2563fb6313fe64bcf162548c1
+lastReviewedCommit: 32d3112b079d22bb2c7c5323d4c663f1973684d2
 lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: this file's registry-binding content is unchanged - the npm/PyPI publisher tuples naming tiangong-lca/tidas-sdks stay authoritative, and the pypi-release environment requirement still gates the future 0.2.15 publication until PyPI eligibility is externally confirmed. The version bump itself is recorded in the routed governance docs with the actual gate results."
 related:
   - ../AGENTS.md

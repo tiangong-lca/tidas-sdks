@@ -66,7 +66,7 @@ export type MultiLangItem = MultiLangItemClass;
 
 async function main() {
   const schemasDir = requireTidasToolsSchemaDir(
-    'Type generation requires access to the upstream tidas-tools schemas. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-tools checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+    'Type generation requires access to the upstream tidas-tools schemas. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
   );
 
   // Ensure output directory exists

@@ -91,7 +91,11 @@ resolve_tidas_tools_source() {
                 candidates+=("$TIDAS_TOOLS_PATH")
             fi
 
+            # Canonical child directory first, then the pre-rename names so
+            # checkouts that have not adopted the canonical layout still resolve.
             candidates+=(
+                "$repo_root/tidas-toolkit"
+                "$repo_root/../tidas-toolkit"
                 "$repo_root/tidas-tools"
                 "$repo_root/../tidas-tools"
             )

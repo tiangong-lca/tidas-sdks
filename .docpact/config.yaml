@@ -1,7 +1,7 @@
 version: 1
 layout: repo
-lastReviewedAt: 2026-09-14
-lastReviewedCommit: b2b5aaf6bebd6cf2563fb6313fe64bcf162548c1
+lastReviewedAt: "2026-09-14"
+lastReviewedCommit: "32d3112b079d22bb2c7c5323d4c663f1973684d2"
 lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: the owning helper advanced pyproject.toml from 0.2.14 to 0.2.15 after live helper checks confirmed repo=latest=0.2.14 and 0.2.15 unpublished. Actual gates on this tree: verify-python-package.sh exit 0 (built and twine-checked tidas_sdk-0.2.15 wheel/sdist), verify-typescript-package.sh exit 0 (TypeScript stays 0.2.1), test-automation-contracts.py 10/10 OK, strict config and staged lint clean with the real regeneration showing no drift. Upstream pin 4032198caa8654faf573c795434653113b85a331, locks, workflows and generated/runtime assets are unchanged; publication stays blocked pending PyPI eligibility."
 
 catalog:

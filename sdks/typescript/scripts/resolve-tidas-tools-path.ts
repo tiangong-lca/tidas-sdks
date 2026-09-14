@@ -6,13 +6,20 @@ function repoRoot() {
   return path.resolve(__dirname, '../../..');
 }
 
-function candidateRoots() {
-  const root = repoRoot();
-
+/**
+ * Ordered upstream checkout candidates.
+ *
+ * The explicit input wins. The canonical `tidas-toolkit` directory is probed at
+ * both the nested and sibling depth before the pre-rename `tidas-tools` names,
+ * which stay for checkouts that have not adopted the canonical layout.
+ */
+export function tidasToolsCandidateRoots(sdkRoot: string = repoRoot()): string[] {
   return [
     process.env.TIDAS_TOOLS_PATH,
-    path.join(root, 'tidas-tools'),
-    path.join(path.dirname(root), 'tidas-tools'),
+    path.join(sdkRoot, 'tidas-toolkit'),
+    path.join(path.dirname(sdkRoot), 'tidas-toolkit'),
+    path.join(sdkRoot, 'tidas-tools'),
+    path.join(path.dirname(sdkRoot), 'tidas-tools'),
   ].filter((value): value is string => Boolean(value));
 }
 
@@ -39,8 +46,8 @@ function resolveSdkRepoRoot() {
   return path.resolve(__dirname, '../../..');
 }
 
-export function resolveTidasToolsRepoRoot() {
-  for (const candidate of candidateRoots()) {
+export function resolveTidasToolsRepoRoot(sdkRoot: string = repoRoot()) {
+  for (const candidate of tidasToolsCandidateRoots(sdkRoot)) {
     if (isToolsRoot(candidate)) {
       return candidate;
     }
@@ -55,7 +62,7 @@ export function requireTidasToolsRepoRoot(message?: string) {
   if (!resolved) {
     throw new Error(
       message ??
-        'Could not resolve the upstream tidas-tools checkout. Set TIDAS_TOOLS_PATH or place a sibling ../tidas-tools checkout next to this repository.'
+        'Could not resolve the upstream tidas-tools checkout. Set TIDAS_TOOLS_PATH or place a sibling ../tidas-toolkit checkout next to this repository.'
     );
   }
 

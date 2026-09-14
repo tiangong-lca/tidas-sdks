@@ -135,7 +135,7 @@ Both generation scripts resolve `tidas-tools` in this order and require its Git
 HEAD to match the exact `TIDAS_TOOLS_SHA` pin:
 
 1. `TIDAS_TOOLS_PATH`
-2. a sibling checkout at `../tidas-tools`
+2. a sibling checkout at `../tidas-toolkit`, then the pre-rename `../tidas-tools`
 3. a temporary clone of `tiangong-lca/tidas-toolkit` checked out at that SHA
 
 The generators validate every asset hash and byte count from
