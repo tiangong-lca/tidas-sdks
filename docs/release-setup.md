@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 32d3112b079d22bb2c7c5323d4c663f1973684d2
-lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: this file's registry-binding content is unchanged - the npm/PyPI publisher tuples naming tiangong-lca/tidas-sdks stay authoritative, and the pypi-release environment requirement still gates the future 0.2.15 publication until PyPI eligibility is externally confirmed. The version bump itself is recorded in the routed governance docs with the actual gate results."
+lastReviewedCommit: e0d1207e72ce92ab00a571b8f23d165f639982d6
+lastReviewedNote: "Reviewed for SDK #118: both source resolvers probe the canonical tidas-toolkit sibling directory before the pre-rename tidas-tools names, with TIDAS_TOOLS_PATH still first and authoritative, and the exact TIDAS_TOOLS_SHA plus asset-lock verification unchanged. The pinned SHA, repository URL, package identity and generated artifacts are untouched; verify:typescript regenerates with no drift and verify:python rebuilds 0.2.15."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

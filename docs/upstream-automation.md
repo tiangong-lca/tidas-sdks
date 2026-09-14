@@ -20,8 +20,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 32d3112b079d22bb2c7c5323d4c663f1973684d2
-lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: the owning helper advanced pyproject.toml from 0.2.14 to 0.2.15 after live helper checks confirmed repo=latest=0.2.14 and 0.2.15 unpublished. Actual gates on this tree: verify-python-package.sh exit 0 (built and twine-checked tidas_sdk-0.2.15 wheel/sdist), verify-typescript-package.sh exit 0 (TypeScript stays 0.2.1), test-automation-contracts.py 10/10 OK, strict config and staged lint clean with the real regeneration showing no drift. Upstream pin 4032198caa8654faf573c795434653113b85a331, locks, workflows and generated/runtime assets are unchanged; publication stays blocked pending PyPI eligibility."
+lastReviewedCommit: e0d1207e72ce92ab00a571b8f23d165f639982d6
+lastReviewedNote: "Reviewed for SDK #118: both source resolvers probe the canonical tidas-toolkit sibling directory before the pre-rename tidas-tools names, with TIDAS_TOOLS_PATH still first and authoritative, and the exact TIDAS_TOOLS_SHA plus asset-lock verification unchanged. The pinned SHA, repository URL, package identity and generated artifacts are untouched; verify:typescript regenerates with no drift and verify:python rebuilds 0.2.15."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
