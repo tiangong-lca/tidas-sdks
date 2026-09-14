@@ -28,7 +28,7 @@ require_stable_generation_output() {
 
 # Resolve the upstream source exactly once and keep the verified checkout alive for
 # every stage below. Without this, the build-stage bundle-methodologies/copy-runtime
-# re-resolution could silently fall back to an unverified sibling ../tidas-tools
+# re-resolution could silently fall back to an unverified sibling ../tidas-toolkit
 # checkout and rebuild packaged artifacts from a different source than the one this
 # script generated, linted, tested and pinned.
 # Capture the requested mode before sourcing the helper: the helper defaults an unset

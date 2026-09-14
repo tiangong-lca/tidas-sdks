@@ -32,7 +32,7 @@ async function main() {
     }
 
     requireTidasToolsRuntimeRoots(
-      'Runtime asset sync requires access to the upstream tidas-tools repository. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-tools checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+      'Runtime asset sync requires access to the upstream tidas-tools repository. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
     );
     return;
   }

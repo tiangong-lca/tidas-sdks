@@ -82,7 +82,7 @@ async function main() {
   }
 
   const methodologyDir = requireTidasToolsMethodologyDir(
-    'Methodology bundling requires access to the upstream Rust asset lock. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-tools checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+    'Methodology bundling requires access to the upstream Rust asset lock. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
   );
   const methodologyFilesMapping = createMethodologyFilesMapping(methodologyDir);
 

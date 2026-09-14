@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -486,6 +487,74 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         )
         self.assertNotEqual(foreign.returncode, 0)
         self.assertIn("commit mismatch", foreign.stderr)
+
+    def test_auto_mode_prefers_the_canonical_sibling_and_keeps_the_legacy_one(self) -> None:
+        # Auto mode must probe the canonical sibling directory before the
+        # pre-rename one, keep an explicit TIDAS_TOOLS_PATH authoritative, and
+        # still resolve a checkout that only has the legacy layout.
+        sibling_root = self.root / "sibling"
+        legacy = sibling_root / "tidas-tools"
+        shutil.rmtree(legacy)
+        canonical = sibling_root / "tidas-toolkit"
+        explicit = self.root / "explicit" / "tidas-toolkit"
+        for directory in (canonical, legacy, explicit):
+            # Copy the pinned checkout so every candidate passes the exact-SHA
+            # verification; only the directory name differs between them.
+            shutil.copytree(self.source, directory)
+        repo_root = sibling_root / "sdk-repo"
+        # The sibling candidates are reached through "$repo_root/..", so the
+        # repository root itself has to exist for the path to resolve.
+        repo_root.mkdir()
+        script = (
+            "source " + shlex.quote(str(SCRIPT_ROOT / "lib/tidas-tools-source.sh"))
+            + '\nTIDAS_TOOLS_ASSET_RESOLVER="$SDK_RESOLVER"'
+            + "\nTIDAS_TOOLS_SOURCE_MODE=auto"
+            + "\nexport TIDAS_TOOLS_SOURCE_MODE"
+            + "\ntrap cleanup_tidas_tools_source EXIT"
+            + '\nresolve_tidas_tools_source "$SDK_REPO_ROOT"'
+            + '\nprintf "RESOLVED=%s\\n" "$RESOLVED_TIDAS_TOOLS_PATH"'
+            + '\nprintf "TEMP=%s\\n" "$RESOLVED_TIDAS_TOOLS_IS_TEMP"'
+        )
+        env = {
+            **self.env,
+            "SDK_REPO_ROOT": str(repo_root),
+            "SDK_RESOLVER": str(self.resolver),
+            "TIDAS_TOOLS_SHA": self.pin_sha,
+            "TIDAS_TOOLS_REPO_URL": self.canonical,
+            "TIDAS_TOOLS_ASSET_RESOLVER": str(self.resolver),
+            "TIDAS_TOOLS_PATH": "",
+        }
+
+        def resolve_with(extra_env: dict) -> dict:
+            result = subprocess.run(
+                ["bash", "-e", "-c", script],
+                env={**env, **extra_env},
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                f"stdout={result.stdout!r} stderr={result.stderr!r} extra_env={extra_env!r}",
+            )
+            return dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
+
+        values = resolve_with({})
+        self.assertTrue(
+            Path(values["RESOLVED"]).samefile(canonical),
+            f"expected the canonical sibling {canonical}, resolved {values['RESOLVED']}",
+        )
+        self.assertEqual(values["TEMP"], "0")
+
+        values = resolve_with({"TIDAS_TOOLS_PATH": str(explicit)})
+        self.assertTrue(Path(values["RESOLVED"]).samefile(explicit))
+
+        shutil.rmtree(canonical)
+        values = resolve_with({})
+        self.assertTrue(
+            Path(values["RESOLVED"]).samefile(legacy),
+            f"expected the retained legacy sibling {legacy}, resolved {values['RESOLVED']}",
+        )
 
 
 if __name__ == "__main__":

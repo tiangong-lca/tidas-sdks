@@ -21,8 +21,8 @@ checkPaths:
   - scripts/ci/**
   - .nvmrc
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 4db78ec4e4d8cb414f0d77ee6e61f88bf8932517
-lastReviewedNote: "Reviewed for SDK #116: README no longer claims the Python SDK is source-only - it documents the published PyPI package (pip install tidas-sdk, version 0.2.14) and separates package installation from the source-development workflow; the Python RELEASE.md normal path waits for the tag-release-from-merge automation from the exact merged main/package version, with environment approval conditional on configured protection rules and the recovery-only local publishing boundary retained. Versions, locks, upstream pins, workflows and generated/runtime assets are unchanged."
+lastReviewedCommit: e0d1207e72ce92ab00a571b8f23d165f639982d6
+lastReviewedNote: "Reviewed for SDK #118: both source resolvers probe the canonical tidas-toolkit sibling directory before the pre-rename tidas-tools names, with TIDAS_TOOLS_PATH still first and authoritative, and the exact TIDAS_TOOLS_SHA plus asset-lock verification unchanged. The pinned SHA, repository URL, package identity and generated artifacts are untouched; verify:typescript regenerates with no drift and verify:python rebuilds 0.2.15."
 ---
 
 # TIDAS SDKs
@@ -135,7 +135,7 @@ Both generation scripts resolve `tidas-tools` in this order and require its Git
 HEAD to match the exact `TIDAS_TOOLS_SHA` pin:
 
 1. `TIDAS_TOOLS_PATH`
-2. a sibling checkout at `../tidas-tools`
+2. a sibling checkout at `../tidas-toolkit`, then the pre-rename `../tidas-tools`
 3. a temporary clone of `tiangong-lca/tidas-toolkit` checked out at that SHA
 
 The generators validate every asset hash and byte count from
