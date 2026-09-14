@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-14
-lastReviewedCommit: 50ddc3e1c154c235b51edccab46188359d2a305b
-lastReviewedNote: "Reviewed for SDK #112: generic automation checks run before package bootstrap and prove the real verification prelude, pinned child-process content and cleanup without pnpm/tsx. Full TypeScript and Python package gates, release detection, versions and locks are unchanged."
+lastReviewedCommit: b2b5aaf6bebd6cf2563fb6313fe64bcf162548c1
+lastReviewedNote: "Reviewed for SDK #116 Python 0.2.15 preparation: this file's registry-binding content is unchanged - the npm/PyPI publisher tuples naming tiangong-lca/tidas-sdks stay authoritative, and the pypi-release environment requirement still gates the future 0.2.15 publication until PyPI eligibility is externally confirmed. The version bump itself is recorded in the routed governance docs with the actual gate results."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

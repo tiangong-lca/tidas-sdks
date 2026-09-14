@@ -18,14 +18,13 @@ Use this sequence for normal releases:
 ```
 
 4. Merge the PR.
-5. Create a tag on the merged commit:
-
-```bash
-git tag python-vX.Y.Z
-git push origin python-vX.Y.Z
-```
-
-6. Approve the `pypi-release` environment in GitHub Actions.
+5. Wait for the existing `tag-release-from-merge.yml` automation: on the exact
+   main merge it verifies the changed Python package and creates
+   `python-vX.Y.Z` (the tag matching `sdks/python/pyproject.toml`)
+   automatically. Do not create tags manually in the normal path; manual
+   tagging remains only the documented recovery/backfill fallback below.
+6. Approve the `pypi-release` environment in GitHub Actions if protection
+   rules are configured for it.
 7. Confirm the new version is visible on PyPI and installable.
 
 ## Versioning
@@ -60,7 +59,7 @@ The publish workflow:
 - only reacts to `python-v*` tags
 - validates that the tag matches the version in source control
 - rebuilds distributions from the tagged commit
-- publishes via PyPI Trusted Publishing after environment approval
+- publishes via PyPI Trusted Publishing after environment approval when protection rules require it
 
 One-time maintainer configuration is documented in `../../docs/release-setup.md`.
 
