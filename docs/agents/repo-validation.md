@@ -29,8 +29,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-15
-lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
-lastReviewedNote: "Reviewed for SDK #120: the added paragraph accurately distinguishes explicit nested advisory deferral from retained strict package/tools checks and unchanged standalone defaults. Real wrapper/negative/mutation cases and full TS90/Python42 local validation pass; independent pre-bootstrap Node22/Python3.12 full14 and Node20 added3 tests pass. Candidate CI and causal performance comparison remain pending."
+lastReviewedCommit: 1f7c071a19acc4a6ff6c1b339fa29d9db644275d
+lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-only input skips source gates; mixed/source/tag/unknown input and classifier failures preserve ordered Docpact, TypeScript and Python verification. Independent focused hook trace and real TTY evidence plus 15 automation tests and full TS90/Python42 gates pass. Existing ownership, fixed upstream, generation, package versions and release identities are unchanged. Hosted candidate CI and workspace integration remain pending."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

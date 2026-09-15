@@ -21,8 +21,8 @@ checkPaths:
   - scripts/ci/**
   - .nvmrc
 lastReviewedAt: 2026-09-15
-lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
-lastReviewedNote: "Reviewed for SDK #120: contributor setup, exact Node/pnpm prerequisites, standalone generation commands, package identities and release entrypoints remain accurate. Only complete TypeScript verification explicitly defers its nested advisory typecheck; the strict verifier and standalone default still apply. Local validation passes; candidate hosted CI and measured benefit remain pending."
+lastReviewedCommit: 1f7c071a19acc4a6ff6c1b339fa29d9db644275d
+lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-only input skips source gates; mixed/source/tag/unknown input and classifier failures preserve ordered Docpact, TypeScript and Python verification. Independent focused hook trace and real TTY evidence plus 15 automation tests and full TS90/Python42 gates pass. Existing ownership, fixed upstream, generation, package versions and release identities are unchanged. Hosted candidate CI and workspace integration remain pending."
 ---
 
 # TIDAS SDKs
