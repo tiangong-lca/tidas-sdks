@@ -4,6 +4,13 @@ set -eu
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
+# Only complete, valid branch deletions deliver no source. Every unknown input
+# or classifier failure keeps the original ordered validation below.
+if "$repo_root/scripts/ci/pre-push-deletion-only.sh"; then
+  echo "Pre-push input contains only valid branch deletions; no source is being delivered."
+  exit 0
+fi
+
 "$repo_root/scripts/docpact-gate.sh" "$@"
 
 echo "Running local test gate: verify TypeScript and Python packages"

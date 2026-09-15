@@ -141,4 +141,4 @@ This release model is part of the repo architecture, not just a release checklis
 
 ## Local Docpact Push Gate
 
-This repository has a versioned local `pre-push` hook under `.githooks/pre-push` that delegates to `scripts/docpact-gate.sh` and then runs both package verification scripts. The gate resolves the CLI through `scripts/docpact`, so local agent shells do not need bare `docpact` on `PATH`. The hook is the local guard for docpact config validation, enforced doc-governance linting, and package tests; the GitHub `CI` workflow is manual-dispatch only.
+This repository has a versioned local `pre-push` hook under `.githooks/pre-push` that, except for validated branch-deletion-only pushes, delegates to `scripts/docpact-gate.sh` and then runs both package verification scripts. The gate resolves the CLI through `scripts/docpact`, so local agent shells do not need bare `docpact` on `PATH`. The hook is the local guard for docpact config validation, enforced doc-governance linting, and package tests; the GitHub `CI` workflow is manual-dispatch only.
