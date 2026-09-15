@@ -48,7 +48,7 @@ before_generated_state="$(snapshot_path_state "sdks/typescript/src")"
 
 echo "[typescript] regenerating package sources"
 TIDAS_TOOLS_SOURCE_MODE=verified-path \
-    "$REPO_ROOT/scripts/ci/generate-typescript-sdk.sh"
+    "$REPO_ROOT/scripts/ci/generate-typescript-sdk.sh" --defer-advisory-typecheck
 require_stable_generation_output "sdks/typescript/src" "$before_generated_state"
 
 echo "[typescript] lint"

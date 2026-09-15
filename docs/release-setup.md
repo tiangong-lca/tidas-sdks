@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-14
-lastReviewedCommit: e0d1207e72ce92ab00a571b8f23d165f639982d6
-lastReviewedNote: "Reviewed for SDK #118: both source resolvers probe the canonical tidas-toolkit sibling directory before the pre-rename tidas-tools names, with TIDAS_TOOLS_PATH still first and authoritative, and the exact TIDAS_TOOLS_SHA plus asset-lock verification unchanged. The pinned SHA, repository URL, package identity and generated artifacts are untouched; verify:typescript regenerates with no drift and verify:python rebuilds 0.2.15."
+lastReviewedAt: 2026-09-15
+lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
+lastReviewedNote: "Reviewed for SDK #120: npm/PyPI publisher identity, publish.yml, environments, token requirements, tag naming and release approval boundaries are unchanged. The package verifier still runs strict typechecks, tests, examples, build and packing before release. No publication or registry change was performed; candidate verification and delivery remain pending."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

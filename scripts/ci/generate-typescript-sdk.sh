@@ -257,6 +257,14 @@ EOF
 
 # 主函数
 main() {
+    local defer_advisory_typecheck=0
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --defer-advisory-typecheck) defer_advisory_typecheck=1 ;;
+            *) log_error "Unsupported argument: $1"; exit 2 ;;
+        esac
+        shift
+    done
     log_info "Starting TypeScript SDK generation..."
     log_info "================================================"
 
@@ -265,7 +273,11 @@ main() {
     validate_inputs
     check_dependencies
     generate_sdk
-    run_typecheck
+    # The complete verifier owns a later strict check of both package tsconfigs.
+    # Standalone generation retains its original advisory check by default.
+    if [ "$defer_advisory_typecheck" -eq 0 ]; then
+        run_typecheck
+    fi
     generate_summary
 
     log_info "✓ TypeScript SDK generation completed"

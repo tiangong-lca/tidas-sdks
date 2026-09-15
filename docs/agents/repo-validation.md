@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-14
-lastReviewedCommit: e0d1207e72ce92ab00a571b8f23d165f639982d6
-lastReviewedNote: "Reviewed for SDK #118: both source resolvers probe the canonical tidas-toolkit sibling directory before the pre-rename tidas-tools names, with TIDAS_TOOLS_PATH still first and authoritative, and the exact TIDAS_TOOLS_SHA plus asset-lock verification unchanged. The pinned SHA, repository URL, package identity and generated artifacts are untouched; verify:typescript regenerates with no drift and verify:python rebuilds 0.2.15."
+lastReviewedAt: 2026-09-15
+lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
+lastReviewedNote: "Reviewed for SDK #120: the added paragraph accurately distinguishes explicit nested advisory deferral from retained strict package/tools checks and unchanged standalone defaults. Real wrapper/negative/mutation cases and full TS90/Python42 local validation pass; independent pre-bootstrap Node22/Python3.12 full14 and Node20 added3 tests pass. Candidate CI and causal performance comparison remain pending."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -138,3 +138,11 @@ pnpm, tsx or installed package tooling. The source-consistency fixture blocks pn
 and executes the real verification prelude, then checks the pinned content visible
 to a child process and cleanup. The full TypeScript package gate separately owns
 actual bundler, compiler, package tests and packing proof.
+
+The complete TypeScript verifier invokes generation with the explicit
+`--defer-advisory-typecheck` option. This omits only the generator's early,
+warning-only typecheck: after source regeneration, drift verification and lint,
+the canonical verifier still runs its mandatory package and tools-tsconfig
+checks before tests, examples, build and packing. Standalone generation keeps
+its advisory check by default. Neither the option nor a cache hit waives source
+pin/asset-lock checks, generated-output drift checks or any strict release gate.
