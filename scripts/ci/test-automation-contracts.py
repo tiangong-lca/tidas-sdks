@@ -680,5 +680,12 @@ fi
         self.assertEqual(calls, [])
 
 
+class PrePushDeletionContractTests(unittest.TestCase):
+    def test_actual_hook_retains_source_gates_and_classifies_only_branch_deletions(self):
+        result = subprocess.run(["sh", str(SCRIPT_ROOT / "test-pre-push.sh")],
+                                cwd=REPO_ROOT, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

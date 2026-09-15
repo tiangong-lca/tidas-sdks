@@ -29,8 +29,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-15
-lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
-lastReviewedNote: "Reviewed for SDK #120: the added paragraph accurately distinguishes explicit nested advisory deferral from retained strict package/tools checks and unchanged standalone defaults. Real wrapper/negative/mutation cases and full TS90/Python42 local validation pass; independent pre-bootstrap Node22/Python3.12 full14 and Node20 added3 tests pass. Candidate CI and causal performance comparison remain pending."
+lastReviewedCommit: 1f7c071a19acc4a6ff6c1b339fa29d9db644275d
+lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-only input skips source gates; mixed/source/tag/unknown input and classifier failures preserve ordered Docpact, TypeScript and Python verification. Independent focused hook trace and real TTY evidence plus 15 automation tests and full TS90/Python42 gates pass. Existing ownership, fixed upstream, generation, package versions and release identities are unchanged. Hosted candidate CI and workspace integration remain pending."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -125,7 +125,7 @@ Install the versioned local hook once per checkout:
 ./scripts/install-git-hooks.sh
 ```
 
-The `pre-push` hook runs `scripts/docpact-gate.sh`, which delegates CLI lookup to `scripts/docpact` and performs strict config validation plus enforced lint before the push leaves the machine. It then runs `./scripts/ci/verify-typescript-package.sh` and `./scripts/ci/verify-python-package.sh` as the local test gate. The wrapper checks `DOCPACT_BIN`, Cargo install locations, Homebrew install locations, and then `PATH`, so local agent shells should not fail only because bare `docpact` is unavailable. The default comparison base is `origin/main`. Override it for unusual stacks with `DOCPACT_BASE_REF=<ref>` or `scripts/docpact-gate.sh --base <ref>`. The gate writes its detailed report to a temporary file so normal pushes do not create `.docpact/runs/` artifacts. The GitHub `CI` workflow is manual-dispatch only.
+Except for validated branch-deletion-only pushes, the `pre-push` hook runs `scripts/docpact-gate.sh`, which delegates CLI lookup to `scripts/docpact` and performs strict config validation plus enforced lint before the push leaves the machine. It then runs `./scripts/ci/verify-typescript-package.sh` and `./scripts/ci/verify-python-package.sh` as the local test gate. The wrapper checks `DOCPACT_BIN`, Cargo install locations, Homebrew install locations, and then `PATH`, so local agent shells should not fail only because bare `docpact` is unavailable. The default comparison base is `origin/main`. Override it for unusual stacks with `DOCPACT_BASE_REF=<ref>` or `scripts/docpact-gate.sh --base <ref>`. The gate writes its detailed report to a temporary file so normal pushes do not create `.docpact/runs/` artifacts. The GitHub `CI` workflow is manual-dispatch only.
 
 Upstream Git subprocesses clear inherited repository directory/index bindings but preserve process-scoped account configuration (`GIT_CONFIG_COUNT` / `GIT_CONFIG_PARAMETERS`). The explicit candidate checkout overrides inherited `core.worktree` / `core.bare` settings. Public upstream clones use credential-free canonical HTTPS; automation credentials remain confined to SDK write operations. Wrong SHA or asset locks still fail, and the default pin is unchanged.
 
@@ -146,3 +146,11 @@ the canonical verifier still runs its mandatory package and tools-tsconfig
 checks before tests, examples, build and packing. Standalone generation keeps
 its advisory check by default. Neither the option nor a cache hit waives source
 pin/asset-lock checks, generated-output drift checks or any strict release gate.
+
+The pre-push hook skips source validation only for complete, well-formed wire
+input that deletes existing branch refs exclusively. Tag deletions, mixed
+updates, empty/manual input, malformed or unsupported records, and classifier
+failure all retain ordered Docpact, TypeScript and Python gates. This is not an
+environment-selected bypass. `sh scripts/ci/test-pre-push.sh` exercises the real
+hook with isolated gate transports; the existing automation suite includes it.
+Direct canonical verification and release-time package proof remain unchanged.

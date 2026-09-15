@@ -27,8 +27,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-15
-lastReviewedCommit: 533be739c3f28fde4776707ca2ed1dedfe1cf01a
-lastReviewedNote: "Reviewed for SDK #120: generated-versus-stable ownership, exact toolkit source/asset-lock chain, package responsibilities, single TS compiler track and tag-driven release architecture are unchanged. Deferral affects only a redundant advisory phase inside complete verification, not generation or strict package proof. Candidate CI/performance and final integration remain pending."
+lastReviewedCommit: 1f7c071a19acc4a6ff6c1b339fa29d9db644275d
+lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-only input skips source gates; mixed/source/tag/unknown input and classifier failures preserve ordered Docpact, TypeScript and Python verification. Independent focused hook trace and real TTY evidence plus 15 automation tests and full TS90/Python42 gates pass. Existing ownership, fixed upstream, generation, package versions and release identities are unchanged. Hosted candidate CI and workspace integration remain pending."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -141,4 +141,4 @@ This release model is part of the repo architecture, not just a release checklis
 
 ## Local Docpact Push Gate
 
-This repository has a versioned local `pre-push` hook under `.githooks/pre-push` that delegates to `scripts/docpact-gate.sh` and then runs both package verification scripts. The gate resolves the CLI through `scripts/docpact`, so local agent shells do not need bare `docpact` on `PATH`. The hook is the local guard for docpact config validation, enforced doc-governance linting, and package tests; the GitHub `CI` workflow is manual-dispatch only.
+This repository has a versioned local `pre-push` hook under `.githooks/pre-push` that, except for validated branch-deletion-only pushes, delegates to `scripts/docpact-gate.sh` and then runs both package verification scripts. The gate resolves the CLI through `scripts/docpact`, so local agent shells do not need bare `docpact` on `PATH`. The hook is the local guard for docpact config validation, enforced doc-governance linting, and package tests; the GitHub `CI` workflow is manual-dispatch only.
