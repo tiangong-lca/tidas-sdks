@@ -556,6 +556,129 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
             f"expected the retained legacy sibling {legacy}, resolved {values['RESOLVED']}",
         )
 
+    def prepare_full_verify(self):
+        """Small locked source + committed SDK tree; only pnpm phase transport is fake."""
+        schema = self.source / "assets/tidas/schemas/process.json"
+        schema.parent.mkdir()
+        schema.write_text('{"type":"object"}\n')
+        lock_path = self.source / "assets/asset-lock.v1.json"
+        lock = json.loads(lock_path.read_text())
+        lock["entries"].append({"path": "assets/tidas/schemas/process.json", "kind": "json-schema",
+                                "sha256": hashlib.sha256(schema.read_bytes()).hexdigest(), "bytes": schema.stat().st_size})
+        lock_path.write_text(json.dumps(lock))
+        self.git("-C", str(self.source), "add", "-A")
+        self.git("-C", str(self.source), "commit", "-qm", "add schema fixture")
+        self.pin_sha = self.git("-C", str(self.source), "rev-parse", "HEAD")
+        self.git("-C", str(self.source), "push", "-q", str(self.remote), "HEAD:refs/heads/fixture")
+        self.sdk = self.root / "sdk"
+        scripts = self.sdk / "scripts/ci"
+        (scripts / "lib").mkdir(parents=True)
+        for name in ("verify-typescript-package.sh", "generate-typescript-sdk.sh", "tidas-tools-assets.mjs",
+                     "lib/tidas-tools-source.sh", "lib/typescript-dependencies.sh"):
+            shutil.copy2(SCRIPT_ROOT / name, scripts / name)
+        for name in ("package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"):
+            shutil.copy2(REPO_ROOT / name, self.sdk / name)
+        # The pre-bootstrap automation gate requires Node, not installed package tooling.
+        (self.sdk / ".nvmrc").write_text(subprocess.check_output(["node", "--version"], env=self.env, text=True).strip())
+        package = self.sdk / "sdks/typescript"
+        runtime = package / "src/runtime-assets"
+        runtime.mkdir(parents=True)
+        shutil.copy2(REPO_ROOT / "sdks/typescript/package.json", package / "package.json")
+        shutil.copytree(self.source / "assets/tidas", runtime / "tidas")
+        shutil.copy2(lock_path, runtime / "asset-lock.v1.json")
+        self.git("init", "-q", str(self.sdk))
+        self.git("-C", str(self.sdk), "config", "user.name", "Fixture")
+        self.git("-C", str(self.sdk), "config", "user.email", "fixture@example.invalid")
+        self.git("-C", str(self.sdk), "config", "commit.gpgsign", "false")
+        self.git("-C", str(self.sdk), "add", "-A")
+        self.git("-C", str(self.sdk), "commit", "-qm", "sdk fixture")
+        self.trace = self.root / "phase-trace"
+        self.bin = self.root / "phase-bin"
+        self.bin.mkdir()
+        pnpm = self.bin / "pnpm"
+        pnpm.write_text('''#!/bin/sh
+if [ "$1" = --version ]; then printf '%s\\n' 11.24.0; exit 0; fi
+printf '%s|%s\\n' "$*" "${TIDAS_TOOLS_PATH:-}" >> "$SDK_PHASE_TRACE"
+case "$*" in
+  *' run typecheck') phase=typecheck ;;
+  *' run generate-types') phase=generate-types ;;
+  *) phase=other ;;
+esac
+if [ "$phase" = "${SDK_FAIL_PHASE:-}" ]; then exit 23; fi
+if [ "$phase" = generate-types ] && [ "${SDK_INJECT_DRIFT:-0}" = 1 ]; then
+  printf '%s\\n' 'unexpected generation drift' > "$SDK_FIXTURE_ROOT/sdks/typescript/src/drift.ts"
+fi
+''')
+        pnpm.chmod(0o755)
+
+    def full_verify_trace(self, *, standalone=False, extra=(), **overrides):
+        self.trace.write_text("")
+        env = {**self.source_env(), "PATH": str(self.bin) + os.pathsep + self.env["PATH"],
+               "TMPDIR": str(self.fixture_tmp), "SDK_PHASE_TRACE": str(self.trace),
+               "SDK_FIXTURE_ROOT": str(self.sdk), **overrides}
+        script = "generate-typescript-sdk.sh" if standalone else "verify-typescript-package.sh"
+        result = subprocess.run(["bash", str(self.sdk / "scripts/ci" / script), *extra],
+                                env=env, text=True, capture_output=True)
+        calls = [line.split("|", 1) for line in self.trace.read_text().splitlines()]
+        self.assertEqual(list(self.fixture_tmp.glob("tidas-tools.*")), [], "owned source must be cleaned on every exit")
+        if calls:
+            self.assertEqual(len({source for _, source in calls}), 1, "every phase must use the same pinned clone")
+            self.assertNotEqual(calls[0][1], str(self.sibling))
+        return result, [command for command, _ in calls]
+
+    def test_complete_verify_runs_one_strict_typecheck_and_standalone_keeps_advisory(self):
+        self.prepare_full_verify()
+        result, calls = self.full_verify_trace()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        expected = ["install --frozen-lockfile"] + [
+            "--filter @tiangong-lca/tidas-sdk --fail-if-no-match run " + phase
+            for phase in ("generate-types", "generate-schemas", "bundle-methodologies", "sync-runtime-assets",
+                          "lint", "typecheck", "test", "check:examples", "build")
+        ] + ["--filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --dry-run"]
+        self.assertEqual(calls, expected)
+        standalone, standalone_calls = self.full_verify_trace(standalone=True)
+        self.assertEqual(standalone.returncode, 0, standalone.stderr)
+        self.assertEqual(sum(command.endswith(" run typecheck") for command in standalone_calls), 1)
+        unknown, calls = self.full_verify_trace(standalone=True, extra=("--unknown",))
+        self.assertEqual(unknown.returncode, 2)
+        self.assertEqual(calls, [])
+
+    def test_strict_typecheck_failure_stops_later_gates_but_standalone_stays_advisory(self):
+        self.prepare_full_verify()
+        result, calls = self.full_verify_trace(SDK_FAIL_PHASE="typecheck")
+        self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertTrue(calls[-1].endswith(" run typecheck"))
+        self.assertEqual(sum(command.endswith(" run typecheck") for command in calls), 1)
+        for phase in ("test", "check:examples", "build"):
+            self.assertFalse(any(command.endswith(" run " + phase) for command in calls))
+        self.assertNotIn("pack --dry-run", "\n".join(calls))
+        standalone, calls = self.full_verify_trace(standalone=True, SDK_FAIL_PHASE="typecheck")
+        self.assertEqual(standalone.returncode, 0, standalone.stderr)
+        self.assertIn("Type check failed", standalone.stderr)
+
+    def test_full_verify_retains_generation_pin_and_drift_failures(self):
+        self.prepare_full_verify()
+        failed_generation, calls = self.full_verify_trace(SDK_FAIL_PHASE="generate-types")
+        self.assertNotEqual(failed_generation.returncode, 0)
+        self.assertTrue(calls[-1].endswith(" run generate-types"))
+        missing_pin, calls = self.full_verify_trace(TIDAS_TOOLS_SHA="0" * 40)
+        self.assertNotEqual(missing_pin.returncode, 0)
+        self.assertEqual(calls, [])
+        drift, calls = self.full_verify_trace(SDK_INJECT_DRIFT="1")
+        self.assertNotEqual(drift.returncode, 0)
+        self.assertIn("generation introduced uncommitted changes", drift.stderr)
+        self.assertFalse(any(command.endswith(" run lint") for command in calls))
+        # A real checkout with the correct SHA but stale lock hashes still fails
+        # before package-tool execution; no pin-only shortcut is sufficient.
+        (self.source / "assets/tidas/schemas/process.json").write_text('{"type":"string"}\n')
+        self.git("-C", str(self.source), "add", "-A")
+        self.git("-C", str(self.source), "commit", "-qm", "invalid asset hash")
+        bad_sha = self.git("-C", str(self.source), "rev-parse", "HEAD")
+        self.git("-C", str(self.source), "push", "-q", str(self.remote), "HEAD:refs/heads/fixture")
+        bad_lock, calls = self.full_verify_trace(TIDAS_TOOLS_SHA=bad_sha)
+        self.assertNotEqual(bad_lock.returncode, 0)
+        self.assertEqual(calls, [])
+
 
 if __name__ == "__main__":
     unittest.main()

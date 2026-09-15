@@ -138,3 +138,11 @@ pnpm, tsx or installed package tooling. The source-consistency fixture blocks pn
 and executes the real verification prelude, then checks the pinned content visible
 to a child process and cleanup. The full TypeScript package gate separately owns
 actual bundler, compiler, package tests and packing proof.
+
+The complete TypeScript verifier invokes generation with the explicit
+`--defer-advisory-typecheck` option. This omits only the generator's early,
+warning-only typecheck: after source regeneration, drift verification and lint,
+the canonical verifier still runs its mandatory package and tools-tsconfig
+checks before tests, examples, build and packing. Standalone generation keeps
+its advisory check by default. Neither the option nor a cache hit waives source
+pin/asset-lock checks, generated-output drift checks or any strict release gate.
