@@ -2,7 +2,7 @@ version: 1
 layout: repo
 lastReviewedAt: "2026-09-16"
 lastReviewedCommit: "a4ca62fea35ab7f9eaa0e9789baced36d3d2816d"
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedNote: "W5 adds the content-addressed tidas_spec_released dispatch path, exact archive/manifest verification, immutable spec-pin updates, and offline stale/conflict tests. Existing ownership and generation/release rule coverage remain aligned; package publication and root integration remain unclaimed."
 
 catalog:
   repos:

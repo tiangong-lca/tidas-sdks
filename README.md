@@ -22,7 +22,7 @@ checkPaths:
   - .nvmrc
 lastReviewedAt: 2026-09-16
 lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedNote: "W5 adds exact tidas_spec_released intake with immutable pin updates, archive/manifest verification, stale/conflict rejection, and offline automation regressions. Existing tidas_tools_changed intake remains supported; package publication still requires the normal reviewed PR and tag workflows."
 ---
 
 # TIDAS SDKs
@@ -59,6 +59,10 @@ cd sdks/python && uv sync
 ```bash
 cargo install tidas --locked
 ```
+
+### Upstream release events
+
+The sync workflow accepts two repository-dispatch contracts: `tidas_tools_changed` for execution-oriented inputs and `tidas_spec_released` for a reviewed immutable specification release. The latter must carry the exact package/version/source commit, canonical archive URL and filename, archive SHA256, manifest SHA256, selected package families, and an `event_key` of `package@version:archive_sha256:manifest_sha256`. The receiver verifies and downloads that archive before generation, updates `scripts/ci/tidas-spec-pin.json` in the release-prep PR, treats exact replays as no-ops, and rejects stale or same-version conflicting identities.
 
 ## Available Packages
 

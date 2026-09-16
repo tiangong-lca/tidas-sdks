@@ -38,6 +38,9 @@ mark_generated_doc_review = load_script(
 update_tidas_tools_pin = load_script(
     "update_tidas_tools_pin", "update-tidas-tools-pin.py"
 )
+update_tidas_spec_pin = load_script(
+    "update_tidas_spec_pin", "update-tidas-spec-pin.py"
+)
 
 
 class ReleaseDetectionTests(unittest.TestCase):
@@ -153,6 +156,78 @@ class UpstreamPinTests(unittest.TestCase):
             self.assertIn("b" * 40, second)
 
 
+class TidasSpecReleaseEventTests(unittest.TestCase):
+    def base_payload(self) -> dict:
+        version = "0.2.0"
+        archive_sha = "a" * 64
+        manifest_sha = "b" * 64
+        return {
+            "event_key": f"@tiangong-lca/tidas-spec@{version}:{archive_sha}:{manifest_sha}",
+            "package": "@tiangong-lca/tidas-spec",
+            "version": version,
+            "source_commit": "c" * 40,
+            "archive_file": f"tiangong-lca-tidas-spec-{version}.tgz",
+            "archive_url": f"https://github.com/tiangong-lca/tidas-spec/releases/download/v{version}/tiangong-lca-tidas-spec-{version}.tgz",
+            "archive_sha256": archive_sha,
+            "manifest_sha256": manifest_sha,
+            "packages": ["typescript", "python"],
+        }
+
+    def write_pin(self, path: Path, version: str = "0.1.0") -> None:
+        path.write_text(json.dumps({
+            "pinVersion": 1,
+            "package": "@tiangong-lca/tidas-spec",
+            "version": version,
+            "sourceCommit": "1" * 40,
+            "sourceRef": f"v{version}",
+            "archiveFile": f"tiangong-lca-tidas-spec-{version}.tgz",
+            "archiveSha256": "2" * 64,
+            "manifestFile": "spec-manifest.json",
+            "manifestPathInArchive": "package/spec-manifest.json",
+            "manifestSha256": "3" * 64,
+            "releaseArchiveUrl": f"https://github.com/tiangong-lca/tidas-spec/releases/download/v{version}/tiangong-lca-tidas-spec-{version}.tgz",
+        }, indent=2) + "\n", encoding="utf-8")
+
+    def test_new_event_updates_pin_and_exact_replay_is_noop(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            self.write_pin(pin)
+            payload = self.base_payload()
+            self.assertTrue(update_tidas_spec_pin.apply_event(pin, payload))
+            first = pin.read_text(encoding="utf-8")
+            self.assertFalse(update_tidas_spec_pin.apply_event(pin, payload))
+            self.assertEqual(first, pin.read_text(encoding="utf-8"))
+            updated = json.loads(first)
+            self.assertEqual(updated["sourceCommit"], "c" * 40)
+            self.assertEqual(updated["archiveSha256"], "a" * 64)
+
+    def test_stale_and_conflicting_events_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            self.write_pin(pin, version="0.2.0")
+            stale = self.base_payload()
+            stale["version"] = "0.1.9"
+            stale["archive_file"] = "tiangong-lca-tidas-spec-0.1.9.tgz"
+            stale["archive_url"] = "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.1.9/tiangong-lca-tidas-spec-0.1.9.tgz"
+            stale["event_key"] = f"@tiangong-lca/tidas-spec@0.1.9:{stale['archive_sha256']}:{stale['manifest_sha256']}"
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, stale)
+            conflict = self.base_payload()
+            conflict["source_commit"] = "d" * 40
+            conflict["event_key"] = f"@tiangong-lca/tidas-spec@0.2.0:{conflict['archive_sha256']}:{conflict['manifest_sha256']}"
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, conflict)
+
+    def test_malformed_or_partial_event_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            self.write_pin(pin)
+            payload = self.base_payload()
+            payload.pop("manifest_sha256")
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, payload)
+
+
 class PnpmWorkflowContractTests(unittest.TestCase):
     TYPESCRIPT_WORKFLOWS = (
         "ci.yml",
@@ -202,6 +277,17 @@ class PnpmWorkflowContractTests(unittest.TestCase):
             '"$TYPESCRIPT_VERSION" --no-git-tag-version',
             sync,
         )
+
+    def test_sync_workflow_accepts_exact_spec_release_events(self) -> None:
+        sync = self.workflow_text("sync-from-tidas-tools.yml")
+        self.assertIn("- tidas_spec_released", sync)
+        self.assertIn("update-tidas-spec-pin.py", sync)
+        self.assertIn("TIDAS_SPEC_ARCHIVE_PATH", sync)
+        self.assertIn("spec_archive_sha256", sync)
+        self.assertIn("event_key", sync)
+        self.assertIn("source_event", sync)
+        self.assertIn("tidas_spec_released", sync)
+        self.assertIn("update_tools_pin", sync)
 
 
 class UpstreamIdentityMigrationTests(unittest.TestCase):
@@ -277,7 +363,7 @@ printf 'ACCOUNT=%s\n' "$(upstream_git -C "$RESOLVED_TIDAS_TOOLS_PATH" config --g
 
     def test_real_workflow_clone_stores_no_automation_credential(self) -> None:
         text = (REPO_ROOT / ".github/workflows/sync-from-tidas-tools.yml").read_text()
-        block = text.split("      - name: Clone upstream tidas-tools\n", 1)[1].split("      - name: Set up pnpm and Node.js", 1)[0]
+        block = text.split("      - name: Clone upstream tidas-tools\n", 1)[1].split("      - name: Fetch and pin exact tidas-spec release", 1)[0]
         run = block.split("        run: |\n", 1)[1]
         commands = "\n".join(line[10:] for line in run.splitlines())
         # The workflow is a CI process, not a parent hook; core.worktree is tested
@@ -591,6 +677,7 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         # checkout lifetime and generation drift gates.
         (scripts / "lib/tidas-spec-source.sh").write_text("""
 RESOLVED_TIDAS_SPEC_ROOT=\"\"
+RESOLVED_TIDAS_SPEC_ARCHIVE=\"$REPO_ROOT/fixture-spec.tgz\"
 resolve_tidas_spec_source() { :; }
 cleanup_tidas_spec_source() { :; }
 spec_schema_dir() { printf '%s\\n' \"$REPO_ROOT/fixture-spec/schemas\"; }

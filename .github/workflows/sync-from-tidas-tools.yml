@@ -4,11 +4,12 @@ on:
   repository_dispatch:
     types:
       - tidas_tools_changed
+      - tidas_spec_released
   workflow_dispatch:
     inputs:
       tidas_tools_sha:
         description: Exact 40-character tiangong-lca/tidas-toolkit commit SHA to sync from.
-        required: true
+        required: false
         type: string
       packages:
         description: Package families to regenerate.
@@ -89,10 +90,24 @@ jobs:
           ts_bump = "patch"
           py_bump = "patch"
           reason = ""
+          source_event = "tools"
+          update_tools_pin = "true"
+          spec_version = ""
+          spec_source_commit = ""
+          spec_archive_url = ""
+          spec_archive_sha256 = ""
+          spec_manifest_sha256 = ""
+          spec_event_key = ""
 
           if event_name == "repository_dispatch":
               with Path(os.environ["EVENT_PATH"]).open("r", encoding="utf-8") as fh:
-                  payload = json.load(fh).get("client_payload", {})
+                  event = json.load(fh)
+              event_type = str(event.get("action", "") or "")
+              payload = event.get("client_payload", {})
+              if event_type not in {"tidas_tools_changed", "tidas_spec_released"}:
+                  raise SystemExit(f"error: unsupported repository_dispatch action {event_type!r}")
+              source_event = "spec" if event_type == "tidas_spec_released" else "tools"
+              update_tools_pin = "false" if source_event == "spec" else "true"
               requested_sha = str(payload.get("tidas_tools_sha", "") or "")
               packages = payload.get("packages", ["typescript", "python"])
               if isinstance(packages, str):
@@ -101,6 +116,32 @@ jobs:
               ts_bump = str(payload.get("typescript_bump", "patch") or "patch")
               py_bump = str(payload.get("python_bump", "patch") or "patch")
               reason = str(payload.get("reason", "") or "")
+              if source_event == "spec":
+                  spec_package = str(payload.get("package", "") or "")
+                  if spec_package != "@tiangong-lca/tidas-spec":
+                      raise SystemExit("error: tidas_spec_released package must be @tiangong-lca/tidas-spec")
+                  spec_version = str(payload.get("version", "") or "")
+                  spec_source_commit = str(payload.get("source_commit", "") or "")
+                  spec_archive_url = str(payload.get("archive_url", "") or "")
+                  spec_archive_sha256 = str(payload.get("archive_sha256", "") or "")
+                  spec_manifest_sha256 = str(payload.get("manifest_sha256", "") or "")
+                  spec_event_key = str(payload.get("event_key", "") or "")
+                  if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", spec_version):
+                      raise SystemExit("error: spec version is not semantic")
+                  if not re.fullmatch(r"[0-9a-f]{40}", spec_source_commit):
+                      raise SystemExit("error: spec source_commit must be a lowercase 40-character SHA")
+                  if not re.fullmatch(r"[0-9a-f]{64}", spec_archive_sha256) or not re.fullmatch(r"[0-9a-f]{64}", spec_manifest_sha256):
+                      raise SystemExit("error: spec archive and manifest digests must be lowercase SHA256 values")
+                  expected_file = f"tiangong-lca-tidas-spec-{spec_version}.tgz"
+                  expected_url = f"https://github.com/tiangong-lca/tidas-spec/releases/download/v{spec_version}/{expected_file}"
+                  expected_key = f"@tiangong-lca/tidas-spec@{spec_version}:{spec_archive_sha256}:{spec_manifest_sha256}"
+                  if str(payload.get("archive_file", "")) != expected_file or spec_archive_url != expected_url or spec_event_key != expected_key:
+                      raise SystemExit("error: spec release payload does not carry the canonical immutable identity")
+                  pin_text = Path("scripts/ci/lib/tidas-tools-source.sh").read_text(encoding="utf-8")
+                  pin_match = re.search(r'TIDAS_TOOLS_SHA="\$\{TIDAS_TOOLS_SHA:-([0-9a-fA-F]{40})\}"', pin_text)
+                  if pin_match is None:
+                      raise SystemExit("error: could not resolve current exact tidas-tools pin for spec event")
+                  requested_sha = pin_match.group(1).lower()
           else:
               requested_sha = os.environ.get("INPUT_TIDAS_TOOLS_SHA", "")
               packages = os.environ.get("INPUT_PACKAGES", "both")
@@ -125,6 +166,14 @@ jobs:
               fh.write(f"requested_sha={requested_sha}\n")
               fh.write(f"requested_typescript={'true' if requested_typescript else 'false'}\n")
               fh.write(f"requested_python={'true' if requested_python else 'false'}\n")
+              fh.write(f"source_event={source_event}\n")
+              fh.write(f"update_tools_pin={update_tools_pin}\n")
+              fh.write(f"spec_version={spec_version}\n")
+              fh.write(f"spec_source_commit={spec_source_commit}\n")
+              fh.write(f"spec_archive_url={spec_archive_url}\n")
+              fh.write(f"spec_archive_sha256={spec_archive_sha256}\n")
+              fh.write(f"spec_manifest_sha256={spec_manifest_sha256}\n")
+              fh.write(f"spec_event_key={spec_event_key}\n")
               fh.write(f"typescript_bump={ts_bump}\n")
               fh.write(f"python_bump={py_bump}\n")
               fh.write("reason<<EOF\n")
@@ -136,8 +185,13 @@ jobs:
         id: upstream
         env:
           REQUESTED_SHA: ${{ steps.request.outputs.requested_sha }}
+          SOURCE_EVENT: ${{ steps.request.outputs.source_event }}
+          SPEC_VERSION: ${{ steps.request.outputs.spec_version }}
         run: |
           set -euo pipefail
+
+          SOURCE_EVENT="${SOURCE_EVENT:-tools}"
+          SPEC_VERSION="${SPEC_VERSION:-}"
 
           UPSTREAM_DIR="$RUNNER_TEMP/tidas-tools-upstream"
           CLONE_URL="https://github.com/tiangong-lca/tidas-toolkit.git"
@@ -153,13 +207,36 @@ jobs:
             exit 1
           fi
           SHORT_SHA="${RESOLVED_SHA:0:7}"
+          if [ "$SOURCE_EVENT" = spec ]; then
+            BRANCH_NAME="automation/tidas-spec-sync-v${SPEC_VERSION}"
+          else
+            BRANCH_NAME="automation/tidas-tools-sync-$SHORT_SHA"
+          fi
 
           {
             echo "path=$UPSTREAM_DIR"
             echo "resolved_sha=$RESOLVED_SHA"
             echo "short_sha=$SHORT_SHA"
-            echo "branch_name=automation/tidas-tools-sync-$SHORT_SHA"
+            echo "branch_name=$BRANCH_NAME"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and pin exact tidas-spec release
+        if: steps.request.outputs.source_event == 'spec'
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+          SPEC_ARCHIVE_URL: ${{ steps.request.outputs.spec_archive_url }}
+          SPEC_ARCHIVE_SHA256: ${{ steps.request.outputs.spec_archive_sha256 }}
+          SPEC_MANIFEST_SHA256: ${{ steps.request.outputs.spec_manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          python3 ./scripts/ci/update-tidas-spec-pin.py --event-file "$EVENT_PATH"
+          archive="$RUNNER_TEMP/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["client_payload"]["archive_file"])' "$EVENT_PATH")"
+          curl --fail --silent --show-error --location --retry 3 "$SPEC_ARCHIVE_URL" --output "$archive"
+          test "$(shasum -a 256 "$archive" | awk '{print $1}')" = "$SPEC_ARCHIVE_SHA256"
+          manifest="$RUNNER_TEMP/tidas-spec-manifest.json"
+          tar -xOf "$archive" package/spec-manifest.json > "$manifest"
+          test "$(shasum -a 256 "$manifest" | awk '{print $1}')" = "$SPEC_MANIFEST_SHA256"
+          echo "TIDAS_SPEC_ARCHIVE_PATH=$archive" >> "$GITHUB_ENV"
 
       - name: Set up pnpm and Node.js
         if: steps.request.outputs.requested_typescript == 'true'
@@ -213,13 +290,15 @@ jobs:
 
           TS_CHANGED="$(package_changed sdks/typescript)"
           PY_CHANGED="$(package_changed sdks/python)"
+          SPEC_PIN_CHANGED="$(package_changed scripts/ci/tidas-spec-pin.json)"
 
           {
             echo "typescript_changed=$TS_CHANGED"
             echo "python_changed=$PY_CHANGED"
+            echo "spec_pin_changed=$SPEC_PIN_CHANGED"
           } >> "$GITHUB_OUTPUT"
 
-          if [ "$TS_CHANGED" = "true" ] || [ "$PY_CHANGED" = "true" ]; then
+          if [ "$TS_CHANGED" = "true" ] || [ "$PY_CHANGED" = "true" ] || [ "$SPEC_PIN_CHANGED" = "true" ]; then
             echo "any_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "any_changed=false" >> "$GITHUB_OUTPUT"
@@ -272,7 +351,7 @@ jobs:
         run: python3 ./scripts/ci/bump-python-version.py --version "$PYTHON_VERSION"
 
       - name: Update default exact upstream pin
-        if: steps.changes.outputs.any_changed == 'true'
+        if: steps.changes.outputs.any_changed == 'true' && steps.request.outputs.update_tools_pin == 'true'
         env:
           UPSTREAM_SHA: ${{ steps.upstream.outputs.resolved_sha }}
         run: |
@@ -338,6 +417,12 @@ jobs:
         id: pr_body
         env:
           UPSTREAM_SHA: ${{ steps.upstream.outputs.resolved_sha }}
+          SOURCE_EVENT: ${{ steps.request.outputs.source_event }}
+          SPEC_VERSION: ${{ steps.request.outputs.spec_version }}
+          SPEC_SOURCE_COMMIT: ${{ steps.request.outputs.spec_source_commit }}
+          SPEC_ARCHIVE_SHA256: ${{ steps.request.outputs.spec_archive_sha256 }}
+          SPEC_MANIFEST_SHA256: ${{ steps.request.outputs.spec_manifest_sha256 }}
+          SPEC_EVENT_KEY: ${{ steps.request.outputs.spec_event_key }}
           REQUEST_REASON: ${{ steps.request.outputs.reason }}
           TYPESCRIPT_CHANGED: ${{ steps.changes.outputs.typescript_changed }}
           PYTHON_CHANGED: ${{ steps.changes.outputs.python_changed }}
@@ -351,7 +436,13 @@ jobs:
             echo "body<<$BODY_DELIMITER"
             echo "## Summary"
             echo
-            echo "- Sync generated SDK artifacts from \`tiangong-lca/tidas-toolkit\` commit \`$UPSTREAM_SHA\`."
+            echo "- Trigger source: \`$SOURCE_EVENT\`."
+            echo "- Resolve the exact tidas-tools checkout at \`$UPSTREAM_SHA\`."
+            if [ "$SOURCE_EVENT" = "spec" ]; then
+              echo "- Adopt tidas-spec \`$SPEC_VERSION\` from source commit \`$SPEC_SOURCE_COMMIT\`."
+              echo "- Archive SHA256: \`$SPEC_ARCHIVE_SHA256\`; manifest SHA256: \`$SPEC_MANIFEST_SHA256\`."
+              echo "- Event key: \`$SPEC_EVENT_KEY\`."
+            fi
             if [ "$TYPESCRIPT_CHANGED" = "true" ]; then
               echo "- Release TypeScript package \`@tiangong-lca/tidas-sdk\` as \`$TYPESCRIPT_VERSION\` (\`$TYPESCRIPT_BUMP\` bump)."
             fi
@@ -393,11 +484,12 @@ jobs:
             docs/release-setup.md
             docs/upstream-automation.md
             scripts/ci/lib/tidas-tools-source.sh
+            scripts/ci/tidas-spec-pin.json
           branch: ${{ steps.upstream.outputs.branch_name }}
           base: main
           delete-branch: false
-          commit-message: "chore: sync SDKs from tidas-tools ${{ steps.upstream.outputs.short_sha }}"
-          title: "chore: sync SDKs from tidas-tools ${{ steps.upstream.outputs.short_sha }}"
+          commit-message: "chore: sync SDK inputs from ${{ steps.request.outputs.source_event }}"
+          title: "chore: sync SDK inputs from ${{ steps.request.outputs.source_event }}"
           body: ${{ steps.pr_body.outputs.body }}
           author: "tidas-sdk automation <actions@github.com>"
           committer: "tidas-sdk automation <actions@github.com>"

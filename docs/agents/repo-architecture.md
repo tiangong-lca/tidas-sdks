@@ -84,6 +84,7 @@ Important consequences:
 - TypeScript runtime assets are assembled as a disjoint union: public schemas and public methodologies come from `tidas-spec`, while rulesets, taxonomies, and optional methodologies mirror the catalog-selected `tidas-tools` roots and include the exact authoritative `asset-lock.v1.json`
 - Python generated models consume the same verified `tidas-spec` schema directory as TypeScript
 - `tidas` remains important for public docs-site content, but it is not an SDK asset source
+- `sync-from-tidas-tools.yml` accepts a content-addressed `tidas_spec_released` event in addition to `tidas_tools_changed`; the former updates the exact spec pin only after archive and manifest digest verification, and immutable replay/conflict rules are enforced by `update-tidas-spec-pin.py`
 
 ## Package Responsibilities
 

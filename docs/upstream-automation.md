@@ -21,7 +21,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-16
 lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedNote: "W5 records the exact tidas_spec_released payload, archive/manifest verification, immutable pin update, and stale/conflict replay behavior alongside the existing tidas_tools_changed flow."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -37,7 +37,7 @@ The checked-in workflows implement this flow. Repository secrets and external re
 
 The goal is:
 
-1. `tidas-spec` publishes a new reviewed public archive, or `tidas-tools` changes in a way that affects generated SDK content.
+1. `tidas-spec` publishes a new reviewed public archive (`tidas_spec_released`), or `tidas-tools` changes in a way that affects generated SDK content (`tidas_tools_changed`).
 2. `tidas-sdk` regenerates the Python and TypeScript SDKs from the exact spec archive and tools commit.
 3. If generated output changes, `tidas-sdk` opens a release-prep PR.
 4. After the PR is merged, `tidas-sdk` creates package tags.
@@ -96,7 +96,29 @@ Recommended responsibilities:
   - `major`
 - send a `repository_dispatch` event to `tiangong-lca/tidas-sdks`
 
-Recommended dispatch payload:
+The specification release payload is strict and content-addressed:
+
+```json
+{
+  "event_type": "tidas_spec_released",
+  "client_payload": {
+    "event_key": "@tiangong-lca/tidas-spec@0.2.0:<archive-sha256>:<manifest-sha256>",
+    "package": "@tiangong-lca/tidas-spec",
+    "version": "0.2.0",
+    "source_commit": "<40-char tidas-spec SHA>",
+    "archive_file": "tiangong-lca-tidas-spec-0.2.0.tgz",
+    "archive_url": "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.2.0/tiangong-lca-tidas-spec-0.2.0.tgz",
+    "archive_sha256": "<64-char SHA256>",
+    "manifest_sha256": "<64-char SHA256>",
+    "packages": ["typescript", "python"],
+    "typescript_bump": "minor",
+    "python_bump": "minor",
+    "reason": "reviewed public specification release"
+  }
+}
+```
+
+The existing tools dispatch payload remains:
 
 ```json
 {
@@ -119,7 +141,7 @@ workflow rejects an empty value or branch/ref fallback.
 
 The workflow in `tiangong-lca/tidas-sdks` runs on:
 
-- `repository_dispatch` with type `tidas_tools_changed`
+- `repository_dispatch` with type `tidas_tools_changed` or `tidas_spec_released`
 - optional manual `workflow_dispatch` for recovery or re-run
 
 Current implementation file:
@@ -129,7 +151,7 @@ Current implementation file:
 Recommended responsibilities:
 
 1. check out `tidas-sdk`
-2. check out `tiangong-lca/tidas-toolkit` at `client_payload.tidas_tools_sha`
+2. check out `tiangong-lca/tidas-toolkit` at the exact tools SHA (the spec event derives this from the current tools pin)
 3. verify that checkout against its Rust `assets/asset-lock.v1.json`
 4. resolve and verify the exact `tidas-spec` archive declared by `scripts/ci/tidas-spec-pin.json`
 5. install the TypeScript workspace dependency graph with exact Node `24.19.0`
@@ -142,12 +164,13 @@ Recommended responsibilities:
 7. run local parity checks:
    - `./scripts/ci/verify-typescript-package.sh`
    - `./scripts/ci/verify-python-package.sh`
-8. detect whether TypeScript and/or Python outputs changed
-9. bump only the affected package version(s) to the next unpublished version in the target registry
-10. update the repository's exact tools commit and spec archive pin when inputs change
-11. record deterministic review metadata in every Docpact-required governed document
-12. commit generated package files, exact pins, and governed review records to a bot branch
-13. open or update a release-prep PR against `main`
+8. for `tidas_spec_released`, download and hash-check the notified archive before updating the exact spec pin; an exact replay is a no-op and a stale or same-version conflicting identity fails closed
+9. detect whether TypeScript and/or Python outputs changed, including a changed spec pin
+10. bump only the affected package version(s) to the next unpublished version in the target registry
+11. update the repository's exact tools commit only for a tools event; update the spec archive pin only from a spec event
+12. record deterministic review metadata in every Docpact-required governed document
+13. commit generated package files, exact pins, and governed review records to a bot branch
+14. open or update a release-prep PR against `main`
 
 Validation-contract safeguard for TypeScript refreshes:
 
