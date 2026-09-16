@@ -72,6 +72,8 @@ Facts that matter:
 - every source must be a Git checkout at the exact `TIDAS_TOOLS_SHA`; the default
   pin is immutable and advances in the same generated PR as the package assets;
   dispatch/manual automation must supply a full 40-character SHA
+- TypeScript and Python generation resolve `tidas-spec` as one verified release archive. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
+- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. `assembly-plan` proves that public paths are disjoint from the remaining `tidas-tools` paths and rejects differing overlap bytes.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds
@@ -89,8 +91,8 @@ Facts that matter:
 - generator changes should build the baseline before editing, then run
   `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity`; its automatic candidate directory
   is always cleaned and can be replaced by explicit baseline/candidate paths
-- if you intentionally validate against a local checkout, record both its path
-  and exact commit in the PR note
+- if you intentionally validate against a local checkout or archive, record both
+  its path and exact commit/archive SHA in the PR note
 
 ## Validation Contract Notes
 

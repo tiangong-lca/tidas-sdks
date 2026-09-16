@@ -34,13 +34,13 @@ This document captures the one-time repository and registry configuration requir
 
 ## Cross-Repository Automation
 
-If you want `tiangong-lca/tidas-toolkit` changes to automatically rebuild and release the SDK packages in this repository, use the architecture described in [upstream-automation.md](./upstream-automation.md).
+If you want `tiangong-lca/tidas-spec` releases or `tiangong-lca/tidas-toolkit` changes to automatically rebuild and release the SDK packages in this repository, use the architecture described in [upstream-automation.md](./upstream-automation.md).
 
 Recommended model:
 
-- `tidas-tools` detects SDK-relevant upstream changes
+- `tidas-spec` publishes the reviewed public archive and `tidas-tools` detects execution-oriented SDK changes
 - `tidas-tools` dispatches into `tiangong-lca/tidas-sdks`
-- `tidas-sdk` regenerates SDKs from the exact upstream SHA and opens a release-prep PR
+- `tidas-sdk` verifies the exact `tidas-spec` archive and `tidas-tools` SHA, then opens a release-prep PR
 - after merge, `tidas-sdk` creates package tags
 - the existing `publish.yml` workflow publishes from those tags
 

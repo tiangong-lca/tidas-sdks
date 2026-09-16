@@ -10,7 +10,7 @@ import {
   JsonSchemaToTypeScript,
   createTidasConfig,
 } from './json-schema-to-typescript.js';
-import { requireTidasToolsSchemaDir } from './resolve-tidas-tools-path.js';
+import { requireTidasSpecSchemaDir } from './resolve-tidas-tools-path.js';
 const OUTPUT_DIR = path.join(__dirname, '../src/types');
 
 // 新增：自动生成 multi-lang-types.ts
@@ -65,8 +65,8 @@ export type MultiLangItem = MultiLangItemClass;
 }
 
 async function main() {
-  const schemasDir = requireTidasToolsSchemaDir(
-    'Type generation requires access to the upstream tidas-tools schemas. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+  const schemasDir = requireTidasSpecSchemaDir(
+    'Type generation requires the verified standalone tidas-spec schemas. Run ../../scripts/ci/generate-typescript-sdk.sh or set TIDAS_SPEC_SCHEMA_DIR.'
   );
 
   // Ensure output directory exists

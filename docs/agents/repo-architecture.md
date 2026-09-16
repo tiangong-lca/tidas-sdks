@@ -69,7 +69,7 @@ root `pnpm-lock.yaml`.
 
 The practical executable chain today is:
 
-`tidas-tools -> tidas-sdk`
+`tidas-spec + tidas-tools -> tidas-sdk`
 
 The canonical GitHub repositories are `tiangong-lca/tidas-toolkit` and
 `tiangong-lca/tidas-sdks`; workspace directories and published SDK package names
@@ -77,11 +77,13 @@ retain their existing names.
 
 Important consequences:
 
-- `scripts/ci/tidas-tools-assets.mjs` validates the upstream Rust asset lock and derives schema, methodology, and runtime roots from catalog entries rather than package-layout assumptions
+- `scripts/ci/tidas-spec-assets.mjs` verifies the pinned public specification archive, its manifest, source evidence, and the exact public subset before exposing an asset root
+- `scripts/ci/tidas-tools-assets.mjs` validates the execution-oriented Rust asset lock and derives runtime roots from catalog entries rather than package-layout assumptions
+- `scripts/ci/lib/tidas-spec-source.sh` resolves one verified spec archive for the whole generation/verification process; schemas, the schema lock, and public `flows`/`processes` methodologies never fall back to `tidas-tools`
 - `scripts/ci/lib/typescript-dependencies.sh` gives clean generation and verification runs the same `pnpm install --frozen-lockfile` dependency graph from the root `pnpm-lock.yaml`
-- TypeScript runtime assets mirror the catalog-selected non-export roots and include the exact authoritative `asset-lock.v1.json`
-- Python generated models also refresh from `tidas-tools`
-- `tidas` remains important for public spec/docs content, but it is not the immediate generation source for current package refreshes
+- TypeScript runtime assets are assembled as a disjoint union: public schemas and public methodologies come from `tidas-spec`, while rulesets, taxonomies, and optional methodologies mirror the catalog-selected `tidas-tools` roots and include the exact authoritative `asset-lock.v1.json`
+- Python generated models consume the same verified `tidas-spec` schema directory as TypeScript
+- `tidas` remains important for public docs-site content, but it is not an SDK asset source
 
 ## Package Responsibilities
 
@@ -116,7 +118,8 @@ and runs its own real data cases.
 ### Python package
 
 The Python package owns generated SDK surfaces and validation helpers that are published separately from standalone `tidas-tools`.
-Its generator consumes an explicitly resolved schema directory and preserves the
+Its generator consumes the explicitly resolved schema directory from the pinned
+`tidas-spec` archive and preserves the
 same type-aware Flow name condition in generated Pydantic models.
 
 ## Release Automation

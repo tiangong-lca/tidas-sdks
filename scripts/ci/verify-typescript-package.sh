@@ -36,13 +36,21 @@ require_stable_generation_output() {
 TIDAS_TOOLS_SOURCE_MODE="${TIDAS_TOOLS_SOURCE_MODE:-clone}"
 export TIDAS_TOOLS_SOURCE_MODE
 source "$SCRIPT_DIR/lib/tidas-tools-source.sh"
+source "$SCRIPT_DIR/lib/tidas-spec-source.sh"
 TIDAS_TOOLS_ASSET_RESOLVER="$SCRIPT_DIR/tidas-tools-assets.mjs"
 # Install the cleanup trap before resolving so a fetch or asset-validation failure
 # still removes the temporary checkout this script created.
-trap cleanup_tidas_tools_source EXIT
+trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 resolve_tidas_tools_source "$REPO_ROOT"
 export TIDAS_TOOLS_PATH="$RESOLVED_TIDAS_TOOLS_PATH"
 echo "[typescript] verified tidas-tools source: $TIDAS_TOOLS_PATH (pin $TIDAS_TOOLS_SHA)"
+
+resolve_tidas_spec_source "$REPO_ROOT"
+export TIDAS_SPEC_ARCHIVE_PATH="$RESOLVED_TIDAS_SPEC_ARCHIVE"
+export TIDAS_SPEC_SCHEMA_DIR="$(spec_schema_dir)"
+export TIDAS_SPEC_METHODOLOGY_DIR="$(spec_methodology_dir)"
+export TIDAS_SPEC_ASSET_ROOT="$(spec_asset_root)"
+trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 
 before_generated_state="$(snapshot_path_state "sdks/typescript/src")"
 
