@@ -73,7 +73,7 @@ Facts that matter:
   pin is immutable and advances in the same generated PR as the package assets;
   dispatch/manual automation must supply a full 40-character SHA
 - TypeScript and Python generation resolve `tidas-spec` as one verified release archive. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
-- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. `assembly-plan` proves that public paths are disjoint from the remaining `tidas-tools` paths and rejects differing overlap bytes.
+- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. `assembly-plan` proves that public paths are disjoint from the remaining `tidas-tools` paths and rejects differing overlap bytes. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays are accepted, while stale, malformed, partial, or same-version conflicting events fail closed.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds

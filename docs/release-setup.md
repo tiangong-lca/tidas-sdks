@@ -20,7 +20,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-16
 lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedNote: "W5 adds an exact tidas_spec_released dispatch intake to the upstream sync workflow; registry and package publication remain owned by this repository's reviewed PR and tag workflows."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -38,7 +38,7 @@ If you want `tiangong-lca/tidas-spec` releases or `tiangong-lca/tidas-toolkit` c
 
 Recommended model:
 
-- `tidas-spec` publishes the reviewed public archive and `tidas-tools` detects execution-oriented SDK changes
+- `tidas-spec` publishes the reviewed public archive through `tidas_spec_released`, and `tidas-tools` detects execution-oriented SDK changes through `tidas_tools_changed`
 - `tidas-tools` dispatches into `tiangong-lca/tidas-sdks`
 - `tidas-sdk` verifies the exact `tidas-spec` archive and `tidas-tools` SHA, then opens a release-prep PR
 - after merge, `tidas-sdk` creates package tags

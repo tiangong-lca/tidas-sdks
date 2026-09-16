@@ -33,7 +33,7 @@ checkPaths:
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-16
 lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedNote: "W5 adds exact tidas_spec_released intake with immutable pin updates, archive/manifest verification, stale/conflict rejection, and offline automation regressions. Existing tidas_tools_changed intake remains supported; package publication still requires the normal reviewed PR and tag workflows."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -102,6 +102,7 @@ Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-
   - `./scripts/ci/generate-python-sdk.sh`
 - the default upstream generation pin is the exact `tidas-tools` commit declared by `TIDAS_TOOLS_SHA`; moving branch tips are not valid generation inputs
 - the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public `flows`/`processes` methodology files
+- `.github/workflows/sync-from-tidas-tools.yml` accepts both `tidas_tools_changed` and `tidas_spec_released`. A spec event must carry the canonical package/version/source/archive/manifest identity and stable `event_key`; exact replays are no-ops, while stale or same-version conflicting events fail closed. The workflow updates the spec pin only from that event and never treats a branch tip as a release input.
 - release tags:
   - `typescript-v<version>`
   - `python-v<version>`
