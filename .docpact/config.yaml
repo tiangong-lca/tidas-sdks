@@ -1,8 +1,8 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-09-15"
-lastReviewedCommit: "1f7c071a19acc4a6ff6c1b339fa29d9db644275d"
-lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-only input skips source gates; mixed/source/tag/unknown input and classifier failures preserve ordered Docpact, TypeScript and Python verification. Independent focused hook trace and real TTY evidence plus 15 automation tests and full TS90/Python42 gates pass. Existing ownership, fixed upstream, generation, package versions and release identities are unchanged. Hosted candidate CI and workspace integration remain pending."
+lastReviewedAt: "2026-09-16"
+lastReviewedCommit: "a4ca62fea35ab7f9eaa0e9789baced36d3d2816d"
+lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
 
 catalog:
   repos:
