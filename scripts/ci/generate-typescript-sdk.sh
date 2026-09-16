@@ -13,6 +13,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-$REPO_ROOT/sdks/typescript/src}"
 SDK_ROOT="${SDK_ROOT:-$REPO_ROOT/sdks/typescript}"
 source "$SCRIPT_DIR/lib/tidas-tools-source.sh"
+source "$SCRIPT_DIR/lib/tidas-spec-source.sh"
 source "$SCRIPT_DIR/lib/typescript-dependencies.sh"
 TIDAS_TOOLS_ASSET_RESOLVER="$SCRIPT_DIR/tidas-tools-assets.mjs"
 
@@ -50,7 +51,7 @@ handle_error() {
 }
 
 trap 'handle_error $LINENO' ERR
-trap cleanup_tidas_tools_source EXIT
+trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 
 # 验证输入
 validate_inputs() {
@@ -63,6 +64,9 @@ validate_inputs() {
         exit 1
     fi
     export TIDAS_TOOLS_SCHEMA_DIR
+    export TIDAS_SPEC_SCHEMA_DIR="$(spec_schema_dir)"
+    export TIDAS_SPEC_METHODOLOGY_DIR="$(spec_methodology_dir)"
+    export TIDAS_SPEC_ASSET_ROOT="$(spec_asset_root)"
 
     if [ ! -d "$SDK_ROOT" ]; then
         log_error "SDK root directory not found: $SDK_ROOT"
@@ -76,6 +80,7 @@ validate_inputs() {
 
     log_info "✓ tidas-tools path: $TIDAS_TOOLS_PATH"
     log_info "✓ Rust asset lock schema directory: $TIDAS_TOOLS_SCHEMA_DIR"
+    log_info "✓ Standalone spec schema directory: $TIDAS_SPEC_SCHEMA_DIR"
     log_info "✓ SDK root: $SDK_ROOT"
     log_info "✓ Output directory: $OUTPUT_DIR"
 }
@@ -126,7 +131,7 @@ generate_sdk() {
     # Step 1: Generate TypeScript types from JSON schemas
     if grep -q '"generate-types"' "$SDK_ROOT/package.json"; then
         log_info "Step 1/4: Generating TypeScript types from schemas..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-types; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" TIDAS_SPEC_SCHEMA_DIR="$TIDAS_SPEC_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-types; then
             log_info "✓ TypeScript types generated successfully"
         else
             log_error "TypeScript type generation failed"
@@ -140,7 +145,7 @@ generate_sdk() {
     # Step 2: Generate Zod validation schemas
     if grep -q '"generate-schemas"' "$SDK_ROOT/package.json"; then
         log_info "Step 2/4: Generating Zod validation schemas..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-schemas; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_TOOLS_SCHEMA_DIR="$TIDAS_TOOLS_SCHEMA_DIR" TIDAS_SPEC_SCHEMA_DIR="$TIDAS_SPEC_SCHEMA_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run generate-schemas; then
             log_info "✓ Zod schemas generated successfully"
         else
             log_error "Zod schema generation failed"
@@ -154,7 +159,7 @@ generate_sdk() {
     # Step 3: Bundle methodologies (根据 build script)
     if grep -q '"bundle-methodologies"' "$SDK_ROOT/package.json"; then
         log_info "Step 3/4: Bundling LCIA methodologies..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run bundle-methodologies; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_SPEC_METHODOLOGY_DIR="$TIDAS_SPEC_METHODOLOGY_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run bundle-methodologies; then
             log_info "✓ Methodologies bundled successfully"
         else
             log_warn "Methodology bundling failed (non-critical)"
@@ -163,7 +168,7 @@ generate_sdk() {
 
     if grep -q '"sync-runtime-assets"' "$SDK_ROOT/package.json"; then
         log_info "Step 4/4: Syncing runtime conversion assets..."
-        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run sync-runtime-assets; then
+        if TIDAS_TOOLS_PATH="$TIDAS_TOOLS_PATH" TIDAS_SPEC_ASSET_ROOT="$TIDAS_SPEC_ASSET_ROOT" TIDAS_SPEC_METHODOLOGY_DIR="$TIDAS_SPEC_METHODOLOGY_DIR" pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run sync-runtime-assets; then
             log_info "✓ Runtime assets synced successfully"
         else
             log_error "Runtime asset sync failed"
@@ -270,6 +275,7 @@ main() {
 
     resolve_tidas_tools_source "$REPO_ROOT"
     TIDAS_TOOLS_PATH="$RESOLVED_TIDAS_TOOLS_PATH"
+    resolve_tidas_spec_source "$REPO_ROOT"
     validate_inputs
     check_dependencies
     generate_sdk

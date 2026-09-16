@@ -7,7 +7,7 @@ import {
   JsonSchemaToZod,
   type JsonSchemaObject,
 } from './json-schema-to-zod.js';
-import { requireTidasToolsSchemaDir } from './resolve-tidas-tools-path.js';
+import { requireTidasSpecSchemaDir } from './resolve-tidas-tools-path.js';
 import { replaceExportedSchema } from './schema-postprocess.js';
 
 // Configuration
@@ -16,8 +16,8 @@ const SCHEMAS_DIR = process.env.TIDAS_ZOD_OUTPUT_DIR ?? 'src/schemas';
 async function generateZodSchemas(): Promise<void> {
   console.log('🚀 Generating Zod schemas directly from TIDAS JSON Schema...\n');
 
-  const upstreamSchemasDir = requireTidasToolsSchemaDir(
-    'Zod generation requires the locked tidas-tools JSON schemas. Set TIDAS_TOOLS_PATH/TIDAS_TOOLS_SCHEMA_DIR, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+  const upstreamSchemasDir = requireTidasSpecSchemaDir(
+    'Zod generation requires the verified standalone tidas-spec JSON schemas. Run ../../scripts/ci/generate-typescript-sdk.sh or set TIDAS_SPEC_SCHEMA_DIR.'
   );
 
   // Ensure schemas directory exists

@@ -7,7 +7,7 @@ authoritative: false
 owner: tidas-sdk
 language: en
 whenToUse:
-  - when a task changes cross-repo automation between tidas-tools and tidas-sdk
+  - when a task changes cross-repo automation between tidas-spec, tidas-tools, and tidas-sdk
   - when reviewing how upstream generation and release-prep PRs should work
 whenToUpdate:
   - when upstream trigger shape, dispatch payload, sync workflow layout, or automation authentication changes
@@ -31,14 +31,14 @@ related:
 
 # Upstream Automation Design
 
-This document describes the recommended cross-repository automation path for keeping `tidas-sdk` in sync with upstream changes from `tiangong-lca/tidas-toolkit`.
+This document describes the recommended cross-repository automation path for keeping `tidas-sdk` in sync with the versioned public archive from `tiangong-lca/tidas-spec` and execution-oriented changes from `tiangong-lca/tidas-toolkit`.
 
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
 The goal is:
 
-1. `tidas-tools` changes in a way that affects generated SDK content.
-2. `tidas-sdk` regenerates the Python and TypeScript SDKs from the exact upstream commit.
+1. `tidas-spec` publishes a new reviewed public archive, or `tidas-tools` changes in a way that affects generated SDK content.
+2. `tidas-sdk` regenerates the Python and TypeScript SDKs from the exact spec archive and tools commit.
 3. If generated output changes, `tidas-sdk` opens a release-prep PR.
 4. After the PR is merged, `tidas-sdk` creates package tags.
 5. Existing tag-driven release automation publishes the packages.
@@ -46,6 +46,7 @@ The goal is:
 ## Design Principles
 
 - `tidas-sdk` remains the package-owning repository.
+- `tidas-spec` owns the public specification source and release archive; `tidas-sdk` records and verifies only the exact archive pin.
 - npm and PyPI publishing stay in `tidas-sdk/.github/workflows/publish.yml`.
 - `tidas-tools` should trigger sync, not publish packages directly.
 - auto-generated code changes should still land through a normal PR for review and local/release verification.
@@ -54,10 +55,10 @@ The goal is:
 ## Recommended Flow
 
 ```text
-tidas-tools push/merge
+tidas-spec release or tidas-tools push/merge
   -> detect SDK-relevant upstream change
   -> repository_dispatch to tiangong-lca/tidas-sdks
-  -> tidas-sdk sync workflow regenerates SDKs from exact tidas-tools SHA
+  -> tidas-sdk sync workflow regenerates SDKs from exact tidas-spec archive + tidas-tools SHA
   -> if no diff: stop
   -> if diff: bump package versions, commit bot branch, open PR
   -> merge PR
@@ -70,7 +71,8 @@ tidas-tools push/merge
 
 This design keeps ownership aligned:
 
-- `tidas-tools` owns schemas, conversion logic, and the upstream trigger.
+- `tidas-spec` owns the public schemas, schema lock, and public methodologies.
+- `tidas-tools` owns conversion logic, execution-oriented assets, and the upstream trigger for tool changes.
 - `tidas-sdk` owns generated artifacts, package versions, PR review, tags, and publishing.
 
 That avoids a fragile setup where one repository publishes another repository's packages or silently changes package metadata outside the owning repo.
@@ -129,22 +131,23 @@ Recommended responsibilities:
 1. check out `tidas-sdk`
 2. check out `tiangong-lca/tidas-toolkit` at `client_payload.tidas_tools_sha`
 3. verify that checkout against its Rust `assets/asset-lock.v1.json`
-4. install the TypeScript workspace dependency graph with exact Node `24.19.0`
+4. resolve and verify the exact `tidas-spec` archive declared by `scripts/ci/tidas-spec-pin.json`
+5. install the TypeScript workspace dependency graph with exact Node `24.19.0`
    and `pnpm@11.24.0` from the root `pnpm-lock.yaml` through
    `pnpm install --frozen-lockfile`
-5. regenerate SDKs with:
+6. regenerate SDKs with:
    - `TIDAS_TOOLS_SOURCE_MODE=auto`
    - `TIDAS_TOOLS_PATH=<checked out tools path>`
    - `TIDAS_TOOLS_SHA=<checked out exact commit>`
-6. run local parity checks:
+7. run local parity checks:
    - `./scripts/ci/verify-typescript-package.sh`
    - `./scripts/ci/verify-python-package.sh`
-7. detect whether TypeScript and/or Python outputs changed
-8. bump only the affected package version(s) to the next unpublished version in the target registry
-9. update the repository's default exact `TIDAS_TOOLS_SHA` verification pin
-10. record deterministic review metadata in every Docpact-required governed document
-11. commit generated package files, the exact pin, and governed review records to a bot branch
-12. open or update a release-prep PR against `main`
+8. detect whether TypeScript and/or Python outputs changed
+9. bump only the affected package version(s) to the next unpublished version in the target registry
+10. update the repository's exact tools commit and spec archive pin when inputs change
+11. record deterministic review metadata in every Docpact-required governed document
+12. commit generated package files, exact pins, and governed review records to a bot branch
+13. open or update a release-prep PR against `main`
 
 Validation-contract safeguard for TypeScript refreshes:
 
@@ -165,6 +168,7 @@ Recommended branch name:
 Recommended PR body content:
 
 - upstream `tidas-tools` commit SHA
+- `tidas-spec` archive version, source commit, and archive/manifest SHA-256
 - affected packages
 - version bump choice
 - generation summary

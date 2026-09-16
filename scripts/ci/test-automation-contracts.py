@@ -397,6 +397,16 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
             prelude,
             count=1,
         )
+        # This focused test exercises the tidas-tools source prelude only. The
+        # complete spec-archive contract has its own dependency-free Node tests;
+        # keep this fixture offline by replacing the new archive resolution block
+        # with a no-op rather than reaching the network.
+        prelude = prelude.replace('resolve_tidas_spec_source "$REPO_ROOT"', ': # spec archive is out of scope for this tools-source fixture')
+        prelude = re.sub(
+            r'export TIDAS_SPEC_SCHEMA_DIR=.*\nexport TIDAS_SPEC_METHODOLOGY_DIR=.*\nexport TIDAS_SPEC_ASSET_ROOT=.*',
+            ': # spec archive is out of scope for this tools-source fixture',
+            prelude,
+        )
         lines = [
             "unset TIDAS_TOOLS_SOURCE_MODE",
             prelude,
@@ -576,6 +586,17 @@ class TypescriptVerifySourceConsistencyTests(unittest.TestCase):
         for name in ("verify-typescript-package.sh", "generate-typescript-sdk.sh", "tidas-tools-assets.mjs",
                      "lib/tidas-tools-source.sh", "lib/typescript-dependencies.sh"):
             shutil.copy2(SCRIPT_ROOT / name, scripts / name)
+        # The phase-trace fixture intentionally stubs public-spec resolution:
+        # package commands are fake and this test is scoped to the tidas-tools
+        # checkout lifetime and generation drift gates.
+        (scripts / "lib/tidas-spec-source.sh").write_text("""
+RESOLVED_TIDAS_SPEC_ROOT=\"\"
+resolve_tidas_spec_source() { :; }
+cleanup_tidas_spec_source() { :; }
+spec_schema_dir() { printf '%s\\n' \"$REPO_ROOT/fixture-spec/schemas\"; }
+spec_methodology_dir() { printf '%s\\n' \"$REPO_ROOT/fixture-spec/methodologies\"; }
+spec_asset_root() { printf '%s\\n' \"$REPO_ROOT/fixture-spec\"; }
+""")
         for name in ("package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"):
             shutil.copy2(REPO_ROOT / name, self.sdk / name)
         # The pre-bootstrap automation gate requires Node, not installed package tooling.

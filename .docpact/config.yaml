@@ -201,6 +201,9 @@ routing:
         - scripts/ci/generate-typescript-sdk.sh
         - scripts/ci/generate-python-sdk.sh
         - scripts/ci/lib/tidas-tools-source.sh
+        - scripts/ci/lib/tidas-spec-source.sh
+        - scripts/ci/tidas-spec-assets.mjs
+        - scripts/ci/tidas-spec-pin.json
         - docs/upstream-automation.md
     release-setup:
       paths:

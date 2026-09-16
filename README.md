@@ -27,7 +27,7 @@ lastReviewedNote: "Reviewed for SDK #122: only complete valid branch-deletion-on
 
 # TIDAS SDKs
 
-A multi-language SDK repository for TIDAS (TianGong Life Cycle Assessment data format), providing the generated TypeScript package, the in-repo Python SDK, and the automation that refreshes and releases them from `tidas-tools`.
+A multi-language SDK repository for TIDAS (TianGong Life Cycle Assessment data format), providing the generated TypeScript package, the in-repo Python SDK, and the automation that refreshes and releases them from the pinned `tidas-spec` archive plus `tidas-tools`.
 
 ## AI Docs Entry
 
@@ -54,7 +54,7 @@ cd sdks/python && uv sync
 
 ### Upstream Tools
 
-`tidas-tools` remains the native Rust upstream for generation, runtime assets, and standalone tooling behavior. Use its unified `tidas` executable for end-user tooling; SDK refreshes consume an exact repository commit and its Rust asset lock.
+`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and the public `flows`/`processes` methodology files are consumed from the separately versioned `tidas-spec` release archive. SDK refreshes pin both identities and assemble them without overlapping files.
 
 ```bash
 cargo install tidas --locked
@@ -82,6 +82,12 @@ cargo install tidas --locked
 - Status: separate native Rust upstream
 - Role: generation source, upstream schemas/assets, and standalone conversion / export tooling
 - Repository: `tiangong-lca/tidas-toolkit`
+
+### tidas-spec (External Upstream)
+
+- Status: versioned public specification archive
+- Role: public JSON Schemas, schema lock, and public methodology assets consumed by SDK generation
+- Repository: `tiangong-lca/tidas-spec`
 
 ## Documentation
 
@@ -131,16 +137,25 @@ uv run mypy .
 ./scripts/ci/generate-python-sdk.sh
 ```
 
-Both generation scripts resolve `tidas-tools` in this order and require its Git
-HEAD to match the exact `TIDAS_TOOLS_SHA` pin:
+Both generation scripts resolve the exact `tidas-tools` commit declared by
+`TIDAS_TOOLS_SHA` and the exact public archive declared by
+`scripts/ci/tidas-spec-pin.json`:
 
 1. `TIDAS_TOOLS_PATH`
 2. a sibling checkout at `../tidas-toolkit`, then the pre-rename `../tidas-tools`
 3. a temporary clone of `tiangong-lca/tidas-toolkit` checked out at that SHA
 
+For `tidas-spec`, set `TIDAS_SPEC_ARCHIVE_PATH` to an explicit archive, use a
+sibling `tidas-spec/release/` archive in auto mode, or let the resolver download
+the pinned release URL. `scripts/ci/tidas-spec-assets.mjs` verifies the archive,
+manifest, source evidence, and complete inventory before extraction. The same
+verified spec identity is used for both language generators and the TypeScript
+runtime assembly.
+
 The generators validate every asset hash and byte count from
 `assets/asset-lock.v1.json`. The TypeScript refresh derives its runtime roots
-from that catalog and commits a matching `runtime-assets/asset-lock.v1.json`;
+from that catalog, overlays the public paths from `tidas-spec`, and commits a
+matching `runtime-assets/asset-lock.v1.json`;
 it does not discover assets through the upstream Python package layout. When a
 clean refresh needs generator dependencies, it requires the root
 `pnpm-lock.yaml` and installs the complete workspace with

@@ -45,7 +45,7 @@ related:
 
 ## Repo Contract
 
-`tidas-sdk` owns the generated developer package surface for TIDAS: the published TypeScript package, the in-repo Python SDK, and the generation / verification / release automation that keeps them aligned with `tidas-tools`.
+`tidas-sdk` owns the generated developer package surface for TIDAS: the published TypeScript package, the in-repo Python SDK, and the generation / verification / release automation that keeps them aligned with the standalone public `tidas-spec` archive and the execution-oriented `tidas-tools` asset set.
 
 For the TypeScript package, that ownership now includes the machine-readable validation contract exposed by `validateEnhanced()`: downstream callers should expect a stable `validationIssues` array with normalized `code`, `path`, `severity`, optional `params`, and `rawCode`, rather than parsing raw Zod messages when stable behavior matters.
 
@@ -101,6 +101,7 @@ Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-
   - `./scripts/ci/generate-typescript-sdk.sh`
   - `./scripts/ci/generate-python-sdk.sh`
 - the default upstream generation pin is the exact `tidas-tools` commit declared by `TIDAS_TOOLS_SHA`; moving branch tips are not valid generation inputs
+- the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public `flows`/`processes` methodology files
 - release tags:
   - `typescript-v<version>`
   - `python-v<version>`
@@ -125,8 +126,9 @@ This repo does not own:
 
 Route those tasks to:
 
-- `tidas-tools` for generation upstream, runtime assets, methodologies, and standalone tooling behavior
-- `tidas` for public spec/docs-site content
+- `tidas-tools` for execution-oriented generation helpers, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior
+- `tidas-spec` for the versioned public specification source and release archive; the SDK owns only its exact pin and consumption boundary
+- `tidas` for public docs-site wording and presentation content
 - `lca-workspace` for root integration after merge
 
 ## Branch And Delivery Facts
@@ -153,7 +155,7 @@ Route those tasks to:
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
-- Python generated models refresh from `tidas-tools`, not from the public docs repository
+- public schemas and the two public methodology files refresh from the pinned `tidas-spec` archive; remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
 - generated build output under `sdks/typescript/dist/**`, `sdks/python/dist/**`, and `sdks/python/htmlcov/**` is useful for packaging checks but is not the first durable edit surface
 - merged repo PRs here are repo-complete, not workspace-delivery complete
 
@@ -171,6 +173,7 @@ Route those tasks to:
 ## Hard Boundaries
 
 - do not treat `tidas` as the immediate generation upstream for current SDK refreshes
+- do not copy public specification assets from an unpinned `tidas-tools` checkout or from generated package output; use the verified archive resolved by `scripts/ci/lib/tidas-spec-source.sh`
 - do not move standalone conversion or export logic into the SDK packages
 - do not treat generated output as the only durable source of truth when generation behavior changes
 - do not treat a merged repo PR here as workspace-delivery complete if the root repo still needs a submodule bump

@@ -13,6 +13,7 @@ PYTHON_SDK_ROOT="${PYTHON_SDK_ROOT:-$REPO_ROOT/sdks/python}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PYTHON_SDK_ROOT/src/tidas_sdk/generated}"
 GENERATOR="${GENERATOR:-$PYTHON_SDK_ROOT/scripts/generate_sdk.py}"
 source "$SCRIPT_DIR/lib/tidas-tools-source.sh"
+source "$SCRIPT_DIR/lib/tidas-spec-source.sh"
 TIDAS_TOOLS_ASSET_RESOLVER="$SCRIPT_DIR/tidas-tools-assets.mjs"
 
 SCHEMAS_DIR=""
@@ -54,7 +55,7 @@ handle_error() {
 }
 
 trap 'handle_error $LINENO' ERR
-trap cleanup_tidas_tools_source EXIT
+trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 
 validate_inputs() {
     step "Validating inputs..."
@@ -134,10 +135,8 @@ main() {
     log "Starting Python SDK generation..."
     resolve_tidas_tools_source "$REPO_ROOT"
     TIDAS_TOOLS_PATH="$RESOLVED_TIDAS_TOOLS_PATH"
-    SCHEMAS_DIR="$(
-        node "$TIDAS_TOOLS_ASSET_RESOLVER" path-for-kind \
-            "$TIDAS_TOOLS_PATH" json-schema
-    )"
+    resolve_tidas_spec_source "$REPO_ROOT"
+    SCHEMAS_DIR="$(spec_schema_dir)"
     validate_inputs
     check_dependencies
     generate_models

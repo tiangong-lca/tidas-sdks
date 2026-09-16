@@ -10,50 +10,55 @@ import path from 'node:path';
 import yaml from 'yaml';
 import {
   requireTidasToolsMethodologyDir,
+  requireTidasSpecMethodologyDir,
   resolveTidasToolsMethodologyDir,
 } from './resolve-tidas-tools-path.js';
 
 const OUTPUT_DIR = path.join(__dirname, '../src/data');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'bundled-methodologies.json');
 
-function createMethodologyFilesMapping(methodologyDir: string) {
+function createMethodologyFilesMapping(
+  methodologyDir: string,
+  remainingMethodologyDir: string | null
+) {
+  const optionalRoot = remainingMethodologyDir ?? methodologyDir;
   return {
-    contacts: path.join(methodologyDir, 'tidas_contacts.yaml'),
+    contacts: path.join(optionalRoot, 'tidas_contacts.yaml'),
     contacts_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_contacts_category.yaml'
     ),
-    data_types: path.join(methodologyDir, 'tidas_data_types.yaml'),
+    data_types: path.join(optionalRoot, 'tidas_data_types.yaml'),
     flowproperties_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_flowproperties_category.yaml'
     ),
-    flowproperties: path.join(methodologyDir, 'tidas_flowproperties.yaml'),
+    flowproperties: path.join(optionalRoot, 'tidas_flowproperties.yaml'),
     flows_elementary_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_flows_elementary_category.yaml'
     ),
     flows: path.join(methodologyDir, 'tidas_flows.yaml'),
-    lifecyclemodels: path.join(methodologyDir, 'tidas_lifecyclemodels.yaml'),
-    lciamethods: path.join(methodologyDir, 'tidas_lciamethods.yaml'),
+    lifecyclemodels: path.join(optionalRoot, 'tidas_lifecyclemodels.yaml'),
+    lciamethods: path.join(optionalRoot, 'tidas_lciamethods.yaml'),
     lciamethods_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_lciamethods_category.yaml'
     ),
     locations_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_locations_category.yaml'
     ),
     processes: path.join(methodologyDir, 'tidas_processes.yaml'),
     processes_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_processes_category.yaml'
     ),
-    sources: path.join(methodologyDir, 'tidas_sources.yaml'),
-    sources_category: path.join(methodologyDir, 'tidas_sources_category.yaml'),
-    unitgroups: path.join(methodologyDir, 'tidas_unitgroups.yaml'),
+    sources: path.join(optionalRoot, 'tidas_sources.yaml'),
+    sources_category: path.join(optionalRoot, 'tidas_sources_category.yaml'),
+    unitgroups: path.join(optionalRoot, 'tidas_unitgroups.yaml'),
     unitgroups_category: path.join(
-      methodologyDir,
+      optionalRoot,
       'tidas_unitgroups_category.yaml'
     ),
   };
@@ -73,7 +78,8 @@ async function readMethodologyFile(filePath: string) {
 async function main() {
   console.log('🚀 Starting methodology bundling process...');
 
-  const methodologyRoot = resolveTidasToolsMethodologyDir();
+  const specMethodologyRoot = process.env.TIDAS_SPEC_METHODOLOGY_DIR;
+  const methodologyRoot = specMethodologyRoot ?? resolveTidasToolsMethodologyDir();
   if (!methodologyRoot && existsSync(OUTPUT_FILE)) {
     console.warn(
       '⚠️  No tidas-tools source checkout found. Keeping the existing bundled methodologies artifact.'
@@ -81,10 +87,16 @@ async function main() {
     return;
   }
 
-  const methodologyDir = requireTidasToolsMethodologyDir(
-    'Methodology bundling requires access to the upstream Rust asset lock. Set TIDAS_TOOLS_PATH, place a sibling ../tidas-toolkit checkout next to this repo, or run ../../scripts/ci/generate-typescript-sdk.sh.'
+  const methodologyDir = specMethodologyRoot
+    ? requireTidasSpecMethodologyDir()
+    : requireTidasToolsMethodologyDir(
+        'Methodology bundling requires the verified standalone tidas-spec input. Run ../../scripts/ci/generate-typescript-sdk.sh or set TIDAS_SPEC_METHODOLOGY_DIR.'
+      );
+  const remainingMethodologyDir = resolveTidasToolsMethodologyDir();
+  const methodologyFilesMapping = createMethodologyFilesMapping(
+    methodologyDir,
+    remainingMethodologyDir
   );
-  const methodologyFilesMapping = createMethodologyFilesMapping(methodologyDir);
 
   // Ensure output directory exists
   if (!existsSync(OUTPUT_DIR)) {
@@ -100,6 +112,7 @@ async function main() {
 
   for (const [key, filePath] of Object.entries(methodologyFilesMapping)) {
     try {
+      const required = key === 'flows' || key === 'processes';
       if (existsSync(filePath)) {
         console.log(`📖 Reading ${key} from ${filePath}`);
         const { data, text } = await readMethodologyFile(filePath);
@@ -107,6 +120,8 @@ async function main() {
         bundledTexts[key] = text;
         processedCount++;
         console.log(`✓ Successfully bundled ${key}`);
+      } else if (required) {
+        throw new Error(`Required public methodology is missing: ${filePath}`);
       } else {
         console.log(`⚠️  Skipping ${key} (file not found: ${filePath})`);
         skippedCount++;

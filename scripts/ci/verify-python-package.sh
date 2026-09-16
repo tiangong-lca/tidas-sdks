@@ -5,6 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PY_ROOT="$REPO_ROOT/sdks/python"
+source "$SCRIPT_DIR/lib/tidas-tools-source.sh"
+source "$SCRIPT_DIR/lib/tidas-spec-source.sh"
+trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 
 snapshot_path_state() {
     local target="$1"
@@ -29,6 +32,10 @@ require_stable_generation_output() {
 
 echo "[python] syncing dependencies"
 (cd "$PY_ROOT" && uv sync --group dev)
+
+resolve_tidas_spec_source "$REPO_ROOT"
+export TIDAS_SPEC_ARCHIVE_PATH="$RESOLVED_TIDAS_SPEC_ARCHIVE"
+export TIDAS_SPEC_SCHEMA_DIR="$(spec_schema_dir)"
 
 before_generated_state="$(snapshot_path_state "sdks/python/src/tidas_sdk/generated")"
 

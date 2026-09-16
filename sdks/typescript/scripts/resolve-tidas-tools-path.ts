@@ -79,6 +79,22 @@ export function resolveTidasToolsSchemaDir() {
     : null;
 }
 
+/** The public schema source is resolved from the qualified tidas-spec input. */
+export function resolveTidasSpecSchemaDir() {
+  return process.env.TIDAS_SPEC_SCHEMA_DIR ?? null;
+}
+
+export function requireTidasSpecSchemaDir(message?: string) {
+  const resolved = resolveTidasSpecSchemaDir();
+  if (!resolved) {
+    throw new Error(
+      message ??
+        'Could not resolve the qualified tidas-spec JSON schemas. Run the canonical generation wrapper or set TIDAS_SPEC_SCHEMA_DIR.'
+    );
+  }
+  return resolved;
+}
+
 export function requireTidasToolsSchemaDir(message?: string) {
   const resolved = resolveTidasToolsSchemaDir();
   if (!resolved) {
@@ -103,6 +119,21 @@ export function requireTidasToolsMethodologyDir(message?: string) {
     throw new Error(
       message ??
         'Could not resolve methodologies through the upstream Rust asset lock.'
+    );
+  }
+  return resolved;
+}
+
+export function resolveTidasSpecMethodologyDir() {
+  return process.env.TIDAS_SPEC_METHODOLOGY_DIR ?? null;
+}
+
+export function requireTidasSpecMethodologyDir(message?: string) {
+  const resolved = resolveTidasSpecMethodologyDir();
+  if (!resolved) {
+    throw new Error(
+      message ??
+        'Could not resolve the qualified tidas-spec methodologies. Run the canonical generation wrapper or set TIDAS_SPEC_METHODOLOGY_DIR.'
     );
   }
   return resolved;
