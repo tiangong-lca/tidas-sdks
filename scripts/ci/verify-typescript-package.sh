@@ -54,6 +54,9 @@ trap 'cleanup_tidas_spec_source; cleanup_tidas_tools_source' EXIT
 
 before_generated_state="$(snapshot_path_state "sdks/typescript/src")"
 
+echo "[typescript] verifying candidate-bound public rules"
+(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run verify-public-rules)
+
 echo "[typescript] regenerating package sources"
 TIDAS_TOOLS_SOURCE_MODE=verified-path \
     "$REPO_ROOT/scripts/ci/generate-typescript-sdk.sh" --defer-advisory-typecheck
@@ -74,7 +77,13 @@ echo "[typescript] examples"
 echo "[typescript] build"
 (cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match run build)
 
-echo "[typescript] pack dry run"
-(cd "$REPO_ROOT" && pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --dry-run >/dev/null)
+echo "[typescript] pack verification"
+(
+    pack_dir="$(mktemp -d)"
+    trap 'rm -rf -- "$pack_dir"' EXIT
+    cd "$REPO_ROOT"
+    pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --pack-destination "$pack_dir" >/dev/null
+    find "$pack_dir" -maxdepth 1 -type f -name '*.tgz' -print -quit | grep -q .
+)
 
 echo "[typescript] verification complete"

@@ -531,7 +531,7 @@ test(
           )
           .join(
             '\n'
-          )}\n\nfunction assertModule(specifier, value) {\n  if ((typeof value !== 'object' && typeof value !== 'function') || value === null) {\n    throw new TypeError(\`Expected \${specifier} to load as a CommonJS module.\`);\n  }\n}\n`,
+          )}\nconst publicRules = require('@tiangong-lca/tidas-sdk/contracts').getTidasPublicRules('flow');\nif (publicRules.status !== 'covered' || publicRules.rules.length === 0) {\n  throw new TypeError('Expected the packed CommonJS contract to expose covered Flow public rules.');\n}\n\nfunction assertModule(specifier, value) {\n  if ((typeof value !== 'object' && typeof value !== 'function') || value === null) {\n    throw new TypeError(\`Expected \${specifier} to load as a CommonJS module.\`);\n  }\n}\n`,
         { encoding: 'utf8', flag: 'wx' }
       );
       execFileSync(
@@ -549,7 +549,7 @@ test(
           )
           .join(
             '\n'
-          )}\n\nfunction assertModule(specifier, value) {\n  if (typeof value !== 'object' || value === null) {\n    throw new TypeError(\`Expected \${specifier} to load as an ES module.\`);\n  }\n}\n`,
+          )}\nconst contracts = await import('@tiangong-lca/tidas-sdk/contracts');\nconst publicRules = contracts.getTidasPublicRules('process');\nif (publicRules.status !== 'covered' || publicRules.rules.length === 0) {\n  throw new TypeError('Expected the packed ES contract to expose covered Process public rules.');\n}\n\nfunction assertModule(specifier, value) {\n  if (typeof value !== 'object' || value === null) {\n    throw new TypeError(\`Expected \${specifier} to load as an ES module.\`);\n  }\n}\n`,
         { encoding: 'utf8', flag: 'wx' }
       );
       execFileSync(
@@ -565,7 +565,7 @@ test(
         )
         .join(
           '\n'
-        )}\nimport { ProcessSchema } from '@tiangong-lca/tidas-sdk/schemas';\nimport { z } from 'zod';\ntype ProcessOutput = z.output<typeof ProcessSchema>;\ntype ProcessResults = NonNullable<ProcessOutput['processDataSet']['LCIAResults']>;\ntype LCIAResultOutput = ProcessResults['LCIAResult'];\ntype IsUnknown<T> = unknown extends T ? ([T] extends [unknown] ? true : false) : false;\ntype AssertFalse<T extends false> = T;\ntype LCIAResultMustRemainTyped = AssertFalse<IsUnknown<LCIAResultOutput>>;\nvoid (undefined as unknown as LCIAResultMustRemainTyped);\n`;
+        )}\nimport { ProcessSchema } from '@tiangong-lca/tidas-sdk/schemas';\nimport { getTidasPublicRules, type TidasPublicRuleSelection } from '@tiangong-lca/tidas-sdk/contracts';\nimport { z } from 'zod';\nconst publicRules: TidasPublicRuleSelection = getTidasPublicRules('flow');\nif (publicRules.status === 'covered') publicRules.rules[0]?.id;\ntype ProcessOutput = z.output<typeof ProcessSchema>;\ntype ProcessResults = NonNullable<ProcessOutput['processDataSet']['LCIAResults']>;\ntype LCIAResultOutput = ProcessResults['LCIAResult'];\ntype IsUnknown<T> = unknown extends T ? ([T] extends [unknown] ? true : false) : false;\ntype AssertFalse<T extends false> = T;\ntype LCIAResultMustRemainTyped = AssertFalse<IsUnknown<LCIAResultOutput>>;\nvoid (undefined as unknown as LCIAResultMustRemainTyped);\n`;
       writeFileSync(join(consumerRoot, 'imports.ts'), typecheckSource, {
         encoding: 'utf8',
         flag: 'wx',

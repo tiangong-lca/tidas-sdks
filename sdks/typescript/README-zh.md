@@ -19,19 +19,32 @@ pnpm add @tiangong-lca/tidas-sdk
 
 ## 公开入口
 
-| 入口 | 用途 |
-| --- | --- |
-| `@tiangong-lca/tidas-sdk` | 汇总公开 API |
-| `@tiangong-lca/tidas-sdk/core` | 实体类和当前工厂函数 |
-| `@tiangong-lca/tidas-sdk/types` | 生成的 TIDAS TypeScript 类型 |
-| `@tiangong-lca/tidas-sdk/schemas` | 生成的 Zod schema 与验证助手 |
-| `@tiangong-lca/tidas-sdk/contracts` | TIDAS 上下文和方法学契约 |
-| `@tiangong-lca/tidas-sdk/parity` | 数据包目录的 JSON Schema 验证 |
-| `@tiangong-lca/tidas-sdk/xml` | XML 解析和序列化 |
-| `@tiangong-lca/tidas-sdk/tools` | 目录转换和运行时资产 |
-| `@tiangong-lca/tidas-sdk/utils` | 通用 SDK 工具 |
+| 入口                                | 用途                          |
+| ----------------------------------- | ----------------------------- |
+| `@tiangong-lca/tidas-sdk`           | 汇总公开 API                  |
+| `@tiangong-lca/tidas-sdk/core`      | 实体类和当前工厂函数          |
+| `@tiangong-lca/tidas-sdk/types`     | 生成的 TIDAS TypeScript 类型  |
+| `@tiangong-lca/tidas-sdk/schemas`   | 生成的 Zod schema 与验证助手  |
+| `@tiangong-lca/tidas-sdk/contracts` | TIDAS 上下文和方法学契约      |
+| `@tiangong-lca/tidas-sdk/parity`    | 数据包目录的 JSON Schema 验证 |
+| `@tiangong-lca/tidas-sdk/xml`       | XML 解析和序列化              |
+| `@tiangong-lca/tidas-sdk/tools`     | 目录转换和运行时资产          |
+| `@tiangong-lca/tidas-sdk/utils`     | 通用 SDK 工具                 |
 
 发布前会用 CJS、ESM 和 TypeScript declaration consumer 对全部入口做真实加载。
+
+### 公共规则定义
+
+```typescript
+import { getTidasPublicRules } from '@tiangong-lca/tidas-sdk/contracts';
+
+const selection = getTidasPublicRules('flow');
+if (selection.status === 'covered') {
+  for (const rule of selection.rules) console.log(rule.id, rule.locations);
+}
+```
+
+该结果只承载版本化公共定义：稳定 ID、数据集/位置、适用范围、规范等级、来源和例子。产品 profile、severity/phase、blocker 默认值、waiver 与操作授权明确不属于该接口。有效但尚无公共定义的数据集类型返回 `not-covered`。`getTidasRuntimeRuleset` 在 W9 期间仅作为旧 tools 混合目录的独立兼容接口保留，不是公共规范来源。
 
 ## 当前工厂 API
 
