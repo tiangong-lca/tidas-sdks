@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-16
-lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "W5 adds an exact tidas_spec_released dispatch intake to the upstream sync workflow; registry and package publication remain owned by this repository's reviewed PR and tag workflows."
+lastReviewedAt: 2026-09-18
+lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
+lastReviewedNote: "W9's reviewed-candidate public-rule pin is not a release identity and changes no registry, environment, trusted-publishing, tag, or publication prerequisite. A publishable SDK combination still requires the normal immutable upstream release and repository release workflows."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

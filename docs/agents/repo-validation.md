@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-16
-lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "Reviewed for SDK #125: the deletion-only OID predicate now uses explicit lowercase ASCII characters without overriding the production locale. Existing shell trace cases plus C/en_US.UTF-8 SHA1/SHA256 cases pass on macOS (43 passing trace cases, no locale skip); source/tag/mixed/unknown input, argument order and failure fallback remain. Runtime, assets, upstream pins, packages and release behavior are unchanged. Full repository gates, independent source review, native CI and root integration remain pending."
+lastReviewedAt: 2026-09-18
+lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
+lastReviewedNote: "W9 adds public-rule source verification, stale/tampered identity negatives, Process/Flow/not-covered API cases, and installed-package proof to the TypeScript validation boundary."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -55,6 +55,7 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
 | TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `pnpm --filter @tiangong-lca/tidas-sdk test:coverage` when testable behavior changes | This covers the frozen pnpm 11.24.0/TS7 install on Node 24.19.0, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the pnpm consumer inherits no compiler tooling. Coverage is explicitly scoped to first-party package source/generation helpers so package-manager runtime code cannot dilute it; ratchets are lines 95%, branches 75%, functions 70%. |
+| Public-rule API or candidate pin | `pnpm --filter @tiangong-lca/tidas-sdk verify-public-rules` plus focused contract/source tests and `./scripts/ci/verify-typescript-package.sh` | regenerate with `TIDAS_PUBLIC_RULES_SOURCE_ROOT=<exact-checkout> pnpm --filter @tiangong-lca/tidas-sdk sync-public-rules` and record the exact commit/hashes | The candidate pin is distinct from the immutable spec-release pin. Verification must reject changed bytes and stale identity, prove Process/Flow coverage and explicit not-covered kinds, and confirm no product policy fields enter the public result. |
 | JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |

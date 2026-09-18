@@ -17,20 +17,33 @@ pnpm add @tiangong-lca/tidas-sdk
 
 ## Public entry points
 
-| Entry point | Purpose |
-| --- | --- |
-| `@tiangong-lca/tidas-sdk` | Combined public API |
-| `@tiangong-lca/tidas-sdk/core` | Entity classes and current factory functions |
-| `@tiangong-lca/tidas-sdk/types` | Generated TIDAS TypeScript types |
-| `@tiangong-lca/tidas-sdk/schemas` | Generated Zod schemas and validation helpers |
-| `@tiangong-lca/tidas-sdk/contracts` | TIDAS context and methodology contracts |
-| `@tiangong-lca/tidas-sdk/parity` | Package-directory JSON Schema validation |
-| `@tiangong-lca/tidas-sdk/xml` | XML parsing and serialization |
-| `@tiangong-lca/tidas-sdk/tools` | Directory conversion and runtime assets |
-| `@tiangong-lca/tidas-sdk/utils` | General SDK utilities |
+| Entry point                         | Purpose                                      |
+| ----------------------------------- | -------------------------------------------- |
+| `@tiangong-lca/tidas-sdk`           | Combined public API                          |
+| `@tiangong-lca/tidas-sdk/core`      | Entity classes and current factory functions |
+| `@tiangong-lca/tidas-sdk/types`     | Generated TIDAS TypeScript types             |
+| `@tiangong-lca/tidas-sdk/schemas`   | Generated Zod schemas and validation helpers |
+| `@tiangong-lca/tidas-sdk/contracts` | TIDAS context and methodology contracts      |
+| `@tiangong-lca/tidas-sdk/parity`    | Package-directory JSON Schema validation     |
+| `@tiangong-lca/tidas-sdk/xml`       | XML parsing and serialization                |
+| `@tiangong-lca/tidas-sdk/tools`     | Directory conversion and runtime assets      |
+| `@tiangong-lca/tidas-sdk/utils`     | General SDK utilities                        |
 
 Every entry point is exercised through CJS, ESM, and TypeScript declaration
 consumer tests before release.
+
+### Public rule definitions
+
+```typescript
+import { getTidasPublicRules } from '@tiangong-lca/tidas-sdk/contracts';
+
+const selection = getTidasPublicRules('flow');
+if (selection.status === 'covered') {
+  for (const rule of selection.rules) console.log(rule.id, rule.locations);
+}
+```
+
+The result is the versioned public-definition layer: stable identity, dataset/location, applicability, normative level, source references, and examples. It intentionally excludes product profiles, severity/phase policy, blocker defaults, waivers, and action authorization. Valid dataset kinds without reviewed public definitions return `not-covered`. `getTidasRuntimeRuleset` remains a separate W9 compatibility API for the former tools-owned mixed catalog and is not the public specification source.
 
 ## Current factory API
 

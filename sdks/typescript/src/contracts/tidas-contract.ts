@@ -5,6 +5,9 @@ import flowSchema from '../runtime-assets/tidas/schemas/tidas_flows.json';
 import lciamethodSchema from '../runtime-assets/tidas/schemas/tidas_lciamethods.json';
 import lifecyclemodelSchema from '../runtime-assets/tidas/schemas/tidas_lifecyclemodels.json';
 import processSchema from '../runtime-assets/tidas/schemas/tidas_processes.json';
+import publicRules from './public-rules-assets/public-rules.v1.json';
+import publicRulesSchema from './public-rules-assets/public-rules.v1.schema.json';
+import publicRulesSource from './public-rules-assets/public-rules.source.v1.json';
 import runtimeRulesets from '../runtime-assets/tidas/methodologies/runtime_rulesets.json';
 import sourceSchema from '../runtime-assets/tidas/schemas/tidas_sources.json';
 import unitgroupSchema from '../runtime-assets/tidas/schemas/tidas_unitgroups.json';
@@ -27,7 +30,8 @@ export type TidasContractKind =
   | 'unitgroup'
   | 'unitgroups';
 
-export type TidasContractInclude = 'schema' | 'methodology' | 'ruleset';
+export type TidasContractInclude =
+  'schema' | 'methodology' | 'public-rules' | 'ruleset';
 
 export type TidasContractProfile = 'default' | 'ai-import';
 
@@ -39,6 +43,7 @@ export type TidasContractManifest = {
   sdk_package: '@tiangong-lca/tidas-sdk';
   schema: TidasContractArtifactManifest | null;
   methodology: TidasContractArtifactManifest | null;
+  publicRules?: TidasContractArtifactManifest;
   ruleset: TidasContractArtifactManifest | null;
 };
 
@@ -54,6 +59,8 @@ export type TidasContractPack = {
   schemaData?: unknown;
   methodologyText?: string;
   methodologyData?: unknown;
+  publicRules?: TidasPublicRuleSelection;
+  /** Product-specific mixed ruleset compatibility surface; scheduled for W11 removal after consumer migration. */
   runtimeRuleset?: unknown;
   aiContext?: {
     schema_version: 1;
@@ -62,9 +69,56 @@ export type TidasContractPack = {
     instructions: string[];
     schema_text?: string;
     methodology_text?: string;
+    public_rules?: TidasPublicRuleSelection;
+    /** Product-specific compatibility context retained only through W11 migration. */
     runtime_ruleset?: unknown;
   };
 };
+
+export type TidasPublicRuleDatasetType = 'flow' | 'process';
+export type TidasPublicRuleNormativeLevel = 'requirement' | 'recommendation';
+
+export type TidasPublicRule = {
+  id: string;
+  dataset_type: TidasPublicRuleDatasetType;
+  normative_level: TidasPublicRuleNormativeLevel;
+  statement: string;
+  locations: string[];
+  applicability: { scope: string };
+  source_refs: Array<{
+    asset: 'tidas_flows.yaml' | 'tidas_processes.yaml';
+    path: string;
+  }>;
+  cases: { positive: string[]; negative: string[] };
+};
+
+export type TidasPublicRulesSource = {
+  schema_version: 'tidas.public-rules-source.v1';
+  repository: string;
+  commit: string;
+  rules_version: string;
+  status: 'reviewed-candidate' | 'released';
+  index_sha256: string;
+  schema_sha256: string;
+};
+
+export type TidasPublicRuleSelection =
+  | {
+      status: 'covered';
+      schema_version: 1;
+      rules_version: string;
+      dataset_type: TidasPublicRuleDatasetType;
+      source: TidasPublicRulesSource;
+      rules: TidasPublicRule[];
+    }
+  | {
+      status: 'not-covered';
+      schema_version: 1;
+      rules_version: string;
+      dataset_type: TidasCanonicalContractKind;
+      source: TidasPublicRulesSource;
+      rules: [];
+    };
 
 export type TidasCanonicalContractKind =
   | 'contact'
@@ -122,7 +176,9 @@ const methodologyKeys: Partial<Record<TidasCanonicalContractKind, string>> = {
   process: 'processes',
 };
 
-const methodologyFileNames: Partial<Record<TidasCanonicalContractKind, string>> = {
+const methodologyFileNames: Partial<
+  Record<TidasCanonicalContractKind, string>
+> = {
   flow: 'tidas_flows.yaml',
   process: 'tidas_processes.yaml',
 };
@@ -180,6 +236,62 @@ export function getTidasMethodologyText(
   );
 }
 
+/**
+ * Return reviewed public rule definitions for one canonical dataset kind.
+ *
+ * This API intentionally contains no product profile, phase, severity,
+ * blocker default, waiver, or action-authorization fields. Consumers compose
+ * those policies locally. A valid but uncovered TIDAS kind is represented as
+ * `not-covered`, rather than being collapsed into an empty success or failure.
+ */
+export function getTidasPublicRules(
+  kind: TidasContractKind | string
+): TidasPublicRuleSelection {
+  const canonical = normalizeTidasContractKind(kind);
+  const index = publicRules as {
+    schema_version: 1;
+    rules_version: string;
+    rules: TidasPublicRule[];
+  };
+  const source = { ...publicRulesSource } as TidasPublicRulesSource;
+  const selected = index.rules
+    .filter((rule) => rule.dataset_type === canonical)
+    .map((rule) => ({
+      ...rule,
+      locations: [...rule.locations],
+      applicability: { ...rule.applicability },
+      source_refs: rule.source_refs.map((reference) => ({ ...reference })),
+      cases: {
+        positive: [...rule.cases.positive],
+        negative: [...rule.cases.negative],
+      },
+    }));
+
+  if (selected.length === 0) {
+    return {
+      status: 'not-covered',
+      schema_version: index.schema_version,
+      rules_version: index.rules_version,
+      dataset_type: canonical,
+      source,
+      rules: [],
+    };
+  }
+  return {
+    status: 'covered',
+    schema_version: index.schema_version,
+    rules_version: index.rules_version,
+    dataset_type: canonical as TidasPublicRuleDatasetType,
+    source,
+    rules: selected,
+  };
+}
+
+/** Return the JSON Schema that validates the complete public-rules.v1 index. */
+export function getTidasPublicRulesSchema(): unknown {
+  return structuredClone(publicRulesSchema);
+}
+
 export function getTidasRuntimeRuleset(
   kind: TidasContractKind | string
 ): unknown | null {
@@ -228,13 +340,16 @@ export function getTidasContractPack(
     ? getTidasSchemaData(canonical)
     : undefined;
   const methodologyText = includes.includes('methodology')
-    ? getTidasMethodologyText(canonical) ?? undefined
+    ? (getTidasMethodologyText(canonical) ?? undefined)
     : undefined;
   const methodologyData = includes.includes('methodology')
-    ? getTidasMethodologyData(canonical) ?? undefined
+    ? (getTidasMethodologyData(canonical) ?? undefined)
+    : undefined;
+  const selectedPublicRules = includes.includes('public-rules')
+    ? getTidasPublicRules(canonical)
     : undefined;
   const runtimeRuleset = includes.includes('ruleset')
-    ? getTidasRuntimeRuleset(canonical) ?? undefined
+    ? (getTidasRuntimeRuleset(canonical) ?? undefined)
     : undefined;
 
   const manifest: TidasContractManifest = {
@@ -247,7 +362,10 @@ export function getTidasContractPack(
       ? artifactManifest(schemaEntries[canonical].fileName, schemaText)
       : null,
     methodology: methodologyText
-      ? artifactManifest(methodologyFileNames[canonical] ?? 'methodology.yaml', methodologyText)
+      ? artifactManifest(
+          methodologyFileNames[canonical] ?? 'methodology.yaml',
+          methodologyText
+        )
       : null,
     ruleset: runtimeRuleset
       ? artifactManifest(
@@ -256,6 +374,12 @@ export function getTidasContractPack(
         )
       : null,
   };
+  if (selectedPublicRules) {
+    manifest.publicRules = artifactManifest(
+      `public-rules.${canonical}.v1.json`,
+      JSON.stringify(selectedPublicRules, null, 2)
+    );
+  }
 
   const pack: TidasContractPack = {
     manifest,
@@ -263,6 +387,7 @@ export function getTidasContractPack(
     schemaData,
     methodologyText,
     methodologyData,
+    publicRules: selectedPublicRules,
     runtimeRuleset,
   };
 
@@ -274,6 +399,7 @@ export function getTidasContractPack(
       instructions: buildAiContextInstructions(canonical, profile),
       schema_text: schemaText,
       methodology_text: methodologyText,
+      public_rules: selectedPublicRules,
       runtime_ruleset: runtimeRuleset,
     };
   }

@@ -20,9 +20,9 @@ checkPaths:
   - sdks/python/**
   - scripts/ci/**
   - .nvmrc
-lastReviewedAt: 2026-09-16
-lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "W5 adds exact tidas_spec_released intake with immutable pin updates, archive/manifest verification, stale/conflict rejection, and offline automation regressions. Existing tidas_tools_changed intake remains supported; package publication still requires the normal reviewed PR and tag workflows."
+lastReviewedAt: 2026-09-18
+lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
+lastReviewedNote: "W9 documents the public-rule API and its exact reviewed-candidate source identity separately from both the immutable spec 0.1.0 release and the tools-owned product profile. Publication remains unclaimed."
 ---
 
 # TIDAS SDKs
@@ -54,7 +54,9 @@ cd sdks/python && uv sync
 
 ### Upstream Tools
 
-`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and the public `flows`/`processes` methodology files are consumed from the separately versioned `tidas-spec` release archive. SDK refreshes pin both identities and assemble them without overlapping files.
+`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and the public `flows`/`processes` methodology files are consumed from the separately versioned `tidas-spec` release archive. The W9 public-rule API is separately bound to an exact reviewed `tidas-spec` commit and asset hashes until those rules enter a new immutable specification release; it does not redefine the existing `0.1.0` release. SDK refreshes keep public definitions and product execution policy as distinct inputs.
+
+The TypeScript contracts entry point exposes `getTidasPublicRules(kind)` and `getTidasPublicRulesSchema()`. `getTidasPublicRules` returns an explicit `covered` or `not-covered` result with source identity; it never supplies severity, phase, blocker defaults, waivers, profiles, or action authorization. Callers that still need the mixed tools catalog may use `getTidasRuntimeRuleset` during W9 migration, but that is a separate compatibility surface scheduled for retirement after consumer qualification.
 
 ```bash
 cargo install tidas --locked

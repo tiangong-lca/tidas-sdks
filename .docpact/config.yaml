@@ -1,8 +1,8 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-09-16"
-lastReviewedCommit: "a4ca62fea35ab7f9eaa0e9789baced36d3d2816d"
-lastReviewedNote: "W5 adds the content-addressed tidas_spec_released dispatch path, exact archive/manifest verification, immutable spec-pin updates, and offline stale/conflict tests. Existing ownership and generation/release rule coverage remain aligned; package publication and root integration remain unclaimed."
+lastReviewedAt: "2026-09-18"
+lastReviewedCommit: "8c28c5f0a831c9f2b458effb727b03cbbec3d8dc"
+lastReviewedNote: "W9 adds the public-rule TypeScript contract, exact reviewed-candidate commit/hash pin, bundled identity verification, and source-tamper tests under existing TypeScript and generation ownership. Product policy and immutable release automation boundaries remain unchanged."
 
 catalog:
   repos:

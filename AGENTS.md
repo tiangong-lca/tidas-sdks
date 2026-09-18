@@ -31,9 +31,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-16
-lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "W5 adds exact tidas_spec_released intake with immutable pin updates, archive/manifest verification, stale/conflict rejection, and offline automation regressions. Existing tidas_tools_changed intake remains supported; package publication still requires the normal reviewed PR and tag workflows."
+lastReviewedAt: 2026-09-18
+lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
+lastReviewedNote: "W9 adds a versioned public-rule API bound to exact reviewed tidas-spec candidate bytes. Public definitions exclude product execution policy; the existing mixed runtime ruleset remains an explicit compatibility surface until W11. No package publication or mutation of the immutable spec 0.1.0 pin is claimed."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -127,7 +127,7 @@ This repo does not own:
 
 Route those tasks to:
 
-- `tidas-tools` for execution-oriented generation helpers, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior
+- `tidas-tools` for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior
 - `tidas-spec` for the versioned public specification source and release archive; the SDK owns only its exact pin and consumption boundary
 - `tidas` for public docs-site wording and presentation content
 - `lca-workspace` for root integration after merge
@@ -156,7 +156,8 @@ Route those tasks to:
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
-- public schemas and the two public methodology files refresh from the pinned `tidas-spec` archive; remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
+- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; W9 public-rule definitions use a separate exact candidate commit/hash pin until a new release contains them; product profiles, remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
+- the public-rule SDK result may contain stable public IDs, locations, applicability, normative level, sources, and cases, but never severity, phase, blocker defaults, waivers, product profiles, or action authorization
 - generated build output under `sdks/typescript/dist/**`, `sdks/python/dist/**`, and `sdks/python/htmlcov/**` is useful for packaging checks but is not the first durable edit surface
 - merged repo PRs here are repo-complete, not workspace-delivery complete
 

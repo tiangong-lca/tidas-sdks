@@ -19,9 +19,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-16
-lastReviewedCommit: a4ca62fea35ab7f9eaa0e9789baced36d3d2816d
-lastReviewedNote: "W5 records the exact tidas_spec_released payload, archive/manifest verification, immutable pin update, and stale/conflict replay behavior alongside the existing tidas_tools_changed flow."
+lastReviewedAt: 2026-09-18
+lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
+lastReviewedNote: "W9 adds a separate exact commit/hash candidate pin for reviewed public-rule definitions. It does not mutate or impersonate the immutable tidas-spec 0.1.0 release; release-event automation remains unchanged until a new qualified release contains the rules."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -34,6 +34,8 @@ related:
 This document describes the recommended cross-repository automation path for keeping `tidas-sdk` in sync with the versioned public archive from `tiangong-lca/tidas-spec` and execution-oriented changes from `tiangong-lca/tidas-toolkit`.
 
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
+
+W9 public-rule development uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a reviewed-candidate bridge. Both rule assets and the source identity are verified byte-for-byte. This bridge is deliberately separate from `scripts/ci/tidas-spec-pin.json`: the latter continues to describe the already-published immutable `0.1.0` archive. A later qualified spec release replaces the candidate status through reviewed release work; changing the old release identity is forbidden.
 
 The goal is:
 

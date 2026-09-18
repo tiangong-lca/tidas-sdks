@@ -59,6 +59,8 @@
     "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm check:examples && pnpm build",
     "bundle-methodologies": "tsx scripts/bundle-methodologies.ts",
     "sync-runtime-assets": "tsx scripts/sync-runtime-assets.ts",
+    "sync-public-rules": "tsx scripts/sync-public-rules.ts",
+    "verify-public-rules": "tsx scripts/sync-public-rules.ts --verify-bundled",
     "copy-runtime-assets": "tsx scripts/copy-runtime-assets.ts",
     "generate-types": "tsx scripts/generate-types.ts",
     "generate-schemas": "tsx scripts/generate-zod-schemas.ts",
