@@ -17,6 +17,31 @@ function processClassificationInformationSchema() {
     .shape.dataSetInformation.shape.classificationInformation;
 }
 
+const localizedText = { '@xml:lang': 'en', '#text': 'Reviewed documentation' };
+const reference = (type: 'contact data set' | 'source data set') => ({
+  '@type': type,
+  '@refObjectId': type === 'contact data set'
+    ? '11111111-1111-1111-1111-111111111111'
+    : '22222222-2222-2222-2222-222222222222',
+  '@version': '01.00.000',
+  '@uri': type === 'contact data set'
+    ? '../contacts/11111111-1111-1111-1111-111111111111.xml'
+    : '../sources/22222222-2222-2222-2222-222222222222.xml',
+  'common:shortDescription': localizedText,
+});
+
+function completedProcessReview() {
+  return {
+    '@type': 'Independent external review',
+    'common:scope': {
+      '@name': 'Documentation',
+      'common:method': { '@name': 'Documentation' },
+    },
+    'common:reviewDetails': localizedText,
+    'common:referenceToNameOfReviewerAndInstitution': reference('contact data set'),
+  };
+}
+
 describe('process exchange location schema', () => {
   it('accepts location category codes and legacy non-empty strings', () => {
     const schema = exchangeLocationSchema();
@@ -49,7 +74,7 @@ describe('process review conditional schema', () => {
     );
   });
 
-  it('requires all four review evidence fields for a completed review', () => {
+  it('keeps the three remaining review evidence fields required', () => {
     const result = processReviewSchema().safeParse({
       '@type': 'Independent external review',
     });
@@ -59,13 +84,34 @@ describe('process review conditional schema', () => {
       assert.deepStrictEqual(
         result.error.issues.map((issue: any) => issue.path.join('.')).sort(),
         [
-          'common:referenceToCompleteReviewReport',
           'common:referenceToNameOfReviewerAndInstitution',
           'common:reviewDetails',
           'common:scope',
         ]
       );
     }
+  });
+
+  it('accepts an omitted or valid report reference and rejects an incomplete one', () => {
+    const schema = processReviewSchema();
+    const review = completedProcessReview();
+    assert.strictEqual(schema.safeParse(review).success, true);
+    assert.strictEqual(
+      schema.safeParse({
+        ...review,
+        'common:referenceToCompleteReviewReport': reference('source data set'),
+      }).success,
+      true
+    );
+    assert.strictEqual(
+      schema.safeParse({
+        ...review,
+        'common:referenceToCompleteReviewReport': {
+          '@refObjectId': '22222222-2222-2222-2222-222222222222',
+        },
+      }).success,
+      false
+    );
   });
 });
 

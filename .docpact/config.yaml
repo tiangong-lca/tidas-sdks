@@ -1,8 +1,8 @@
 version: 1
 layout: repo
 lastReviewedAt: "2026-09-18"
-lastReviewedCommit: "8c28c5f0a831c9f2b458effb727b03cbbec3d8dc"
-lastReviewedNote: "W9 adds the public-rule TypeScript contract, exact reviewed-candidate commit/hash pin, bundled identity verification, and source-tamper tests under existing TypeScript and generation ownership. Product policy and immutable release automation boundaries remain unchanged."
+lastReviewedCommit: "8f84a909bdb5d557e28bc231ca95edd7aab8caa6"
+lastReviewedNote: "Issue #132 qualifies the exact tidas-spec 0.2.0 candidate across both SDKs, including optional Process/LCIA Method review-report references, explicit candidate-authored paths, generated assets, and positive/negative contract tests. No package publication is claimed."
 
 catalog:
   repos:

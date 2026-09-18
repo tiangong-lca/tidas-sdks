@@ -186,6 +186,8 @@ class TidasSpecReleaseEventTests(unittest.TestCase):
             "manifestPathInArchive": "package/spec-manifest.json",
             "manifestSha256": "3" * 64,
             "releaseArchiveUrl": f"https://github.com/tiangong-lca/tidas-spec/releases/download/v{version}/tiangong-lca-tidas-spec-{version}.tgz",
+            "repositoryAuthoredPaths": ["assets/tidas/schemas/candidate-only.json"],
+            "note": "candidate-only provenance",
         }, indent=2) + "\n", encoding="utf-8")
 
     def test_new_event_updates_pin_and_exact_replay_is_noop(self) -> None:
@@ -200,6 +202,8 @@ class TidasSpecReleaseEventTests(unittest.TestCase):
             updated = json.loads(first)
             self.assertEqual(updated["sourceCommit"], "c" * 40)
             self.assertEqual(updated["archiveSha256"], "a" * 64)
+            self.assertNotIn("repositoryAuthoredPaths", updated)
+            self.assertNotIn("note", updated)
 
     def test_stale_and_conflicting_events_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

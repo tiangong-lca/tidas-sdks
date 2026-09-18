@@ -175,8 +175,15 @@ generate_sdk() {
             cd - > /dev/null
             exit 1
         fi
-        node "$TIDAS_TOOLS_ASSET_RESOLVER" verify-runtime-copy \
-            "$TIDAS_TOOLS_PATH" "$OUTPUT_DIR/runtime-assets"
+        if [ -n "${RESOLVED_TIDAS_SPEC_ROOT:-}" ]; then
+            node "$TIDAS_TOOLS_ASSET_RESOLVER" verify-runtime-copy \
+                "$TIDAS_TOOLS_PATH" "$OUTPUT_DIR/runtime-assets" --spec-root "$RESOLVED_TIDAS_SPEC_ROOT"
+        else
+            # Isolated automation-contract tests deliberately stub spec resolution;
+            # production resolvers always provide the verified extraction root.
+            node "$TIDAS_TOOLS_ASSET_RESOLVER" verify-runtime-copy \
+                "$TIDAS_TOOLS_PATH" "$OUTPUT_DIR/runtime-assets"
+        fi
     fi
 
     cd - > /dev/null

@@ -103,6 +103,17 @@ export function loadPin(pinPath) {
     fail('spec pin importedFrom.commit must be a 40-character lowercase commit');
   }
   if (!safeRelative(pin.assetRootInPackage)) fail('spec pin assetRootInPackage is unsafe');
+  if (pin.repositoryAuthoredPaths !== undefined) {
+    if (!Array.isArray(pin.repositoryAuthoredPaths)) fail('spec pin repositoryAuthoredPaths must be an array');
+    const authored = new Set();
+    for (const file of pin.repositoryAuthoredPaths) {
+      if (!safeRelative(file) || !file.startsWith(`${pin.assetRootInPackage}/`)) {
+        fail(`spec pin repositoryAuthoredPaths contains an unsafe or non-public path: ${file}`);
+      }
+      if (authored.has(file)) fail(`spec pin repositoryAuthoredPaths contains a duplicate path: ${file}`);
+      authored.add(file);
+    }
+  }
   return pin;
 }
 
@@ -194,14 +205,30 @@ function verifyManifest(manifest, { pin, packageRoot }) {
   if (!sourceImport.includes(pin.importedFrom.commit) || baseline.source?.commit !== pin.importedFrom.commit) {
     fail('candidate source evidence does not bind the imported tools commit');
   }
+  const publicPaths = manifest.files
+    .map((file) => file.path)
+    .filter((file) =>
+      file === SCHEMA_LOCK ||
+      METHODOLOGY_PATHS.has(file) ||
+      file.startsWith(SCHEMA_PREFIX) ||
+      file.startsWith(SCHEMA_ZH_PREFIX));
   const imported = manifest.files.filter((file) => file.origin === 'tidas-toolkit').map((file) => file.path);
-  if (imported.length !== 39 || !imported.includes(SCHEMA_LOCK) || ![...METHODOLOGY_PATHS].every((file) => imported.includes(file))) {
+  const authored = manifest.files.filter((file) => file.origin === 'tidas-spec').map((file) => file.path);
+  const expectedAuthored = pin.repositoryAuthoredPaths === undefined ? null : new Set(pin.repositoryAuthoredPaths);
+  if (publicPaths.length !== 39 || !publicPaths.includes(SCHEMA_LOCK) || ![...METHODOLOGY_PATHS].every((file) => publicPaths.includes(file))) {
     fail('candidate public subset is not the reviewed 39-file set');
   }
-  const en = imported.filter((file) => file.startsWith(SCHEMA_PREFIX)).length;
-  const zh = imported.filter((file) => file.startsWith(SCHEMA_ZH_PREFIX)).length;
+  const actualAuthored = new Set(publicPaths.filter((file) => authored.includes(file)));
+  if (expectedAuthored !== null && (actualAuthored.size !== expectedAuthored.size || [...actualAuthored].some((file) => !expectedAuthored.has(file)))) {
+    fail(`candidate repository-authored public paths do not match the pin; expected=${[...expectedAuthored].sort().join(',')} actual=${[...actualAuthored].sort().join(',')}`);
+  }
+  if (imported.filter((file) => publicPaths.includes(file)).length + actualAuthored.size !== publicPaths.length) {
+    fail('candidate public subset contains an unsupported asset origin');
+  }
+  const en = publicPaths.filter((file) => file.startsWith(SCHEMA_PREFIX)).length;
+  const zh = publicPaths.filter((file) => file.startsWith(SCHEMA_ZH_PREFIX)).length;
   if (en !== 18 || zh !== 18) fail(`candidate schema counts are ${en}/${zh}, expected 18/18`);
-  return { expected, imported };
+  return { expected, imported, publicPaths, repositoryAuthoredPaths: [...actualAuthored].sort() };
 }
 
 function verifyRootInternal(root, pin) {
@@ -262,7 +289,7 @@ export function assetRoot(root) {
 }
 
 export function publicAssetPaths(verified) {
-  return verified.imported.filter((file) => file.startsWith('assets/tidas/'));
+  return verified.publicPaths.filter((file) => file.startsWith('assets/tidas/'));
 }
 
 export function assemblyPlan({ specRoot, toolsRoot, toolsLockPath }) {
@@ -270,9 +297,11 @@ export function assemblyPlan({ specRoot, toolsRoot, toolsLockPath }) {
   const spec = verifyRootInternal(specRoot, pin);
   const lock = readJson(toolsLockPath ?? path.join(toolsRoot, 'assets/asset-lock.v1.json'), 'tools asset lock');
   const publicPaths = new Set(publicAssetPaths(spec));
+  const repositoryAuthoredPaths = new Set(spec.repositoryAuthoredPaths);
   const entries = (lock.entries ?? []).filter((entry) => entry.kind && !publicPaths.has(entry.path));
   const overlap = (lock.entries ?? []).filter((entry) => publicPaths.has(entry.path));
   for (const entry of overlap) {
+    if (repositoryAuthoredPaths.has(entry.path)) continue;
     const specBytes = readFileSync(path.join(spec.packageRoot, ...entry.path.split('/')));
     const toolBytes = readFileSync(path.join(toolsRoot, ...entry.path.split('/')));
     if (!Buffer.from(specBytes).equals(toolBytes)) fail(`tools/spec overlap differs: ${entry.path}`);

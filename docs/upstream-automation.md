@@ -20,8 +20,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9 adds a separate exact commit/hash candidate pin for reviewed public-rule definitions. It does not mutate or impersonate the immutable tidas-spec 0.1.0 release; release-event automation remains unchanged until a new qualified release contains the rules."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 permits an exact commit/hash tidas-spec 0.2.0 candidate for SDK qualification while preserving the canonical release-event contract and removing candidate-only provenance when a formal release arrives."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -35,7 +35,7 @@ This document describes the recommended cross-repository automation path for kee
 
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
-W9 public-rule development uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a reviewed-candidate bridge. Both rule assets and the source identity are verified byte-for-byte. This bridge is deliberately separate from `scripts/ci/tidas-spec-pin.json`: the latter continues to describe the already-published immutable `0.1.0` archive. A later qualified spec release replaces the candidate status through reviewed release work; changing the old release identity is forbidden.
+W9 public-rule development still uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separate reviewed-candidate bridge. W10S additionally advances `scripts/ci/tidas-spec-pin.json` to the exact reviewed 0.2.0 candidate archive so SDKs can qualify the optional Process/LCIA Method review-report reference before a formal release. The candidate URL is commit-addressed, its archive and manifest are hash-verified, and its five repository-authored public paths are explicit. This does not claim that 0.2.0 is published; a later `tidas_spec_released` event must still supply the canonical release asset identity.
 
 The goal is:
 

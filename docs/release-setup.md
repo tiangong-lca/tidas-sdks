@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9's reviewed-candidate public-rule pin is not a release identity and changes no registry, environment, trusted-publishing, tag, or publication prerequisite. A publishable SDK combination still requires the normal immutable upstream release and repository release workflows."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 confirms candidate qualification changes no registry, environment, tag, trusted-publishing, or publication prerequisite; formal release identity remains required for package release preparation."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -63,6 +63,7 @@ Operational preference:
 - automate PR creation and tag creation, not cross-repository direct publishing
 - keep `.github/workflows/ci.yml` as manual-dispatch only; ordinary pushes rely on the local pre-push gate
 - if a release-prep PR changes the machine-readable TypeScript validation contract, call that out explicitly so downstream consumers can review any UI or API mapping impact before tagging
+- a reviewed candidate spec archive may be used for qualification without changing package versions or tags; only the canonical `tidas_spec_released` event may replace it with formal release identity and enter normal release preparation
 
 Required secrets:
 

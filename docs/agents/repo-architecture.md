@@ -27,8 +27,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9 records the distinct public-definition API, reviewed-candidate pin, and legacy mixed-ruleset compatibility boundary. Product profiles remain tools/consumer-owned and publication is unchanged."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 records the 39-path spec overlay: 34 imported public assets plus five explicitly pinned repository-authored Process/LCIA Method and lock assets."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -81,7 +81,7 @@ Important consequences:
 - `scripts/ci/tidas-tools-assets.mjs` validates the execution-oriented Rust asset lock and derives runtime roots from catalog entries rather than package-layout assumptions
 - `scripts/ci/lib/tidas-spec-source.sh` resolves one verified spec archive for the whole generation/verification process; schemas, the schema lock, and public `flows`/`processes` methodologies never fall back to `tidas-tools`
 - `scripts/ci/lib/typescript-dependencies.sh` gives clean generation and verification runs the same `pnpm install --frozen-lockfile` dependency graph from the root `pnpm-lock.yaml`
-- TypeScript runtime assets are assembled as a disjoint union: public schemas and public methodologies come from the immutable `tidas-spec` release pin; reviewed public-rule definitions use their own exact candidate commit/hash pin until a new immutable spec release contains them; product profiles, mixed runtime rulesets, taxonomies, and optional methodologies remain catalog-selected `tidas-tools` inputs with the authoritative `asset-lock.v1.json`
+- TypeScript runtime assets are assembled from two verified inputs: all 39 public paths come from one exact `tidas-spec` archive, while product profiles, mixed runtime rulesets, taxonomies, and optional methodologies remain catalog-selected `tidas-tools` inputs with the authoritative `asset-lock.v1.json`. For the reviewed 0.2.0 candidate, 34 public paths remain byte-identical imports and five repository-authored paths (the Process/LCIA Method schemas in both languages plus the derived schema lock) are explicitly pinned and overlaid from spec.
 - `getTidasPublicRules` is the versioned public-definition boundary and returns explicit covered/not-covered results; `getTidasRuntimeRuleset` remains a separate compatibility boundary through W9 and must not be treated as the public specification source
 - Python generated models consume the same verified `tidas-spec` schema directory as TypeScript
 - `tidas` remains important for public docs-site content, but it is not an SDK asset source

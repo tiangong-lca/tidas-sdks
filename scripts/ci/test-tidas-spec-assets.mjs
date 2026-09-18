@@ -18,8 +18,38 @@ function run(command, args) {
 test('qualified archive verifies and produces the reviewed public subset', () => {
   const destination = mkdtempSync(path.join(os.tmpdir(), 'tidas-spec-test-'));
   const result = JSON.parse(run('verify', [archive, '--pin', pinPath, '--extract-to', path.join(destination, 'verified')]));
-  assert.equal(result.manifest.counts.importedAssets, 39);
+  assert.equal(result.manifest.counts.importedAssets, 34);
+  assert.equal(result.publicPaths.length, 39);
+  assert.deepEqual(result.repositoryAuthoredPaths, [
+    'assets/tidas/schema.lock.json',
+    'assets/tidas/schemas/tidas_lciamethods.json',
+    'assets/tidas/schemas/tidas_processes.json',
+    'assets/tidas/schemas_zh/tidas_lciamethods.json',
+    'assets/tidas/schemas_zh/tidas_processes.json',
+  ]);
   assert.equal(result.manifest.source.commit, JSON.parse(readFileSync(pinPath, 'utf8')).importedFrom.commit);
+});
+
+test('repository-authored public paths are explicitly pinned', () => {
+  const destination = mkdtempSync(path.join(os.tmpdir(), 'tidas-spec-authored-'));
+  const pin = JSON.parse(readFileSync(pinPath, 'utf8'));
+  pin.repositoryAuthoredPaths = pin.repositoryAuthoredPaths.slice(1);
+  const altered = path.join(destination, 'pin.json');
+  writeFileSync(altered, JSON.stringify(pin));
+  assert.throws(() => run('verify', [archive, '--pin', altered]), /repository-authored public paths/);
+});
+
+test('repository-authored path pin rejects duplicates and unsafe paths', () => {
+  const destination = mkdtempSync(path.join(os.tmpdir(), 'tidas-spec-authored-invalid-'));
+  const pin = JSON.parse(readFileSync(pinPath, 'utf8'));
+  pin.repositoryAuthoredPaths.push(pin.repositoryAuthoredPaths[0]);
+  const duplicate = path.join(destination, 'duplicate.json');
+  writeFileSync(duplicate, JSON.stringify(pin));
+  assert.throws(() => run('verify', [archive, '--pin', duplicate]), /duplicate path/);
+  pin.repositoryAuthoredPaths = ['../outside.json'];
+  const unsafe = path.join(destination, 'unsafe.json');
+  writeFileSync(unsafe, JSON.stringify(pin));
+  assert.throws(() => run('verify', [archive, '--pin', unsafe]), /unsafe or non-public path/);
 });
 
 test('failed verification preserves an existing destination', () => {
