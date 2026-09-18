@@ -29,8 +29,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9 adds public-rule source verification, stale/tampered identity negatives, Process/Flow/not-covered API cases, and installed-package proof to the TypeScript validation boundary."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 adds exact candidate archive verification and omission, valid-reference, malformed-reference, and unaffected-required-field coverage for both SDKs."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -73,8 +73,8 @@ Facts that matter:
 - every source must be a Git checkout at the exact `TIDAS_TOOLS_SHA`; the default
   pin is immutable and advances in the same generated PR as the package assets;
   dispatch/manual automation must supply a full 40-character SHA
-- TypeScript and Python generation resolve `tidas-spec` as one verified release archive. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
-- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. `assembly-plan` proves that public paths are disjoint from the remaining `tidas-tools` paths and rejects differing overlap bytes. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays are accepted, while stale, malformed, partial, or same-version conflicting events fail closed.
+- TypeScript and Python generation resolve `tidas-spec` as one verified archive: either a formal release or an explicitly reviewed, content-addressed candidate. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
+- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. The 0.2.0 candidate explicitly pins five repository-authored public paths and retains manifest/hash proof for the other 34 imports. `assembly-plan` overlays every public path from spec, compares unchanged overlaps byte-for-byte, and excludes explicitly authored paths from the tools-equality requirement. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays are accepted, while stale, malformed, partial, or same-version conflicting events fail closed.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds
@@ -104,9 +104,10 @@ Facts that matter:
   flow accepts `baseName` without synthetic qualifiers and Product, Waste, and
   Other flows reject missing `treatmentStandardsRoutes` or
   `mixAndLocationTypes`.
-- Process and LCIA review validators must require scope, details, reviewer, and
-  report references whenever `@type` is not `Not reviewed`; taxonomy dependency
-  tests must prove both valid and invalid locked classification cases.
+- Process and LCIA review validators must require scope, details, and reviewer
+  whenever `@type` is not `Not reviewed`; the complete-review-report reference
+  is optional, but a supplied reference must still satisfy `GlobalReferenceType`.
+  Taxonomy dependency tests must prove both valid and invalid locked classification cases.
 - Validation changes that correct historical under-validation require an
   explicit compatibility/version decision. Issue #101 uses `0.2.0`, not a
   patch, so `^0.1.x` consumers opt in deliberately.

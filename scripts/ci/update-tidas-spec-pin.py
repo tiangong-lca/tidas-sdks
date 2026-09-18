@@ -127,6 +127,10 @@ def apply_event(pin_path: Path, payload: dict) -> bool:
         "manifestSha256": event["manifestSha256"],
         "releaseArchiveUrl": event["releaseArchiveUrl"],
     })
+    # Candidate-only provenance is not valid evidence for a later formal release.
+    # Formal archives derive authored paths from their hash-verified manifest.
+    updated.pop("repositoryAuthoredPaths", None)
+    updated.pop("note", None)
     pin_path.write_text(json.dumps(updated, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return True
 

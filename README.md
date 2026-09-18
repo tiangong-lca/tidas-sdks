@@ -21,8 +21,8 @@ checkPaths:
   - scripts/ci/**
   - .nvmrc
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9 documents the public-rule API and its exact reviewed-candidate source identity separately from both the immutable spec 0.1.0 release and the tools-owned product profile. Publication remains unclaimed."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 documents the exact non-release tidas-spec 0.2.0 candidate used to qualify optional Process/LCIA Method review-report references in both SDKs."
 ---
 
 # TIDAS SDKs
@@ -54,7 +54,7 @@ cd sdks/python && uv sync
 
 ### Upstream Tools
 
-`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and the public `flows`/`processes` methodology files are consumed from the separately versioned `tidas-spec` release archive. The W9 public-rule API is separately bound to an exact reviewed `tidas-spec` commit and asset hashes until those rules enter a new immutable specification release; it does not redefine the existing `0.1.0` release. SDK refreshes keep public definitions and product execution policy as distinct inputs.
+`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and public methodologies are consumed from one separately versioned, content-addressed `tidas-spec` archive. The current 0.2.0 candidate pin is explicitly marked non-release and exists to qualify the optional Process/LCIA Method review-report reference; SDK refreshes continue to keep public definitions and product execution policy as distinct inputs.
 
 The TypeScript contracts entry point exposes `getTidasPublicRules(kind)` and `getTidasPublicRulesSchema()`. `getTidasPublicRules` returns an explicit `covered` or `not-covered` result with source identity; it never supplies severity, phase, blocker defaults, waivers, profiles, or action authorization. Callers that still need the mixed tools catalog may use `getTidasRuntimeRuleset` during W9 migration, but that is a separate compatibility surface scheduled for retirement after consumer qualification.
 
@@ -64,7 +64,7 @@ cargo install tidas --locked
 
 ### Upstream release events
 
-The sync workflow accepts two repository-dispatch contracts: `tidas_tools_changed` for execution-oriented inputs and `tidas_spec_released` for a reviewed immutable specification release. The latter must carry the exact package/version/source commit, canonical archive URL and filename, archive SHA256, manifest SHA256, selected package families, and an `event_key` of `package@version:archive_sha256:manifest_sha256`. The receiver verifies and downloads that archive before generation, updates `scripts/ci/tidas-spec-pin.json` in the release-prep PR, treats exact replays as no-ops, and rejects stale or same-version conflicting identities.
+The sync workflow accepts two repository-dispatch contracts: `tidas_tools_changed` for execution-oriented inputs and `tidas_spec_released` for a reviewed immutable specification release. The latter must carry the exact package/version/source commit, canonical archive URL and filename, archive SHA256, manifest SHA256, selected package families, and an `event_key` of `package@version:archive_sha256:manifest_sha256`. The receiver verifies and downloads that archive before generation, replaces any candidate-only provenance in `scripts/ci/tidas-spec-pin.json`, treats exact replays as no-ops, and rejects stale or same-version conflicting identities.
 
 ## Available Packages
 
@@ -153,7 +153,7 @@ Both generation scripts resolve the exact `tidas-tools` commit declared by
 
 For `tidas-spec`, set `TIDAS_SPEC_ARCHIVE_PATH` to an explicit archive, use a
 sibling `tidas-spec/release/` archive in auto mode, or let the resolver download
-the pinned release URL. `scripts/ci/tidas-spec-assets.mjs` verifies the archive,
+the pinned content-addressed URL. `scripts/ci/tidas-spec-assets.mjs` verifies the archive,
 manifest, source evidence, and complete inventory before extraction. The same
 verified spec identity is used for both language generators and the TypeScript
 runtime assembly.

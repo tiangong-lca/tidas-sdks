@@ -101,7 +101,7 @@ describe('TIDAS field enum schemas', () => {
     );
   });
 
-  it('requires LCIA review evidence unless the method is Not reviewed', () => {
+  it('requires the remaining LCIA review evidence unless the method is Not reviewed', () => {
     const reviewSchema =
       lciaDataSetShape().modellingAndValidation.shape.validation.shape.review;
 
@@ -118,7 +118,6 @@ describe('TIDAS field enum schemas', () => {
       assert.deepStrictEqual(
         result.error.issues.map((issue: any) => issue.path.join('.')).sort(),
         [
-          'common:referenceToCompleteReviewReport',
           'common:referenceToNameOfReviewerAndInstitution',
           'common:reviewDetails',
           'common:scope',

@@ -1,20 +1,27 @@
 {
   "pinVersion": 1,
   "package": "@tiangong-lca/tidas-spec",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sourceRepository": "https://github.com/tiangong-lca/tidas-spec.git",
-  "sourceCommit": "41e078b63336a31cd8c4bcab748afeb09c19c1e7",
-  "sourceRef": "v0.1.0",
+  "sourceCommit": "58dc72f5cb2d203a00388fec71d31091911f7dde",
+  "sourceRef": "candidate/58dc72f5cb2d203a00388fec71d31091911f7dde",
   "importedFrom": {
     "repository": "https://github.com/tiangong-lca/tidas-toolkit",
     "commit": "9c0d8b1c8ceb1841074f5bc6de5fbb7fcc9318f5"
   },
-  "archiveFile": "tiangong-lca-tidas-spec-0.1.0.tgz",
-  "archiveSha256": "921a0ffa0d3703bc2d9bd8a5bbb02d327be7746177487af8245ac2788a7cf91e",
+  "archiveFile": "tiangong-lca-tidas-spec-0.2.0.tgz",
+  "archiveSha256": "45da9de790ffcdadd1984ffc3544c67a1503c0947470a629e8252aed19100228",
   "manifestFile": "spec-manifest.json",
   "manifestPathInArchive": "package/spec-manifest.json",
-  "manifestSha256": "646699afaf5c3bdfa6ccfe5153b11d6978ee62227fdace19f3b7715b59c50010",
+  "manifestSha256": "4677b9cf864326be9d430bf9760c754c4c0c1905d90e62c161655a159fd758c7",
   "assetRootInPackage": "assets/tidas",
-  "releaseArchiveUrl": "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.1.0/tiangong-lca-tidas-spec-0.1.0.tgz",
-  "note": "Immutable public specification input for SDK generation. archiveSha256 and manifestSha256 are the cryptographic identity; sourceCommit is the declared tidas-spec revision and importedFrom is the tidas-toolkit revision recorded inside the manifest. A branch name or moving HEAD is never a valid input. Updating this file is release content and requires the matching generated-output refresh."
+  "releaseArchiveUrl": "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/58dc72f5cb2d203a00388fec71d31091911f7dde/release/tiangong-lca-tidas-spec-0.2.0.tgz",
+  "repositoryAuthoredPaths": [
+    "assets/tidas/schema.lock.json",
+    "assets/tidas/schemas/tidas_lciamethods.json",
+    "assets/tidas/schemas/tidas_processes.json",
+    "assets/tidas/schemas_zh/tidas_lciamethods.json",
+    "assets/tidas/schemas_zh/tidas_processes.json"
+  ],
+  "note": "Immutable reviewed candidate input for SDK generation. archiveSha256 and manifestSha256 are the cryptographic identity; sourceCommit is the declared tidas-spec revision and importedFrom is the tidas-toolkit revision recorded inside the manifest. repositoryAuthoredPaths explicitly separates the four reviewed schema changes and their derived lock from the remaining byte-identical imports. A branch name or moving HEAD is never a valid input. This candidate pin is not a formal tidas-spec release."
 }

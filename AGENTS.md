@@ -32,8 +32,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8c28c5f0a831c9f2b458effb727b03cbbec3d8dc
-lastReviewedNote: "W9 adds a versioned public-rule API bound to exact reviewed tidas-spec candidate bytes. Public definitions exclude product execution policy; the existing mixed runtime ruleset remains an explicit compatibility surface until W11. No package publication or mutation of the immutable spec 0.1.0 pin is claimed."
+lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedNote: "Issue #132 records candidate-versus-release spec pin semantics and the verified public-asset overlay used to qualify optional Process/LCIA Method review-report references."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -101,7 +101,7 @@ Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-
   - `./scripts/ci/generate-typescript-sdk.sh`
   - `./scripts/ci/generate-python-sdk.sh`
 - the default upstream generation pin is the exact `tidas-tools` commit declared by `TIDAS_TOOLS_SHA`; moving branch tips are not valid generation inputs
-- the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public `flows`/`processes` methodology files
+- the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public methodologies. A reviewed candidate may additionally pin its repository-authored public paths; a formal release derives those paths from the hash-verified manifest.
 - `.github/workflows/sync-from-tidas-tools.yml` accepts both `tidas_tools_changed` and `tidas_spec_released`. A spec event must carry the canonical package/version/source/archive/manifest identity and stable `event_key`; exact replays are no-ops, while stale or same-version conflicting events fail closed. The workflow updates the spec pin only from that event and never treats a branch tip as a release input.
 - release tags:
   - `typescript-v<version>`

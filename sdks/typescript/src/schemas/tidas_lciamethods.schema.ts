@@ -368,7 +368,6 @@ export const LciamethodsSchema = z.object({
             'common:scope': z.unknown(),
             'common:reviewDetails': z.unknown(),
             'common:referenceToNameOfReviewerAndInstitution': z.unknown(),
-            'common:referenceToCompleteReviewReport': z.unknown(),
           }),
         ),
         'common:other': CommonOtherSchema.optional(),

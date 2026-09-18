@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 const LOCK_RELATIVE_PATH = 'assets/asset-lock.v1.json';
 const LOCK_SCHEMA_VERSION = 'tidas.asset-lock.v1';
@@ -157,8 +158,16 @@ function runtimeRoots(catalog) {
   return roots;
 }
 
-function verifyRuntimeCopy(catalog, outputRootInput) {
+async function verifyRuntimeCopy(catalog, outputRootInput, specRootInput = null) {
   const outputRoot = path.resolve(outputRootInput);
+  let spec = null;
+  let specPublicPaths = new Set();
+  if (specRootInput) {
+    const { loadPin, publicAssetPaths, verifyRoot } = await import('./tidas-spec-assets.mjs');
+    const pin = loadPin(path.join(path.dirname(fileURLToPath(import.meta.url)), 'tidas-spec-pin.json'));
+    spec = verifyRoot({ root: specRootInput, pin });
+    specPublicPaths = new Set(publicAssetPaths(spec));
+  }
   const copiedLockPath = path.join(outputRoot, path.basename(LOCK_RELATIVE_PATH));
   if (!existsSync(copiedLockPath)) {
     fail(`Copied Rust asset lock is missing: ${copiedLockPath}`);
@@ -176,6 +185,9 @@ function verifyRuntimeCopy(catalog, outputRootInput) {
     if (!root || !RUNTIME_KINDS.has(entry.kind)) {
       continue;
     }
+    if (specPublicPaths.has(entry.path)) {
+      continue;
+    }
     const relative = entry.path.slice(entry.sourceRoot.length + 1);
     const copiedPath = path.join(outputRoot, root.name, ...relative.split('/'));
     if (!existsSync(copiedPath)) {
@@ -189,6 +201,24 @@ function verifyRuntimeCopy(catalog, outputRootInput) {
       fail(`Runtime asset copy integrity mismatch: ${root.name}/${relative}`);
     }
   }
+  if (spec) {
+    for (const publicPath of specPublicPaths) {
+      const relative = publicPath.slice('assets/'.length);
+      const copiedPath = path.join(outputRoot, ...relative.split('/'));
+      const sourcePath = path.join(spec.packageRoot, ...publicPath.split('/'));
+      if (!existsSync(copiedPath)) {
+        fail(`Runtime asset copy is missing specification path: ${relative}`);
+      }
+      if (!readFileSync(copiedPath).equals(readFileSync(sourcePath))) {
+        fail(`Runtime asset copy differs from specification path: ${relative}`);
+      }
+    }
+  }
+}
+
+function option(args, name) {
+  const index = args.indexOf(name);
+  return index >= 0 ? args[index + 1] : null;
 }
 
 function usage() {
@@ -198,12 +228,13 @@ function usage() {
     '  tidas-tools-assets.mjs path-for-kind <tidas-tools-root> <asset-kind>',
     '  tidas-tools-assets.mjs runtime-roots <tidas-tools-root>',
     '  tidas-tools-assets.mjs lock-path <tidas-tools-root>',
-    '  tidas-tools-assets.mjs verify-runtime-copy <tidas-tools-root> <output-root>',
+    '  tidas-tools-assets.mjs verify-runtime-copy <tidas-tools-root> <output-root> [--spec-root <verified-spec-root>]',
   ].join('\n');
 }
 
-function main() {
-  const [command, repoRoot, argument] = process.argv.slice(2);
+async function main() {
+  const args = process.argv.slice(2);
+  const [command, repoRoot, argument] = args;
   if (!command || !repoRoot) {
     fail(usage());
   }
@@ -236,8 +267,8 @@ function main() {
       if (!argument) {
         fail(usage());
       }
-      verifyRuntimeCopy(catalog, argument);
-      process.stdout.write('Runtime asset copy matches the Rust asset lock.\n');
+      await verifyRuntimeCopy(catalog, argument, option(args, '--spec-root'));
+      process.stdout.write('Runtime asset copy matches the Rust asset lock and verified specification overlay.\n');
       return;
     default:
       fail(`Unknown command: ${command}\n${usage()}`);
@@ -245,7 +276,7 @@ function main() {
 }
 
 try {
-  main();
+  await main();
 } catch (error) {
   process.stderr.write(
     `error: ${error instanceof Error ? error.message : String(error)}\n`
