@@ -3,25 +3,17 @@
   "package": "@tiangong-lca/tidas-spec",
   "version": "0.2.0",
   "sourceRepository": "https://github.com/tiangong-lca/tidas-spec.git",
-  "sourceCommit": "58dc72f5cb2d203a00388fec71d31091911f7dde",
-  "sourceRef": "candidate/58dc72f5cb2d203a00388fec71d31091911f7dde",
+  "sourceCommit": "f71ed3002048f0f6a858b93e6e71830ef16a7145",
+  "sourceRef": "v0.2.0",
   "importedFrom": {
     "repository": "https://github.com/tiangong-lca/tidas-toolkit",
     "commit": "9c0d8b1c8ceb1841074f5bc6de5fbb7fcc9318f5"
   },
   "archiveFile": "tiangong-lca-tidas-spec-0.2.0.tgz",
-  "archiveSha256": "45da9de790ffcdadd1984ffc3544c67a1503c0947470a629e8252aed19100228",
+  "archiveSha256": "40adef78b3691a7327c282afd2e0eb1a93aa38804610e9ef87c43fea9ccffda2",
   "manifestFile": "spec-manifest.json",
   "manifestPathInArchive": "package/spec-manifest.json",
-  "manifestSha256": "4677b9cf864326be9d430bf9760c754c4c0c1905d90e62c161655a159fd758c7",
+  "manifestSha256": "a6ce771bd06a601c6defdddb1e49a694e42f4a9a0d549f28ca88a45ef830f75d",
   "assetRootInPackage": "assets/tidas",
-  "releaseArchiveUrl": "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/58dc72f5cb2d203a00388fec71d31091911f7dde/release/tiangong-lca-tidas-spec-0.2.0.tgz",
-  "repositoryAuthoredPaths": [
-    "assets/tidas/schema.lock.json",
-    "assets/tidas/schemas/tidas_lciamethods.json",
-    "assets/tidas/schemas/tidas_processes.json",
-    "assets/tidas/schemas_zh/tidas_lciamethods.json",
-    "assets/tidas/schemas_zh/tidas_processes.json"
-  ],
-  "note": "Immutable reviewed candidate input for SDK generation. archiveSha256 and manifestSha256 are the cryptographic identity; sourceCommit is the declared tidas-spec revision and importedFrom is the tidas-toolkit revision recorded inside the manifest. repositoryAuthoredPaths explicitly separates the four reviewed schema changes and their derived lock from the remaining byte-identical imports. A branch name or moving HEAD is never a valid input. This candidate pin is not a formal tidas-spec release."
+  "releaseArchiveUrl": "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.2.0/tiangong-lca-tidas-spec-0.2.0.tgz"
 }

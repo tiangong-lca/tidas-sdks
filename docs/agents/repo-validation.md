@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-19
-lastReviewedCommit: cec7f743d37530ff0747e75d83f27a105bbddfd1
-lastReviewedNote: "Issue #132 adds exact candidate archive verification and omission, valid-reference, malformed-reference, and unaffected-required-field coverage for both SDKs."
+lastReviewedAt: "2026-09-19"
+lastReviewedCommit: "b10b02bfa679331583e416b5532beee9ea77d71a"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
