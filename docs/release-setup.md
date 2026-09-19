@@ -18,8 +18,8 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedAt: 2026-09-19
+lastReviewedCommit: 9bae310fde363a2db5af18abaad5b594b8700a2f
 lastReviewedNote: "Issue #132 confirms candidate qualification changes no registry, environment, tag, trusted-publishing, or publication prerequisite; formal release identity remains required for package release preparation."
 related:
   - ../AGENTS.md
