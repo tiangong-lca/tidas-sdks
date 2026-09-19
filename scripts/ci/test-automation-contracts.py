@@ -157,6 +157,38 @@ class UpstreamPinTests(unittest.TestCase):
 
 
 class TidasSpecReleaseEventTests(unittest.TestCase):
+    def test_receiver_reads_compact_release_options_and_legacy_fields(self) -> None:
+        sync = (REPO_ROOT / ".github/workflows/sync-from-tidas-tools.yml").read_text(encoding="utf-8")
+        self.assertIn('release_options = payload.get("release_options", {})', sync)
+        self.assertIn('release_options.get("packages", payload.get("packages",', sync)
+        self.assertIn('release_options.get("typescript_bump", payload.get("typescript_bump",', sync)
+        self.assertIn('release_options.get("python_bump", payload.get("python_bump",', sync)
+
+    def test_reviewed_candidate_promotes_only_to_exact_formal_release(self) -> None:
+        candidate = REPO_ROOT / "scripts/ci/tidas-spec-pin.json"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            pin.write_bytes(candidate.read_bytes())
+            payload = self.base_payload()
+            payload.update({
+                "source_commit": "f71ed3002048f0f6a858b93e6e71830ef16a7145",
+                "archive_sha256": "40adef78b3691a7327c282afd2e0eb1a93aa38804610e9ef87c43fea9ccffda2",
+                "manifest_sha256": "a6ce771bd06a601c6defdddb1e49a694e42f4a9a0d549f28ca88a45ef830f75d",
+            })
+            payload["event_key"] = f"{payload['package']}@{payload['version']}:{payload['archive_sha256']}:{payload['manifest_sha256']}"
+            conflicting = dict(payload, source_commit="d" * 40)
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, conflicting)
+            self.assertEqual(pin.read_bytes(), candidate.read_bytes())
+            self.assertTrue(update_tidas_spec_pin.apply_event(pin, payload))
+            self.assertFalse(update_tidas_spec_pin.apply_event(pin, payload))
+            promoted = json.loads(pin.read_text(encoding="utf-8"))
+            self.assertEqual(promoted["sourceRef"], "v0.2.0")
+            self.assertNotIn("repositoryAuthoredPaths", promoted)
+            self.assertNotIn("note", promoted)
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, conflicting)
+
     def base_payload(self) -> dict:
         version = "0.2.0"
         archive_sha = "a" * 64
@@ -720,6 +752,9 @@ if [ "$phase" = "${SDK_FAIL_PHASE:-}" ]; then exit 23; fi
 if [ "$phase" = generate-types ] && [ "${SDK_INJECT_DRIFT:-0}" = 1 ]; then
   printf '%s\\n' 'unexpected generation drift' > "$SDK_FIXTURE_ROOT/sdks/typescript/src/drift.ts"
 fi
+case "$*" in
+  *' pack --pack-destination '*) for destination do :; done; printf '%s\\n' fixture > "$destination/fixture.tgz" ;;
+esac
 ''')
         pnpm.chmod(0o755)
 
@@ -741,13 +776,14 @@ fi
     def test_complete_verify_runs_one_strict_typecheck_and_standalone_keeps_advisory(self):
         self.prepare_full_verify()
         result, calls = self.full_verify_trace()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        expected = ["install --frozen-lockfile"] + [
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        expected = ["--filter @tiangong-lca/tidas-sdk --fail-if-no-match run verify-public-rules", "install --frozen-lockfile"] + [
             "--filter @tiangong-lca/tidas-sdk --fail-if-no-match run " + phase
             for phase in ("generate-types", "generate-schemas", "bundle-methodologies", "sync-runtime-assets",
                           "lint", "typecheck", "test", "check:examples", "build")
-        ] + ["--filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --dry-run"]
-        self.assertEqual(calls, expected)
+        ]
+        self.assertEqual(calls[:-1], expected)
+        self.assertTrue(calls[-1].startswith("--filter @tiangong-lca/tidas-sdk --fail-if-no-match pack --pack-destination "))
         standalone, standalone_calls = self.full_verify_trace(standalone=True)
         self.assertEqual(standalone.returncode, 0, standalone.stderr)
         self.assertEqual(sum(command.endswith(" run typecheck") for command in standalone_calls), 1)

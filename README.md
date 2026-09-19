@@ -64,7 +64,7 @@ cargo install tidas --locked
 
 ### Upstream release events
 
-The sync workflow accepts two repository-dispatch contracts: `tidas_tools_changed` for execution-oriented inputs and `tidas_spec_released` for a reviewed immutable specification release. The latter must carry the exact package/version/source commit, canonical archive URL and filename, archive SHA256, manifest SHA256, selected package families, and an `event_key` of `package@version:archive_sha256:manifest_sha256`. The receiver verifies and downloads that archive before generation, replaces any candidate-only provenance in `scripts/ci/tidas-spec-pin.json`, treats exact replays as no-ops, and rejects stale or same-version conflicting identities.
+The sync workflow accepts two repository-dispatch contracts: `tidas_tools_changed` for execution-oriented inputs and `tidas_spec_released` for a reviewed immutable specification release. The latter must carry the exact package/version/source commit, canonical archive URL and filename, archive SHA256, manifest SHA256, an `event_key` of `package@version:archive_sha256:manifest_sha256`, and package/bump choices under `release_options`. The receiver verifies and downloads that archive before generation, replaces candidate-only provenance in `scripts/ci/tidas-spec-pin.json`, treats exact replays as no-ops, and rejects stale or same-version conflicting identities except for the specifically reviewed 0.2.0 candidate-to-formal promotion.
 
 ## Available Packages
 

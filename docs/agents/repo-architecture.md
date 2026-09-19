@@ -26,8 +26,8 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedAt: 2026-09-19
+lastReviewedCommit: 9bae310fde363a2db5af18abaad5b594b8700a2f
 lastReviewedNote: "Issue #132 records the 39-path spec overlay: 34 imported public assets plus five explicitly pinned repository-authored Process/LCIA Method and lock assets."
 related:
   - ../../AGENTS.md

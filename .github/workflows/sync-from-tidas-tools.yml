@@ -109,12 +109,15 @@ jobs:
               source_event = "spec" if event_type == "tidas_spec_released" else "tools"
               update_tools_pin = "false" if source_event == "spec" else "true"
               requested_sha = str(payload.get("tidas_tools_sha", "") or "")
-              packages = payload.get("packages", ["typescript", "python"])
+              release_options = payload.get("release_options", {}) if source_event == "spec" else {}
+              if not isinstance(release_options, dict):
+                  raise SystemExit("error: release_options must be an object")
+              packages = release_options.get("packages", payload.get("packages", ["typescript", "python"]))
               if isinstance(packages, str):
                   packages = [packages]
               requested_packages = set(packages)
-              ts_bump = str(payload.get("typescript_bump", "patch") or "patch")
-              py_bump = str(payload.get("python_bump", "patch") or "patch")
+              ts_bump = str(release_options.get("typescript_bump", payload.get("typescript_bump", "patch")) or "patch")
+              py_bump = str(release_options.get("python_bump", payload.get("python_bump", "patch")) or "patch")
               reason = str(payload.get("reason", "") or "")
               if source_event == "spec":
                   spec_package = str(payload.get("package", "") or "")

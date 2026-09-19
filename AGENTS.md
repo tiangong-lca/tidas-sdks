@@ -102,7 +102,7 @@ Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-
   - `./scripts/ci/generate-python-sdk.sh`
 - the default upstream generation pin is the exact `tidas-tools` commit declared by `TIDAS_TOOLS_SHA`; moving branch tips are not valid generation inputs
 - the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public methodologies. A reviewed candidate may additionally pin its repository-authored public paths; a formal release derives those paths from the hash-verified manifest.
-- `.github/workflows/sync-from-tidas-tools.yml` accepts both `tidas_tools_changed` and `tidas_spec_released`. A spec event must carry the canonical package/version/source/archive/manifest identity and stable `event_key`; exact replays are no-ops, while stale or same-version conflicting events fail closed. The workflow updates the spec pin only from that event and never treats a branch tip as a release input.
+- `.github/workflows/sync-from-tidas-tools.yml` accepts both `tidas_tools_changed` and `tidas_spec_released`. A spec event must carry the canonical package/version/source/archive/manifest identity and stable `event_key`; package and bump choices are grouped in `release_options` within GitHub's dispatch limit. Exact replays are no-ops, while stale or same-version conflicting events fail closed, apart from the exact reviewed non-release 0.2.0 candidate-to-formal-release transition. The workflow updates the spec pin only from that event and never treats a branch tip as a release input.
 - release tags:
   - `typescript-v<version>`
   - `python-v<version>`

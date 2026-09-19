@@ -112,13 +112,24 @@ The specification release payload is strict and content-addressed:
     "archive_url": "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.2.0/tiangong-lca-tidas-spec-0.2.0.tgz",
     "archive_sha256": "<64-char SHA256>",
     "manifest_sha256": "<64-char SHA256>",
-    "packages": ["typescript", "python"],
-    "typescript_bump": "minor",
-    "python_bump": "minor",
+    "release_options": {
+      "packages": ["typescript", "python"],
+      "typescript_bump": "minor",
+      "python_bump": "minor"
+    },
     "reason": "reviewed public specification release"
   }
 }
 ```
+
+The eight release-identity fields plus `release_options` and optional `reason`
+stay within GitHub's ten-top-level-property limit. The receiver also accepts
+the older separate `packages` and bump fields during transition. The
+pre-publication 0.2.0 candidate at commit `58dc72f5` was qualified with the
+same schema asset digests as formal release `f71ed300`; its archive and
+manifest differ because the packaged README changed. The receiver allows only
+that exact reviewed candidate identity to promote to that exact formal release
+identity. Every other same-version identity conflict remains an error.
 
 The existing tools dispatch payload remains:
 

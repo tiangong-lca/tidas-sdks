@@ -23,6 +23,24 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 
+# The SDK qualified this exact, explicitly non-release 0.2.0 candidate before
+# the public 0.2.0 archive was published. This is a one-time promotion, not a
+# general same-version rewrite rule.
+REVIEWED_CANDIDATE_020 = (
+    PACKAGE,
+    "0.2.0",
+    "58dc72f5cb2d203a00388fec71d31091911f7dde",
+    "45da9de790ffcdadd1984ffc3544c67a1503c0947470a629e8252aed19100228",
+    "4677b9cf864326be9d430bf9760c754c4c0c1905d90e62c161655a159fd758c7",
+)
+FORMAL_RELEASE_020 = (
+    PACKAGE,
+    "0.2.0",
+    "f71ed3002048f0f6a858b93e6e71830ef16a7145",
+    "40adef78b3691a7327c282afd2e0eb1a93aa38804610e9ef87c43fea9ccffda2",
+    "a6ce771bd06a601c6defdddb1e49a694e42f4a9a0d549f28ca88a45ef830f75d",
+)
+
 
 class SpecPinError(ValueError):
     """A stale or malformed release event."""
@@ -112,7 +130,14 @@ def apply_event(pin_path: Path, payload: dict) -> bool:
     if isinstance(current_version, str) and VERSION.fullmatch(current_version):
         if version_key(event["version"]) < version_key(current_version):
             raise SpecPinError(f"stale release event {event['version']} is older than pinned {current_version}")
-        if event["version"] == current_version:
+        reviewed_promotion = (
+            current_identity == REVIEWED_CANDIDATE_020
+            and incoming_identity == FORMAL_RELEASE_020
+            and current.get("sourceRef") == "candidate/58dc72f5cb2d203a00388fec71d31091911f7dde"
+            and current.get("releaseArchiveUrl") == "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/58dc72f5cb2d203a00388fec71d31091911f7dde/release/tiangong-lca-tidas-spec-0.2.0.tgz"
+            and "not a formal tidas-spec release" in str(current.get("note", ""))
+        )
+        if event["version"] == current_version and not reviewed_promotion:
             raise SpecPinError("conflicting release identity for an already pinned version")
     updated = dict(current)
     updated.update({
