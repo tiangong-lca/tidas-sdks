@@ -165,10 +165,22 @@ class TidasSpecReleaseEventTests(unittest.TestCase):
         self.assertIn('release_options.get("python_bump", payload.get("python_bump",', sync)
 
     def test_reviewed_candidate_promotes_only_to_exact_formal_release(self) -> None:
-        candidate = REPO_ROOT / "scripts/ci/tidas-spec-pin.json"
         with tempfile.TemporaryDirectory() as temp_dir:
             pin = Path(temp_dir) / "tidas-spec-pin.json"
-            pin.write_bytes(candidate.read_bytes())
+            candidate = {
+                "pinVersion": 1,
+                "package": "@tiangong-lca/tidas-spec",
+                "version": "0.2.0",
+                "sourceCommit": "58dc72f5cb2d203a00388fec71d31091911f7dde",
+                "sourceRef": "candidate/58dc72f5cb2d203a00388fec71d31091911f7dde",
+                "archiveSha256": "45da9de790ffcdadd1984ffc3544c67a1503c0947470a629e8252aed19100228",
+                "manifestSha256": "4677b9cf864326be9d430bf9760c754c4c0c1905d90e62c161655a159fd758c7",
+                "releaseArchiveUrl": "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/58dc72f5cb2d203a00388fec71d31091911f7dde/release/tiangong-lca-tidas-spec-0.2.0.tgz",
+                "repositoryAuthoredPaths": ["assets/tidas/schema.lock.json"],
+                "note": "This candidate pin is not a formal tidas-spec release.",
+            }
+            pin.write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
+            candidate_bytes = pin.read_bytes()
             payload = self.base_payload()
             payload.update({
                 "source_commit": "f71ed3002048f0f6a858b93e6e71830ef16a7145",
@@ -179,7 +191,7 @@ class TidasSpecReleaseEventTests(unittest.TestCase):
             conflicting = dict(payload, source_commit="d" * 40)
             with self.assertRaises(update_tidas_spec_pin.SpecPinError):
                 update_tidas_spec_pin.apply_event(pin, conflicting)
-            self.assertEqual(pin.read_bytes(), candidate.read_bytes())
+            self.assertEqual(pin.read_bytes(), candidate_bytes)
             self.assertTrue(update_tidas_spec_pin.apply_event(pin, payload))
             self.assertFalse(update_tidas_spec_pin.apply_event(pin, payload))
             promoted = json.loads(pin.read_text(encoding="utf-8"))
