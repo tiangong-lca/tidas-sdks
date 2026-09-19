@@ -19,7 +19,7 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-19
-lastReviewedCommit: 9bae310fde363a2db5af18abaad5b594b8700a2f
+lastReviewedCommit: cec7f743d37530ff0747e75d83f27a105bbddfd1
 lastReviewedNote: "Issue #132 confirms candidate qualification changes no registry, environment, tag, trusted-publishing, or publication prerequisite; formal release identity remains required for package release preparation."
 related:
   - ../AGENTS.md

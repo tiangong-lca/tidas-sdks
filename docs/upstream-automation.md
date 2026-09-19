@@ -19,8 +19,8 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-18
-lastReviewedCommit: 8f84a909bdb5d557e28bc231ca95edd7aab8caa6
+lastReviewedAt: 2026-09-19
+lastReviewedCommit: cec7f743d37530ff0747e75d83f27a105bbddfd1
 lastReviewedNote: "Issue #132 permits an exact commit/hash tidas-spec 0.2.0 candidate for SDK qualification while preserving the canonical release-event contract and removing candidate-only provenance when a formal release arrives."
 related:
   - ../AGENTS.md
