@@ -322,7 +322,7 @@ class PnpmWorkflowContractTests(unittest.TestCase):
         sync = self.workflow_text("sync-from-tidas-tools.yml")
         self.assertIn(
             'pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match version '
-            '"$TYPESCRIPT_VERSION" --no-git-tag-version',
+            '"$TYPESCRIPT_VERSION" --no-git-tag-version --no-git-checks',
             sync,
         )
 
