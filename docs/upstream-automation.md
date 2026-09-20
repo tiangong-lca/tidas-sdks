@@ -297,7 +297,9 @@ Recommended default policy:
 
 - schema-compatible additive change: `minor`
 - generator-only fix with no API break: `patch`
-- breaking schema or generated API change: `major`
+- breaking schema or generated API change: `major` after 1.0; while pre-1.0,
+  a reviewed `minor` release may deliberately establish a new incompatible
+  `^0.x` line (Issue #144 retires the mixed-ruleset TypeScript API in `0.3.0`)
 
 Implementation options:
 

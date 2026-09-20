@@ -235,18 +235,6 @@
       "bytes": 2910
     },
     {
-      "path": "assets/tidas/methodologies/runtime_rulesets.json",
-      "kind": "runtime-ruleset",
-      "sha256": "6e9227dd8b174d365dbcbb3380e29566b9d210eb52d49771f11ca12063cdb2bd",
-      "bytes": 14206
-    },
-    {
-      "path": "assets/tidas/methodologies/runtime_rulesets.schema.json",
-      "kind": "runtime-ruleset",
-      "sha256": "c3db8324c41a3968d1c7f3a1a323d19261514deea0057aafe2bd27ead5e8537f",
-      "bytes": 2677
-    },
-    {
       "path": "assets/tidas/methodologies/tidas_flows.yaml",
       "kind": "methodology",
       "sha256": "4a389d060f5c901b7c11625675948c0152df95ad33bedc87eca0f93341038d6d",
@@ -486,5 +474,13 @@
       "sha256": "827bac44025fa3b6b6be00041791325b08b36ec69d83e4f010193d164f492adc",
       "bytes": 855048
     }
-  ]
+  ],
+  "sdk_projection": {
+    "schema_version": "tidas.sdk-runtime-projection.v1",
+    "upstream_lock_sha256": "50b08606caa111e06266dd216b4047eae1c47f2e486672523b23a855966e415e",
+    "excluded_source_paths": [
+      "assets/tidas/methodologies/runtime_rulesets.json",
+      "assets/tidas/methodologies/runtime_rulesets.schema.json"
+    ]
+  }
 }

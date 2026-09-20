@@ -43,7 +43,7 @@ if (selection.status === 'covered') {
 }
 ```
 
-The result is the versioned public-definition layer: stable identity, dataset/location, applicability, normative level, source references, and examples. It intentionally excludes product profiles, severity/phase policy, blocker defaults, waivers, and action authorization. Valid dataset kinds without reviewed public definitions return `not-covered`. `getTidasRuntimeRuleset` remains a separate W9 compatibility API for the former tools-owned mixed catalog and is not the public specification source.
+The result is the versioned public-definition layer: stable identity, dataset/location, applicability, normative level, source references, and examples. It intentionally excludes product profiles, severity/phase policy, blocker defaults, waivers, and action authorization. Valid dataset kinds without reviewed public definitions return `not-covered`. The former `getTidasRuntimeRuleset` compatibility API and its two `runtime_rulesets` files are not part of this SDK package; execution policy belongs to consumers such as CLI.
 
 ## Current factory API
 

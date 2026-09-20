@@ -1,13 +1,22 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
-  requireTidasToolsAssetLockPath,
   requireTidasToolsRuntimeRoots,
   resolveTidasToolsRepoRoot,
 } from './resolve-tidas-tools-path.js';
 
 const OUTPUT_DIR = path.join(__dirname, '../src/runtime-assets');
+const TOOLS_ASSET_RESOLVER = path.join(
+  __dirname,
+  '../../../scripts/ci/tidas-tools-assets.mjs'
+);
+
+type SdkRuntimeProjection = {
+  excluded_source_paths: string[];
+  lock_text: string;
+};
 
 async function copyAssetDir(
   sourceDir: string,
@@ -33,22 +42,57 @@ async function copyMixedTidasAssets(
   // owned by tidas-spec. Remove those paths from the remaining-tools copy before
   // publishing the verified spec bytes, so the final inventory is disjoint.
   await rm(path.join(targetDir, 'schemas'), { recursive: true, force: true });
-  await rm(path.join(targetDir, 'schemas_zh'), { recursive: true, force: true });
+  await rm(path.join(targetDir, 'schemas_zh'), {
+    recursive: true,
+    force: true,
+  });
   await rm(path.join(targetDir, 'schema.lock.json'), { force: true });
-  await rm(path.join(targetDir, 'methodologies', 'tidas_flows.yaml'), { force: true });
-  await rm(path.join(targetDir, 'methodologies', 'tidas_processes.yaml'), { force: true });
-  await cp(path.join(specDir, 'schemas'), path.join(targetDir, 'schemas'), { recursive: true });
-  await cp(path.join(specDir, 'schemas_zh'), path.join(targetDir, 'schemas_zh'), { recursive: true });
-  await cp(path.join(specDir, 'schema.lock.json'), path.join(targetDir, 'schema.lock.json'));
-  await cp(path.join(specDir, 'methodologies', 'tidas_flows.yaml'), path.join(targetDir, 'methodologies', 'tidas_flows.yaml'));
-  await cp(path.join(specDir, 'methodologies', 'tidas_processes.yaml'), path.join(targetDir, 'methodologies', 'tidas_processes.yaml'));
+  await rm(path.join(targetDir, 'methodologies', 'tidas_flows.yaml'), {
+    force: true,
+  });
+  await rm(path.join(targetDir, 'methodologies', 'tidas_processes.yaml'), {
+    force: true,
+  });
+  await cp(path.join(specDir, 'schemas'), path.join(targetDir, 'schemas'), {
+    recursive: true,
+  });
+  await cp(
+    path.join(specDir, 'schemas_zh'),
+    path.join(targetDir, 'schemas_zh'),
+    { recursive: true }
+  );
+  await cp(
+    path.join(specDir, 'schema.lock.json'),
+    path.join(targetDir, 'schema.lock.json')
+  );
+  await cp(
+    path.join(specDir, 'methodologies', 'tidas_flows.yaml'),
+    path.join(targetDir, 'methodologies', 'tidas_flows.yaml')
+  );
+  await cp(
+    path.join(specDir, 'methodologies', 'tidas_processes.yaml'),
+    path.join(targetDir, 'methodologies', 'tidas_processes.yaml')
+  );
 }
 
 async function main() {
   const toolsRoot = resolveTidasToolsRepoRoot();
 
   if (!toolsRoot) {
-    if (existsSync(path.join(OUTPUT_DIR, 'tidas')) && existsSync(path.join(OUTPUT_DIR, 'eilcd'))) {
+    if (
+      existsSync(path.join(OUTPUT_DIR, 'tidas')) &&
+      existsSync(path.join(OUTPUT_DIR, 'eilcd'))
+    ) {
+      for (const name of [
+        'runtime_rulesets.json',
+        'runtime_rulesets.schema.json',
+      ]) {
+        if (existsSync(path.join(OUTPUT_DIR, 'tidas', 'methodologies', name))) {
+          throw new Error(
+            `Retired SDK runtime asset remains without a verified tools source: ${name}`
+          );
+        }
+      }
       console.warn(
         'No tidas-tools checkout found. Keeping existing runtime assets under src/runtime-assets.'
       );
@@ -66,14 +110,27 @@ async function main() {
   const specAssetRoot = process.env.TIDAS_SPEC_ASSET_ROOT;
   if (specAssetRoot) {
     if (!toolsRoot) {
-      throw new Error('Mixed runtime assembly requires both the verified tidas-spec and tidas-tools inputs.');
+      throw new Error(
+        'Mixed runtime assembly requires both the verified tidas-spec and tidas-tools inputs.'
+      );
     }
     // The Rust lock remains authoritative for the remaining-tools tree; the
     // resolver is also invoked as a preflight to prove the two input manifests
     // agree on any historical overlap before files are copied.
-    const resolver = path.join(__dirname, '../../../scripts/ci/tidas-spec-assets.mjs');
-    const { execFileSync } = await import('node:child_process');
-    execFileSync(process.execPath, [resolver, 'assembly-plan', path.resolve(specAssetRoot, '../../..'), toolsRoot], { stdio: 'pipe' });
+    const resolver = path.join(
+      __dirname,
+      '../../../scripts/ci/tidas-spec-assets.mjs'
+    );
+    execFileSync(
+      process.execPath,
+      [
+        resolver,
+        'assembly-plan',
+        path.resolve(specAssetRoot, '../../..'),
+        toolsRoot,
+      ],
+      { stdio: 'pipe' }
+    );
   }
 
   for (const assetRoot of requireTidasToolsRuntimeRoots()) {
@@ -84,8 +141,29 @@ async function main() {
     }
     console.log(`Synced runtime assets: ${assetRoot.name}`);
   }
-  await cp(requireTidasToolsAssetLockPath(), path.join(OUTPUT_DIR, 'asset-lock.v1.json'));
-  console.log('Synced authoritative Rust asset lock: asset-lock.v1.json');
+  const projection = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [TOOLS_ASSET_RESOLVER, 'sdk-projection', toolsRoot],
+      { encoding: 'utf8' }
+    )
+  ) as SdkRuntimeProjection;
+  for (const sourcePath of projection.excluded_source_paths) {
+    if (!sourcePath.startsWith('assets/')) {
+      throw new Error(`Invalid retired SDK asset path: ${sourcePath}`);
+    }
+    await rm(
+      path.join(OUTPUT_DIR, ...sourcePath.slice('assets/'.length).split('/')),
+      { force: true }
+    );
+  }
+  await writeFile(
+    path.join(OUTPUT_DIR, 'asset-lock.v1.json'),
+    projection.lock_text
+  );
+  console.log(
+    'Synced SDK runtime projection of the verified Rust asset lock: asset-lock.v1.json'
+  );
 }
 
 if (require.main === module) {

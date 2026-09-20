@@ -22,6 +22,34 @@ const RUNTIME_KINDS = new Set([
   'xml-reference',
   'legacy-schema-lock',
 ]);
+const RETIRED_SDK_ASSET_PATHS = new Set([
+  'assets/tidas/methodologies/runtime_rulesets.json',
+  'assets/tidas/methodologies/runtime_rulesets.schema.json',
+]);
+
+function sdkRuntimeProjection(catalog) {
+  const excluded = catalog.entries
+    .filter((entry) => RETIRED_SDK_ASSET_PATHS.has(entry.path))
+    .map((entry) => entry.path);
+  if (excluded.length === 0) {
+    return { lock: catalog.lock, excluded, lockBytes: catalog.lockBytes };
+  }
+  const excludedPaths = new Set(excluded);
+  const lock = {
+    ...catalog.lock,
+    entries: catalog.lock.entries.filter((entry) => !excludedPaths.has(entry.path)),
+    sdk_projection: {
+      schema_version: 'tidas.sdk-runtime-projection.v1',
+      upstream_lock_sha256: sha256(catalog.lockBytes),
+      excluded_source_paths: excluded,
+    },
+  };
+  return {
+    lock,
+    excluded,
+    lockBytes: Buffer.from(`${JSON.stringify(lock, null, 2)}\n`),
+  };
+}
 
 function fail(message) {
   throw new Error(message);
@@ -172,17 +200,26 @@ async function verifyRuntimeCopy(catalog, outputRootInput, specRootInput = null)
   if (!existsSync(copiedLockPath)) {
     fail(`Copied Rust asset lock is missing: ${copiedLockPath}`);
   }
+  const projection = sdkRuntimeProjection(catalog);
   const copiedLock = readFileSync(copiedLockPath);
-  if (!copiedLock.equals(catalog.lockBytes)) {
-    fail('Copied Rust asset lock does not match the authoritative upstream lock');
+  if (!copiedLock.equals(projection.lockBytes)) {
+    fail('Copied SDK runtime lock does not match the verified upstream projection');
+  }
+
+  for (const sourcePath of projection.excluded) {
+    const relative = sourcePath.slice('assets/'.length);
+    if (existsSync(path.join(outputRoot, ...relative.split('/')))) {
+      fail(`Retired SDK runtime asset is still packaged: ${relative}`);
+    }
   }
 
   const selectedRoots = new Map(
     runtimeRoots(catalog).map((root) => [root.sourceRoot, root])
   );
+  const excludedPaths = new Set(projection.excluded);
   for (const entry of catalog.entries) {
     const root = selectedRoots.get(entry.sourceRoot);
-    if (!root || !RUNTIME_KINDS.has(entry.kind)) {
+    if (!root || !RUNTIME_KINDS.has(entry.kind) || excludedPaths.has(entry.path)) {
       continue;
     }
     if (specPublicPaths.has(entry.path)) {
@@ -227,6 +264,7 @@ function usage() {
     '  tidas-tools-assets.mjs verify <tidas-tools-root>',
     '  tidas-tools-assets.mjs path-for-kind <tidas-tools-root> <asset-kind>',
     '  tidas-tools-assets.mjs runtime-roots <tidas-tools-root>',
+    '  tidas-tools-assets.mjs sdk-projection <tidas-tools-root>',
     '  tidas-tools-assets.mjs lock-path <tidas-tools-root>',
     '  tidas-tools-assets.mjs verify-runtime-copy <tidas-tools-root> <output-root> [--spec-root <verified-spec-root>]',
   ].join('\n');
@@ -251,6 +289,15 @@ async function main() {
         })}\n`
       );
       return;
+    case 'sdk-projection': {
+      const projection = sdkRuntimeProjection(catalog);
+      process.stdout.write(JSON.stringify({
+        excluded_source_paths: projection.excluded,
+        lock_text: projection.lockBytes.toString('utf8'),
+      }));
+      process.stdout.write('\n');
+      return;
+    }
     case 'path-for-kind':
       if (!argument) {
         fail(usage());

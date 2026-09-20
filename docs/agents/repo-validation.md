@@ -77,7 +77,10 @@ Facts that matter:
 - `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. The 0.2.0 candidate explicitly pins five repository-authored public paths and retains manifest/hash proof for the other 34 imports. `assembly-plan` overlays every public path from spec, compares unchanged overlaps byte-for-byte, and excludes explicitly authored paths from the tools-equality requirement. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays are accepted, while stale, malformed, partial, or same-version conflicting events fail closed.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
-  TypeScript runtime copy before generation succeeds
+  TypeScript runtime copy before generation succeeds. The SDK copy has a
+  deterministic derived lock that records the upstream lock SHA and excludes
+  only the two former mixed `runtime_rulesets` files; verification fails if
+  either retired file remains packaged
 - clean TypeScript generation and verification both install dependencies through
   `scripts/ci/lib/typescript-dependencies.sh`, which requires the root
   `pnpm-lock.yaml`, exact `pnpm@11.24.0`, and exact Node `24.19.0` from `.nvmrc`,
@@ -111,6 +114,11 @@ Facts that matter:
 - Validation changes that correct historical under-validation require an
   explicit compatibility/version decision. Issue #101 uses `0.2.0`, not a
   patch, so `^0.1.x` consumers opt in deliberately.
+- Issue #144 removes the TypeScript SDK's public `getTidasRuntimeRuleset`
+  compatibility API and the mixed-ruleset pack fields. This is a breaking
+  change while the package is pre-1.0; `0.3.0` is an opt-in minor line that
+  cannot satisfy existing `^0.2.x` consumers. Python's API and version are
+  unchanged. A compatible CLI release must pin this new line explicitly.
 - If a change touches `sdks/typescript/scripts/generate-zod-schemas.ts`, `sdks/typescript/src/core/config/ValidationConfig.ts`, or committed schema output under `sdks/typescript/src/schemas/**`, mention in the PR note whether the validation contract changed or remained backward compatible.
 
 ## Minimum PR Note Quality
