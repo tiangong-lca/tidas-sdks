@@ -32,8 +32,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 aligns package inputs and the separately pinned public-rule API to exact published spec 0.2.1; tools-owned legacy mixed ruleset, profile policy and publication gates remain unchanged."
+lastReviewedCommit: "7bc66286b4133c0b24e5e586316c56c907e47c78"
+lastReviewedNote: "Issue #144 reviews the TypeScript 0.3.0 mixed-ruleset compatibility retirement: the SDK projection excludes two legacy files without modifying the upstream tools lock; Python and repo ownership remain unchanged."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -48,6 +48,8 @@ related:
 `tidas-sdk` owns the generated developer package surface for TIDAS: the published TypeScript package, the in-repo Python SDK, and the generation / verification / release automation that keeps them aligned with the standalone public `tidas-spec` archive and the execution-oriented `tidas-tools` asset set.
 
 For the TypeScript package, that ownership now includes the machine-readable validation contract exposed by `validateEnhanced()`: downstream callers should expect a stable `validationIssues` array with normalized `code`, `path`, `severity`, optional `params`, and `rawCode`, rather than parsing raw Zod messages when stable behavior matters.
+
+The TypeScript SDK publishes spec-owned public definitions but no longer exports the former mixed runtime-ruleset getter or bundles its two legacy files. Its derived runtime lock preserves the verified upstream tools-lock identity while excluding those exact files. Consumer execution policy remains outside the SDK; Python's package boundary is unchanged.
 
 ## Documentation Roles
 
