@@ -28,7 +28,7 @@ checkPaths:
   - scripts/install-git-hooks.sh
 lastReviewedAt: "2026-09-20"
 lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
+lastReviewedNote: "Issue #143 reviews exact formal spec 0.2.1 package inputs and generated methodology; repo topology, tools-owned runtime profiles and tag-driven publication remain unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

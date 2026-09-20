@@ -33,7 +33,7 @@ checkPaths:
   - scripts/install-git-hooks.sh
 lastReviewedAt: "2026-09-20"
 lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
+lastReviewedNote: "Issue #143 reviews the exact tidas-spec 0.2.1 pin and generated TypeScript methodology; product profiles, publication control and separate W9 public-rule API pin remain SDK-owned."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -156,7 +156,7 @@ Route those tasks to:
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
-- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; W9 public-rule definitions use a separate exact candidate commit/hash pin until a new release contains them; product profiles, remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
+- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; the W9 public-rule API still uses its separately reviewed candidate commit/hash pin, and switching that API to the now-published 0.2.1 index requires a distinct consumer review; product profiles, remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
 - the public-rule SDK result may contain stable public IDs, locations, applicability, normative level, sources, and cases, but never severity, phase, blocker defaults, waivers, product profiles, or action authorization
 - generated build output under `sdks/typescript/dist/**`, `sdks/python/dist/**`, and `sdks/python/htmlcov/**` is useful for packaging checks but is not the first durable edit surface
 - merged repo PRs here are repo-complete, not workspace-delivery complete

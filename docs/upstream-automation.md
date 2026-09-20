@@ -21,7 +21,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-20"
 lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
+lastReviewedNote: "Issue #143 adopts the exact formal tidas-spec 0.2.1 archive for package generation; the W9 public-rule API candidate pin and downstream tag publication remain distinct."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -35,7 +35,7 @@ This document describes the recommended cross-repository automation path for kee
 
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
-W9 public-rule development still uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separate reviewed-candidate bridge. W10S additionally advances `scripts/ci/tidas-spec-pin.json` to the exact reviewed 0.2.0 candidate archive so SDKs can qualify the optional Process/LCIA Method review-report reference before a formal release. The candidate URL is commit-addressed, its archive and manifest are hash-verified, and its five repository-authored public paths are explicit. This does not claim that 0.2.0 is published; a later `tidas_spec_released` event must still supply the canonical release asset identity.
+W9 public-rule development still uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separate reviewed-candidate bridge. W10S first qualified the optional Process/LCIA Method review-report reference against an exact 0.2.0 candidate archive. The package-input pin now advances through a verified `tidas_spec_released` event to the formal 0.2.1 release; its source commit, archive and manifest hashes are explicit. Switching the separate W9 public-rule API pin to the released index remains a later consumer review, not an implicit side effect of package-input refresh.
 
 The goal is:
 
