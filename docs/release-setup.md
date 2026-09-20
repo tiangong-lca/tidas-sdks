@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-20
-lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
-lastReviewedNote: "Issue #140 does not alter registry credentials, Trusted Publishers, tags or publish workflow; the sync version step remains release preparation only."
+lastReviewedAt: "2026-09-20"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

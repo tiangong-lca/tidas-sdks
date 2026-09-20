@@ -26,9 +26,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-20
-lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
-lastReviewedNote: "Issue #140 retains the existing spec/tools to SDK generation topology, review PR and tag publication model; only the dirty-tree version preparation option changes."
+lastReviewedAt: "2026-09-20"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

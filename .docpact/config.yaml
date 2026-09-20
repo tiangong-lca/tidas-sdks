@@ -1,7 +1,7 @@
 version: 1
 layout: repo
 lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
 lastReviewedNote: "Issue #140 fixes only the dirty-tree precondition in the SDK sync version step; catalog, ownership, routing, coverage and package-release boundaries remain unchanged."
 
 catalog:
