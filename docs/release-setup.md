@@ -145,4 +145,8 @@ If the PyPI project does not exist yet, register a pending publisher first so th
   tag for the current package version as a pending release; an existing matching
   tag prevents unrelated later pushes from attempting the same release again.
 - npm and PyPI releases are independent; configure both publishers even if only one package is released initially.
+- Issue #144's TypeScript-only `0.3.0` release intentionally breaks the pre-1.0
+  mixed-ruleset compatibility API. Publish and verify this tag independently of
+  Python; downstream CLI must explicitly adopt the new SDK line before its own
+  compatible release. The prior complete published combination remains rollback.
 - if a repository or package rename ever happens, update both the workflow and the trusted publisher registration before the next release.

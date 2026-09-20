@@ -58,6 +58,10 @@ describe('runtime asset helpers', () => {
       fs.readFileSync(path.join(runtimeAssetsDir, 'asset-lock.v1.json'), 'utf8')
     ) as {
       schema_version: string;
+      sdk_projection?: {
+        schema_version: string;
+        excluded_source_paths: string[];
+      };
       entries: Array<{
         path: string;
         kind: string;
@@ -94,7 +98,21 @@ describe('runtime asset helpers', () => {
     ) as { oneOf: unknown[] };
 
     assert.strictEqual(lock.schema_version, 'tidas.asset-lock.v1');
-    assert.strictEqual(lock.entries.length, 80);
+    assert.strictEqual(lock.entries.length, 78);
+    assert.deepStrictEqual(lock.sdk_projection?.excluded_source_paths, [
+      'assets/tidas/methodologies/runtime_rulesets.json',
+      'assets/tidas/methodologies/runtime_rulesets.schema.json',
+    ]);
+    assert.strictEqual(
+      lock.entries.some((entry) => entry.path.includes('runtime_rulesets')),
+      false
+    );
+    assert.strictEqual(
+      fs.existsSync(
+        path.join(runtimeAssetsDir, 'tidas/methodologies/runtime_rulesets.json')
+      ),
+      false
+    );
     assert.notStrictEqual(extensionEntry, undefined);
     assert.strictEqual(extensionBytes.length, extensionEntry?.bytes ?? -1);
     assert.strictEqual(

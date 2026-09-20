@@ -9,7 +9,6 @@ import {
   getTidasMethodologyText,
   getTidasPublicRules,
   getTidasPublicRulesSchema,
-  getTidasRuntimeRuleset,
   getTidasSchemaText,
   normalizeTidasContractKind,
 } from './tidas-contract';
@@ -39,18 +38,6 @@ describe('TIDAS contract helpers', () => {
       getTidasMethodologyText('flow')?.includes('Flow Dataset Content Rules')
     );
     assert.strictEqual(getTidasMethodologyText('source'), null);
-  });
-
-  it('filters runtime rulesets by canonical kind', () => {
-    const processRuleset = getTidasRuntimeRuleset('process') as {
-      rules?: Array<{ dataset_type?: string }>;
-    };
-    assert.ok((processRuleset.rules?.length ?? 0) > 0);
-    assert.strictEqual(
-      processRuleset.rules?.every((rule) => rule.dataset_type === 'process'),
-      true
-    );
-    assert.strictEqual(getTidasRuntimeRuleset('source'), null);
   });
 
   it('returns versioned public definitions without product execution policy', () => {
@@ -137,29 +124,29 @@ describe('TIDAS contract helpers', () => {
     const versionPattern = new RegExp(dataTypes.$defs.Version.pattern);
     for (const value of ['01.02', '01.02.003']) {
       assert.ok(versionPattern.test(value));
-      assert.ok(versionRule.cases.positive.some((example) => example.includes(value)));
+      assert.ok(
+        versionRule.cases.positive.some((example) => example.includes(value))
+      );
     }
     for (const value of ['1.1', '01.02.03']) {
       assert.strictEqual(versionPattern.test(value), false);
-      assert.ok(versionRule.cases.negative.some((example) => example.includes(value)));
+      assert.ok(
+        versionRule.cases.negative.some((example) => example.includes(value))
+      );
     }
   });
 
-  it('keeps public rules separate from the legacy mixed ruleset', () => {
+  it('keeps the SDK contract pack free of product runtime policy', () => {
     const modern = getTidasContractPack('process', {
       include: ['schema', 'public-rules'],
       includeAiContext: true,
     });
     assert.strictEqual(modern.publicRules?.status, 'covered');
     assert.ok(modern.manifest.publicRules);
-    assert.strictEqual(modern.runtimeRuleset, undefined);
-    assert.strictEqual(modern.manifest.ruleset, null);
+    assert.strictEqual('runtimeRuleset' in modern, false);
+    assert.strictEqual('ruleset' in modern.manifest, false);
+    assert.strictEqual('runtime_ruleset' in (modern.aiContext ?? {}), false);
     assert.deepStrictEqual(modern.aiContext?.public_rules, modern.publicRules);
-
-    const legacy = getTidasContractPack('process', { include: ['ruleset'] });
-    assert.ok(legacy.runtimeRuleset);
-    assert.strictEqual(legacy.publicRules, undefined);
-    assert.strictEqual('publicRules' in legacy.manifest, false);
   });
 
   it('builds a reproducible AI context pack manifest', () => {
@@ -172,7 +159,7 @@ describe('TIDAS contract helpers', () => {
     assert.strictEqual(pack.manifest.profile, 'ai-import');
     assert.match(pack.manifest.schema?.sha256 ?? '', /^[a-f0-9]{64}$/);
     assert.match(pack.manifest.methodology?.sha256 ?? '', /^[a-f0-9]{64}$/);
-    assert.match(pack.manifest.ruleset?.sha256 ?? '', /^[a-f0-9]{64}$/);
+    assert.strictEqual('ruleset' in pack.manifest, false);
     assert.ok(pack.aiContext?.instructions.join(' ').includes('Foundry'));
   });
 });
