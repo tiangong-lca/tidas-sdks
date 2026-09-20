@@ -2,7 +2,7 @@ version: 1
 layout: repo
 lastReviewedAt: "2026-09-20"
 lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 adopts exact published tidas-spec 0.2.1 archive identity in generated SDK package inputs; catalog, ownership, routing and coverage remain unchanged."
+lastReviewedNote: "Issue #143 aligns generated package inputs and the W9 public-rule pin to the same released tidas-spec 0.2.1 commit; catalog, ownership, routing and coverage remain unchanged."
 
 catalog:
   repos:

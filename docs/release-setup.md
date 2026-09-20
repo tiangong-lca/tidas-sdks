@@ -20,7 +20,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-20"
 lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 prepares TypeScript 0.2.2 from the formal spec 0.2.1 pin; existing tag, registry, Trusted Publisher and publish workflow prerequisites remain unchanged."
+lastReviewedNote: "Issue #143 aligns TypeScript 0.2.2 package inputs and the W9 public-rule API with released spec 0.2.1; existing tag, registry, Trusted Publisher and publish workflow prerequisites remain unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -63,6 +63,7 @@ Operational preference:
 - automate PR creation and tag creation, not cross-repository direct publishing
 - keep `.github/workflows/ci.yml` as manual-dispatch only; ordinary pushes rely on the local pre-push gate
 - if a release-prep PR changes the machine-readable TypeScript validation contract, call that out explicitly so downstream consumers can review any UI or API mapping impact before tagging
+- before tagging a spec-driven SDK release, confirm the generated package-input pin and bundled W9 public-rule source identity both name the same released spec commit; compatibility-only runtime ruleset summaries remain separately governed
 - a reviewed candidate spec archive may be used for qualification without changing package versions or tags; only the canonical `tidas_spec_released` event may replace it with formal release identity and enter normal release preparation
 
 Required secrets:
