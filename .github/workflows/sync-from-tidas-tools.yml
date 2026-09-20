@@ -331,7 +331,7 @@ jobs:
         if: steps.changes.outputs.typescript_changed == 'true'
         env:
           TYPESCRIPT_VERSION: ${{ steps.typescript_release.outputs.version }}
-        run: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match version "$TYPESCRIPT_VERSION" --no-git-tag-version
+        run: pnpm --filter @tiangong-lca/tidas-sdk --fail-if-no-match version "$TYPESCRIPT_VERSION" --no-git-tag-version --no-git-checks
 
       - name: Resolve Python release version
         if: steps.changes.outputs.python_changed == 'true'

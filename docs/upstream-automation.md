@@ -19,9 +19,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: "2026-09-19"
-lastReviewedCommit: "b10b02bfa679331583e416b5532beee9ea77d71a"
-lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
+lastReviewedAt: 2026-09-20
+lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
+lastReviewedNote: "Issue #140 documents why SDK sync version preparation permits its intentionally dirty generated worktree while keeping exact upstream pin, verification, PR review and later tag publication gates."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -180,6 +180,7 @@ Recommended responsibilities:
 8. for `tidas_spec_released`, download and hash-check the notified archive before updating the exact spec pin; an exact replay is a no-op and a stale or same-version conflicting identity fails closed
 9. detect whether TypeScript and/or Python outputs changed, including a changed spec pin
 10. bump only the affected package version(s) to the next unpublished version in the target registry
+    - TypeScript regeneration intentionally leaves reviewed package output uncommitted before version preparation. The filtered `pnpm version` command uses `--no-git-checks` solely for that dirty-tree precondition; it still makes no tag or commit, and the later package verification and PR review remain mandatory.
 11. update the repository's exact tools commit only for a tools event; update the spec archive pin only from a spec event
 12. record deterministic review metadata in every Docpact-required governed document
 13. commit generated package files, exact pins, and governed review records to a bot branch
