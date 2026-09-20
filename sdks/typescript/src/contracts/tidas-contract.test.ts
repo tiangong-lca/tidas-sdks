@@ -97,7 +97,7 @@ describe('TIDAS contract helpers', () => {
     );
   });
 
-  it('binds the public index to the exact reviewed candidate digest', () => {
+  it('binds the public index to the exact published 0.2.1 source', () => {
     const selection = getTidasPublicRules('flow');
     const indexPath = path.join(
       __dirname,
@@ -108,8 +108,41 @@ describe('TIDAS contract helpers', () => {
       .update(readFileSync(indexPath))
       .digest('hex');
     assert.strictEqual(selection.source.index_sha256, digest);
-    assert.match(selection.source.commit, /^[0-9a-f]{40}$/);
-    assert.strictEqual(selection.source.status, 'reviewed-candidate');
+    assert.strictEqual(
+      selection.source.commit,
+      'd4cb089c753ffd20b173db2e56fb553a364f48f4'
+    );
+    assert.strictEqual(selection.source.rules_version, '2026.09.20');
+    assert.strictEqual(selection.source.status, 'released');
+  });
+
+  it('keeps the Process Version public definition aligned with the shipped schema', () => {
+    const selection = getTidasPublicRules('process');
+    if (selection.status !== 'covered') {
+      throw new Error('Process public rules must be covered');
+    }
+    const versionRule = selection.rules.find(
+      (rule) => rule.id === 'tidas.process.version.format'
+    );
+    assert.ok(versionRule);
+    const dataTypes = JSON.parse(
+      readFileSync(
+        path.join(
+          __dirname,
+          '../runtime-assets/tidas/schemas/tidas_data_types.json'
+        ),
+        'utf8'
+      )
+    ) as { $defs: { Version: { pattern: string } } };
+    const versionPattern = new RegExp(dataTypes.$defs.Version.pattern);
+    for (const value of ['01.02', '01.02.003']) {
+      assert.ok(versionPattern.test(value));
+      assert.ok(versionRule.cases.positive.some((example) => example.includes(value)));
+    }
+    for (const value of ['1.1', '01.02.03']) {
+      assert.strictEqual(versionPattern.test(value), false);
+      assert.ok(versionRule.cases.negative.some((example) => example.includes(value)));
+    }
   });
 
   it('keeps public rules separate from the legacy mixed ruleset', () => {

@@ -20,9 +20,9 @@ checkPaths:
   - sdks/python/**
   - scripts/ci/**
   - .nvmrc
-lastReviewedAt: 2026-09-20
-lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
-lastReviewedNote: "Issue #140 changes only the sync workflow's generated-output version step; landing context, package locations and consumer setup remain unchanged."
+lastReviewedAt: "2026-09-20"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
+lastReviewedNote: "Issue #143 aligns the formal spec 0.2.1 package-input and public-rule API pins, including the corrected Process Version definition; legacy mixed product policy remains separate."
 ---
 
 # TIDAS SDKs
@@ -54,7 +54,7 @@ cd sdks/python && uv sync
 
 ### Upstream Tools
 
-`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and public methodologies are consumed from one separately versioned, content-addressed `tidas-spec` archive. The current 0.2.0 candidate pin is explicitly marked non-release and exists to qualify the optional Process/LCIA Method review-report reference; SDK refreshes continue to keep public definitions and product execution policy as distinct inputs.
+`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and public methodologies are consumed from one separately versioned, content-addressed `tidas-spec` archive. The current package-input pin is the formal 0.2.1 release, which retains the optional Process/LCIA Method review-report reference and corrects the Process Version methodology. The W9 public-rule API's separately verified index/schema pin is also bound to this same published source; product execution policy and the legacy mixed ruleset remain distinct inputs pending W11.
 
 The TypeScript contracts entry point exposes `getTidasPublicRules(kind)` and `getTidasPublicRulesSchema()`. `getTidasPublicRules` returns an explicit `covered` or `not-covered` result with source identity; it never supplies severity, phase, blocker defaults, waivers, profiles, or action authorization. Callers that still need the mixed tools catalog may use `getTidasRuntimeRuleset` during W9 migration, but that is a separate compatibility surface scheduled for retirement after consumer qualification.
 

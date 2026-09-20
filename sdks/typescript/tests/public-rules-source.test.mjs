@@ -44,7 +44,19 @@ function verify({ assets, pin }) {
   );
 }
 
-describe('public-rules candidate source verification', () => {
+describe('public-rules source verification', () => {
+  it('uses the same published spec source as the package-input pin', () => {
+    const publicPin = JSON.parse(readFileSync(sourcePin, 'utf8'));
+    const packagePin = JSON.parse(
+      readFileSync(
+        path.join(repositoryRoot, 'scripts/ci/tidas-spec-pin.json'),
+        'utf8'
+      )
+    );
+    assert.strictEqual(publicPin.status, 'released');
+    assert.strictEqual(publicPin.commit, packagePin.sourceCommit);
+    assert.strictEqual(packagePin.version, '0.2.1');
+  });
   it('validates the bundled index against the bundled public schema', () => {
     const index = JSON.parse(
       readFileSync(path.join(sourceAssets, 'public-rules.v1.json'), 'utf8')

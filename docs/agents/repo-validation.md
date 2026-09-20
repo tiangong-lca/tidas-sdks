@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-20
-lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
-lastReviewedNote: "Issue #140 retains both canonical package gates and automation contract regression; hosted exact spec-event replay is required to prove the dirty-tree version step."
+lastReviewedAt: "2026-09-20"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
+lastReviewedNote: "Issue #143 requires both package gates and exact 0.2.1 source/hash alignment for the package input and public-rule API pins, including Process Version positive/negative cases."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -55,7 +55,7 @@ These scripts are the best repo-wide proof because they mirror CI expectations a
 | Change type | Minimum local proof | Additional proof when risk is higher | Notes |
 | --- | --- | --- | --- |
 | TypeScript package source, examples, or package scripts | `./scripts/ci/verify-typescript-package.sh` | run `pnpm --filter @tiangong-lca/tidas-sdk test:coverage` when testable behavior changes | This covers the frozen pnpm 11.24.0/TS7 install on Node 24.19.0, correctness/suspicious/deprecation lint, both TS7 typechecks, Node tests, maintained examples, generated artifacts, build, and packability. The tarball contract loads every root/subpath through CJS, ESM, and TS7 declarations with `types: []` and `skipLibCheck: false`, then proves the pnpm consumer inherits no compiler tooling. Coverage is explicitly scoped to first-party package source/generation helpers so package-manager runtime code cannot dilute it; ratchets are lines 95%, branches 75%, functions 70%. |
-| Public-rule API or candidate pin | `pnpm --filter @tiangong-lca/tidas-sdk verify-public-rules` plus focused contract/source tests and `./scripts/ci/verify-typescript-package.sh` | regenerate with `TIDAS_PUBLIC_RULES_SOURCE_ROOT=<exact-checkout> pnpm --filter @tiangong-lca/tidas-sdk sync-public-rules` and record the exact commit/hashes | The candidate pin is distinct from the immutable spec-release pin. Verification must reject changed bytes and stale identity, prove Process/Flow coverage and explicit not-covered kinds, and confirm no product policy fields enter the public result. |
+| Public-rule API or separate index pin | `pnpm --filter @tiangong-lca/tidas-sdk verify-public-rules` plus focused contract/source tests and `./scripts/ci/verify-typescript-package.sh` | regenerate with `TIDAS_PUBLIC_RULES_SOURCE_ROOT=<exact-checkout> pnpm --filter @tiangong-lca/tidas-sdk sync-public-rules` and record the exact commit/hashes | The index pin remains a separate asset contract but now binds to the same published 0.2.1 source as the package-input pin. Verification must reject changed bytes and stale identity, prove Process/Flow coverage and explicit not-covered kinds, and confirm no product policy fields enter the public result. |
 | JSON Schema to Zod generator or domain overlays | `./scripts/ci/verify-typescript-package.sh` | before replacing the baseline build, run `pnpm --filter @tiangong-lca/tidas-sdk verify:schema-generation-parity` and record the exact baseline/candidate source plus intentional differences | The active Draft-07 vocabulary, runtime helper semantics, taxonomy dependencies, review conditions, and exact overlay locations have focused cases. Unknown keywords/formats/locations fail generation. Use explicit baseline/candidate directories when the default artifacts are not appropriate. |
 | Python package source, scripts, or tests | `./scripts/ci/verify-python-package.sh` | run one focused pytest or generation step when the change is isolated | Record if the Python package still depends on generated artifacts from a specific upstream commit. |
 | shared generation helpers under `scripts/ci/**` | run both verify scripts | run the matching focused automation regression script and `generate-*.sh` path if the task explicitly changes refresh behavior | Generation changes can affect both packages even if only one output changed. |

@@ -31,9 +31,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-20
-lastReviewedCommit: 70b1f9f82c7c355c41b500bdf6263b6f6a7e6e52
-lastReviewedNote: "Issue #140 preserves exact upstream identity and reviewed PR release flow while allowing pnpm version to run after intentionally dirty generated output; ownership and publication boundaries remain unchanged."
+lastReviewedAt: "2026-09-20"
+lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
+lastReviewedNote: "Issue #143 aligns package inputs and the separately pinned public-rule API to exact published spec 0.2.1; tools-owned legacy mixed ruleset, profile policy and publication gates remain unchanged."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -156,7 +156,7 @@ Route those tasks to:
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
-- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; W9 public-rule definitions use a separate exact candidate commit/hash pin until a new release contains them; product profiles, remaining runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit
+- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; the W9 public-rule API has its own exact index/schema/source pin, now reviewed against the same published 0.2.1 source. Product profiles, remaining mixed runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit until their separate W11 disposition
 - the public-rule SDK result may contain stable public IDs, locations, applicability, normative level, sources, and cases, but never severity, phase, blocker defaults, waivers, product profiles, or action authorization
 - generated build output under `sdks/typescript/dist/**`, `sdks/python/dist/**`, and `sdks/python/htmlcov/**` is useful for packaging checks but is not the first durable edit surface
 - merged repo PRs here are repo-complete, not workspace-delivery complete
