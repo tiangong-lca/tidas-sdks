@@ -38,7 +38,7 @@ class CommonClassificationCommonClassOption1(TidasBaseModel):
 
 class DataSetInformationClassificationInformationCommonClassification(TidasBaseModel):
     """Optional statistical or other classification of the data set. Typically also used for structuring LCA databases."""
-    common_class: CommonClassificationCommonClassOption1 | list[CommonClassItemOption0 | CommonClassItemOption1] = Field(default=..., alias='common:class')
+    common_class: Annotated[list[CommonClassItemOption0 | CommonClassItemOption1], Field(max_length=2)] | CommonClassificationCommonClassOption1 = Field(default=..., alias='common:class')
 
 class ContactInformationDataSetInformationClassificationInformation(TidasBaseModel):
     """Hierarchical classification of the contact foreseen to be used to structure the contact content of the database. (Note: This entry is NOT required for the identification of the contact data set. It should nevertheless be avoided to use identical names for contacts in the same class."""

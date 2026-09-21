@@ -29,6 +29,226 @@ import {
 import { LocationsCategorySchema } from './tidas_locations_category.schema';
 import { ProcessesCategorySchema } from './tidas_processes_category.schema';
 
+export const ProcessReviewSchema = withJsonSchemaConditional(
+  z.object({
+    '@type': z.intersection(
+      z.union([
+        z.literal('Dependent internal review'),
+        z.literal('Independent internal review'),
+        z.literal('Independent external review'),
+        z.literal('Accredited third party review'),
+        z.literal('Independent review panel'),
+        z.literal('Not reviewed'),
+      ]),
+      z.string(),
+    ),
+    'common:scope': z
+      .union([
+        z.object({
+          '@name': z.intersection(
+            z.union([
+              z.literal('Raw data'),
+              z.literal('Unit process(es), single operation'),
+              z.literal('Unit process(es), black box'),
+              z.literal('LCI results or Partly terminated system'),
+              z.literal('LCIA results'),
+              z.literal('Documentation'),
+              z.literal('Life cycle inventory methods'),
+              z.literal('LCIA results calculation'),
+              z.literal('Goal and scope definition'),
+            ]),
+            z.string(),
+          ),
+          'common:method': z.union([
+            z.object({
+              '@name': z.intersection(
+                z.union([
+                  z.literal('Validation of data sources'),
+                  z.literal('Sample tests on calculations'),
+                  z.literal('Energy balance'),
+                  z.literal('Element balance'),
+                  z.literal('Cross-check with other source'),
+                  z.literal('Cross-check with other data set'),
+                  z.literal('Expert judgement'),
+                  z.literal('Mass balance'),
+                  z.literal('Compliance with legal limits'),
+                  z.literal('Compliance with ISO 14040 to 14044'),
+                  z.literal('Documentation'),
+                  z.literal(
+                    'Evidence collection by means of plant visits and/or interviews',
+                  ),
+                ]),
+                z.string(),
+              ),
+            }),
+            z.array(
+              z.object({
+                '@name': z.intersection(
+                  z.union([
+                    z.literal('Validation of data sources'),
+                    z.literal('Sample tests on calculations'),
+                    z.literal('Energy balance'),
+                    z.literal('Element balance'),
+                    z.literal('Cross-check with other source'),
+                    z.literal('Cross-check with other data set'),
+                    z.literal('Expert judgement'),
+                    z.literal('Mass balance'),
+                    z.literal('Compliance with legal limits'),
+                    z.literal('Compliance with ISO 14040 to 14044'),
+                    z.literal('Documentation'),
+                    z.literal(
+                      'Evidence collection by means of plant visits and/or interviews',
+                    ),
+                  ]),
+                  z.string(),
+                ),
+              }),
+            ),
+          ]),
+        }),
+        z.array(
+          z.object({
+            '@name': z.intersection(
+              z.union([
+                z.literal('Raw data'),
+                z.literal('Unit process(es), single operation'),
+                z.literal('Unit process(es), black box'),
+                z.literal('LCI results or Partly terminated system'),
+                z.literal('LCIA results'),
+                z.literal('Documentation'),
+                z.literal('Life cycle inventory methods'),
+                z.literal('LCIA results calculation'),
+                z.literal('Goal and scope definition'),
+              ]),
+              z.string(),
+            ),
+            'common:method': z.union([
+              z.object({
+                '@name': z.intersection(
+                  z.union([
+                    z.literal('Validation of data sources'),
+                    z.literal('Sample tests on calculations'),
+                    z.literal('Energy balance'),
+                    z.literal('Element balance'),
+                    z.literal('Cross-check with other source'),
+                    z.literal('Cross-check with other data set'),
+                    z.literal('Expert judgement'),
+                    z.literal('Mass balance'),
+                    z.literal('Compliance with legal limits'),
+                    z.literal('Compliance with ISO 14040 to 14044'),
+                    z.literal('Documentation'),
+                    z.literal(
+                      'Evidence collection by means of plant visits and/or interviews',
+                    ),
+                  ]),
+                  z.string(),
+                ),
+              }),
+              z.array(
+                z.object({
+                  '@name': z.intersection(
+                    z.union([
+                      z.literal('Validation of data sources'),
+                      z.literal('Sample tests on calculations'),
+                      z.literal('Energy balance'),
+                      z.literal('Element balance'),
+                      z.literal('Cross-check with other source'),
+                      z.literal('Cross-check with other data set'),
+                      z.literal('Expert judgement'),
+                      z.literal('Mass balance'),
+                      z.literal('Compliance with legal limits'),
+                      z.literal('Compliance with ISO 14040 to 14044'),
+                      z.literal('Documentation'),
+                      z.literal(
+                        'Evidence collection by means of plant visits and/or interviews',
+                      ),
+                    ]),
+                    z.string(),
+                  ),
+                }),
+              ),
+            ]),
+          }),
+        ),
+      ])
+      .optional(),
+    'common:dataQualityIndicators': z
+      .object({
+        'common:dataQualityIndicator': z.union([
+          z.object({
+            '@name': z.intersection(
+              z.union([
+                z.literal('Technological representativeness'),
+                z.literal('Time representativeness'),
+                z.literal('Geographical representativeness'),
+                z.literal('Completeness'),
+                z.literal('Precision'),
+                z.literal('Methodological appropriateness and consistency'),
+                z.literal('Overall quality'),
+              ]),
+              z.string(),
+            ),
+            '@value': z.intersection(
+              z.union([
+                z.literal('Very good'),
+                z.literal('Good'),
+                z.literal('Fair'),
+                z.literal('Poor'),
+                z.literal('Very poor'),
+                z.literal('Not evaluated / unknown'),
+                z.literal('Not applicable'),
+              ]),
+              z.string(),
+            ),
+          }),
+          z.array(
+            z.object({
+              '@name': z.intersection(
+                z.union([
+                  z.literal('Technological representativeness'),
+                  z.literal('Time representativeness'),
+                  z.literal('Geographical representativeness'),
+                  z.literal('Completeness'),
+                  z.literal('Precision'),
+                  z.literal('Methodological appropriateness and consistency'),
+                  z.literal('Overall quality'),
+                ]),
+                z.string(),
+              ),
+              '@value': z.intersection(
+                z.union([
+                  z.literal('Very good'),
+                  z.literal('Good'),
+                  z.literal('Fair'),
+                  z.literal('Poor'),
+                  z.literal('Very poor'),
+                  z.literal('Not evaluated / unknown'),
+                  z.literal('Not applicable'),
+                ]),
+                z.string(),
+              ),
+            }),
+          ),
+        ]),
+      })
+      .optional(),
+    'common:reviewDetails': FTMultiLangSchema.optional(),
+    'common:referenceToNameOfReviewerAndInstitution':
+      GlobalReferenceTypeSchema.optional(),
+    'common:otherReviewDetails': FTMultiLangSchema.optional(),
+    'common:referenceToCompleteReviewReport':
+      GlobalReferenceTypeSchema.optional(),
+    'common:other': CommonOtherSchema.optional(),
+  }),
+  z.object({ '@type': z.literal('Not reviewed').optional() }),
+  z.unknown(),
+  z.object({
+    'common:scope': z.unknown(),
+    'common:reviewDetails': z.unknown(),
+    'common:referenceToNameOfReviewerAndInstitution': z.unknown(),
+  }),
+);
+
 export const ProcessesSchema = z.object({
   processDataSet: z.object({
     '@xmlns:common': z.intersection(
@@ -362,229 +582,10 @@ export const ProcessesSchema = z.object({
         })
         .optional(),
       validation: z.object({
-        review: withJsonSchemaConditional(
-          z.object({
-            '@type': z.intersection(
-              z.union([
-                z.literal('Dependent internal review'),
-                z.literal('Independent internal review'),
-                z.literal('Independent external review'),
-                z.literal('Accredited third party review'),
-                z.literal('Independent review panel'),
-                z.literal('Not reviewed'),
-              ]),
-              z.string(),
-            ),
-            'common:scope': z
-              .union([
-                z.object({
-                  '@name': z.intersection(
-                    z.union([
-                      z.literal('Raw data'),
-                      z.literal('Unit process(es), single operation'),
-                      z.literal('Unit process(es), black box'),
-                      z.literal('LCI results or Partly terminated system'),
-                      z.literal('LCIA results'),
-                      z.literal('Documentation'),
-                      z.literal('Life cycle inventory methods'),
-                      z.literal('LCIA results calculation'),
-                      z.literal('Goal and scope definition'),
-                    ]),
-                    z.string(),
-                  ),
-                  'common:method': z.union([
-                    z.object({
-                      '@name': z.intersection(
-                        z.union([
-                          z.literal('Validation of data sources'),
-                          z.literal('Sample tests on calculations'),
-                          z.literal('Energy balance'),
-                          z.literal('Element balance'),
-                          z.literal('Cross-check with other source'),
-                          z.literal('Cross-check with other data set'),
-                          z.literal('Expert judgement'),
-                          z.literal('Mass balance'),
-                          z.literal('Compliance with legal limits'),
-                          z.literal('Compliance with ISO 14040 to 14044'),
-                          z.literal('Documentation'),
-                          z.literal(
-                            'Evidence collection by means of plant visits and/or interviews',
-                          ),
-                        ]),
-                        z.string(),
-                      ),
-                    }),
-                    z.array(
-                      z.object({
-                        '@name': z.intersection(
-                          z.union([
-                            z.literal('Validation of data sources'),
-                            z.literal('Sample tests on calculations'),
-                            z.literal('Energy balance'),
-                            z.literal('Element balance'),
-                            z.literal('Cross-check with other source'),
-                            z.literal('Cross-check with other data set'),
-                            z.literal('Expert judgement'),
-                            z.literal('Mass balance'),
-                            z.literal('Compliance with legal limits'),
-                            z.literal('Compliance with ISO 14040 to 14044'),
-                            z.literal('Documentation'),
-                            z.literal(
-                              'Evidence collection by means of plant visits and/or interviews',
-                            ),
-                          ]),
-                          z.string(),
-                        ),
-                      }),
-                    ),
-                  ]),
-                }),
-                z.array(
-                  z.object({
-                    '@name': z.intersection(
-                      z.union([
-                        z.literal('Raw data'),
-                        z.literal('Unit process(es), single operation'),
-                        z.literal('Unit process(es), black box'),
-                        z.literal('LCI results or Partly terminated system'),
-                        z.literal('LCIA results'),
-                        z.literal('Documentation'),
-                        z.literal('Life cycle inventory methods'),
-                        z.literal('LCIA results calculation'),
-                        z.literal('Goal and scope definition'),
-                      ]),
-                      z.string(),
-                    ),
-                    'common:method': z.union([
-                      z.object({
-                        '@name': z.intersection(
-                          z.union([
-                            z.literal('Validation of data sources'),
-                            z.literal('Sample tests on calculations'),
-                            z.literal('Energy balance'),
-                            z.literal('Element balance'),
-                            z.literal('Cross-check with other source'),
-                            z.literal('Cross-check with other data set'),
-                            z.literal('Expert judgement'),
-                            z.literal('Mass balance'),
-                            z.literal('Compliance with legal limits'),
-                            z.literal('Compliance with ISO 14040 to 14044'),
-                            z.literal('Documentation'),
-                            z.literal(
-                              'Evidence collection by means of plant visits and/or interviews',
-                            ),
-                          ]),
-                          z.string(),
-                        ),
-                      }),
-                      z.array(
-                        z.object({
-                          '@name': z.intersection(
-                            z.union([
-                              z.literal('Validation of data sources'),
-                              z.literal('Sample tests on calculations'),
-                              z.literal('Energy balance'),
-                              z.literal('Element balance'),
-                              z.literal('Cross-check with other source'),
-                              z.literal('Cross-check with other data set'),
-                              z.literal('Expert judgement'),
-                              z.literal('Mass balance'),
-                              z.literal('Compliance with legal limits'),
-                              z.literal('Compliance with ISO 14040 to 14044'),
-                              z.literal('Documentation'),
-                              z.literal(
-                                'Evidence collection by means of plant visits and/or interviews',
-                              ),
-                            ]),
-                            z.string(),
-                          ),
-                        }),
-                      ),
-                    ]),
-                  }),
-                ),
-              ])
-              .optional(),
-            'common:dataQualityIndicators': z
-              .object({
-                'common:dataQualityIndicator': z.union([
-                  z.object({
-                    '@name': z.intersection(
-                      z.union([
-                        z.literal('Technological representativeness'),
-                        z.literal('Time representativeness'),
-                        z.literal('Geographical representativeness'),
-                        z.literal('Completeness'),
-                        z.literal('Precision'),
-                        z.literal(
-                          'Methodological appropriateness and consistency',
-                        ),
-                        z.literal('Overall quality'),
-                      ]),
-                      z.string(),
-                    ),
-                    '@value': z.intersection(
-                      z.union([
-                        z.literal('Very good'),
-                        z.literal('Good'),
-                        z.literal('Fair'),
-                        z.literal('Poor'),
-                        z.literal('Very poor'),
-                        z.literal('Not evaluated / unknown'),
-                        z.literal('Not applicable'),
-                      ]),
-                      z.string(),
-                    ),
-                  }),
-                  z.array(
-                    z.object({
-                      '@name': z.intersection(
-                        z.union([
-                          z.literal('Technological representativeness'),
-                          z.literal('Time representativeness'),
-                          z.literal('Geographical representativeness'),
-                          z.literal('Completeness'),
-                          z.literal('Precision'),
-                          z.literal(
-                            'Methodological appropriateness and consistency',
-                          ),
-                          z.literal('Overall quality'),
-                        ]),
-                        z.string(),
-                      ),
-                      '@value': z.intersection(
-                        z.union([
-                          z.literal('Very good'),
-                          z.literal('Good'),
-                          z.literal('Fair'),
-                          z.literal('Poor'),
-                          z.literal('Very poor'),
-                          z.literal('Not evaluated / unknown'),
-                          z.literal('Not applicable'),
-                        ]),
-                        z.string(),
-                      ),
-                    }),
-                  ),
-                ]),
-              })
-              .optional(),
-            'common:reviewDetails': FTMultiLangSchema.optional(),
-            'common:referenceToNameOfReviewerAndInstitution':
-              GlobalReferenceTypeSchema.optional(),
-            'common:otherReviewDetails': FTMultiLangSchema.optional(),
-            'common:referenceToCompleteReviewReport':
-              GlobalReferenceTypeSchema.optional(),
-            'common:other': CommonOtherSchema.optional(),
-          }),
-          z.object({ '@type': z.literal('Not reviewed').optional() }),
-          z.unknown(),
-          z.object({
-            'common:scope': z.unknown(),
-            'common:reviewDetails': z.unknown(),
-            'common:referenceToNameOfReviewerAndInstitution': z.unknown(),
-          }),
-        ),
+        review: z.union([
+          ProcessReviewSchema,
+          z.array(ProcessReviewSchema).min(1),
+        ]),
         'common:other': CommonOtherSchema.optional(),
       }),
       complianceDeclarations: z.object({

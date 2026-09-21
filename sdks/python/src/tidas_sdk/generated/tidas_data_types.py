@@ -140,7 +140,7 @@ class GlobalReferenceTypeVariant0(TidasBaseModel):
     version: Version = Field(default=..., alias='@version')
     uri: str = Field(default=..., alias='@uri')
     common_short_description: MultiLangList = Field(default=..., alias='common:shortDescription')
-    common_sub_reference: String | list[String] | None = Field(default=None, alias='common:subReference', description='Optional sub-reference (e.g. section or page) within the referenced source.')
+    common_sub_reference: Annotated[list[String], Field(min_length=1)] | String | None = Field(default=None, alias='common:subReference', description='Optional sub-reference (e.g. section or page) within the referenced source.')
 
 class GlobalReferenceTypeVariant1Item(TidasBaseModel):
     type: GlobalReferenceTypeValues = Field(default=..., alias='@type')
@@ -148,7 +148,7 @@ class GlobalReferenceTypeVariant1Item(TidasBaseModel):
     version: Version = Field(default=..., alias='@version')
     uri: str = Field(default=..., alias='@uri')
     common_short_description: MultiLangList = Field(default=..., alias='common:shortDescription')
-    common_sub_reference: String | list[String] | None = Field(default=None, alias='common:subReference', description='Optional sub-reference (e.g. section or page) within the referenced source.')
+    common_sub_reference: Annotated[list[String], Field(min_length=1)] | String | None = Field(default=None, alias='common:subReference', description='Optional sub-reference (e.g. section or page) within the referenced source.')
 
 class DataTypes(TidasBaseModel):
     pass

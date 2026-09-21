@@ -31,9 +31,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "7bc66286b4133c0b24e5e586316c56c907e47c78"
-lastReviewedNote: "Issue #144 reviews the TypeScript 0.3.0 mixed-ruleset compatibility retirement: the SDK projection excludes two legacy files without modifying the upstream tools lock; Python and repo ownership remain unchanged."
+lastReviewedAt: "2026-09-21"
+lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
+lastReviewedNote: "Issue #146 qualifies the reviewed spec 0.2.2 candidate for Process review object-or-array generation in TypeScript and Python; package publication remains deferred to the canonical release event."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -158,7 +158,7 @@ Route those tasks to:
 - release proof must load every built tarball export through CJS, ESM, and TS7 declarations, execute the maintained examples, and enforce the recorded line/branch/function coverage ratchets
 - generated localized-text checks in the TypeScript schemas must keep emitting stable custom validation codes so downstream UIs can map them without parsing prose
 - generated Flow validators must preserve the upstream type-aware name condition: Elementary flows may omit synthetic qualifiers, while Product, Waste, and Other flows require both qualifier fields
-- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; the W9 public-rule API has its own exact index/schema/source pin, now reviewed against the same published 0.2.1 source. Product profiles, remaining mixed runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit until their separate W11 disposition
+- public schemas and the two public methodology files refresh from the pinned immutable `tidas-spec` archive; the W9 public-rule API has its own exact index/schema/source pin, now reviewed against the same 0.2.2 candidate source. Product profiles, remaining mixed runtime rulesets, taxonomies, and optional methodologies continue to come from the exact `tidas-tools` commit until their separate W11 disposition
 - the public-rule SDK result may contain stable public IDs, locations, applicability, normative level, sources, and cases, but never severity, phase, blocker defaults, waivers, product profiles, or action authorization
 - generated build output under `sdks/typescript/dist/**`, `sdks/python/dist/**`, and `sdks/python/htmlcov/**` is useful for packaging checks but is not the first durable edit surface
 - merged repo PRs here are repo-complete, not workspace-delivery complete

@@ -113,6 +113,49 @@ describe('process review conditional schema', () => {
       false
     );
   });
+
+  it('accepts singleton and ordered non-empty review arrays', () => {
+    const schema = processReviewSchema();
+    const first = completedProcessReview();
+    const second = {
+      ...completedProcessReview(),
+      '@type': 'Independent internal review',
+      'common:reviewDetails': {
+        '@xml:lang': 'en',
+        '#text': 'Reviewed calculations',
+      },
+    };
+
+    assert.strictEqual(schema.safeParse(first).success, true);
+    const result = schema.safeParse([first, second]);
+    assert.strictEqual(result.success, true);
+    if (result.success) {
+      assert.deepStrictEqual(
+        result.data.map((review: any) => review['@type']),
+        ['Independent external review', 'Independent internal review']
+      );
+    }
+    assert.strictEqual(schema.safeParse([]).success, false);
+  });
+
+  it('reports an invalid second review at index 1', () => {
+    const result = processReviewSchema().safeParse([
+      completedProcessReview(),
+      { '@type': 'Independent external review' },
+    ]);
+
+    assert.strictEqual(result.success, false);
+    if (!result.success) {
+      assert.deepStrictEqual(
+        result.error.issues.map((issue: any) => issue.path.join('.')).sort(),
+        [
+          '1.common:referenceToNameOfReviewerAndInstitution',
+          '1.common:reviewDetails',
+          '1.common:scope',
+        ]
+      );
+    }
+  });
 });
 
 describe('process classification dependency schema', () => {

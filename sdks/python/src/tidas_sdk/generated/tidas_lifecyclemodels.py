@@ -50,7 +50,7 @@ class CommonClassItemOption3(TidasBaseModel):
     text: str = Field(default=..., alias='#text')
 
 class ClassificationInformationCommonClassificationOption0(TidasBaseModel):
-    common_class: list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2 | CommonClassItemOption3] = Field(default_factory=list, alias='common:class', max_items=4)
+    common_class: Annotated[list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2 | CommonClassItemOption3], Field(max_length=4)] = Field(default_factory=list, alias='common:class')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
     name: str | None = Field(default=None, alias='@name', description="Name of the classification system (e.g. CPC, ISIC, HS). Per ILCD this defaults to 'ILCD' when absent; set it explicitly for non-ILCD systems.")
     classes: str | None = Field(default=None, alias='@classes', description='Optional URL or identifier of the classification file/system.')
@@ -64,12 +64,12 @@ class ClassificationInformationCommonClassificationItem(TidasBaseModel):
     """One named classification system (e.g. CPC or HS). Used in the array form to let multiple systems coexist."""
     name: str = Field(default=..., alias='@name', description="Name of the classification system (e.g. CPC, ISIC, HS). Per ILCD this defaults to 'ILCD' when absent; set it explicitly for non-ILCD systems.")
     classes: str | None = Field(default=None, alias='@classes', description='Optional URL or identifier of the classification file/system.')
-    common_class: list[ItemCommonClassItem] = Field(default_factory=list, alias='common:class', min_items=1)
+    common_class: Annotated[list[ItemCommonClassItem], Field(min_length=1)] = Field(default_factory=list, alias='common:class')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class LifeCycleModelInformationDataSetInformationClassificationInformation(TidasBaseModel):
     """Hierarchical or flat classification of the good, service or function that is provided by this life cycle model; typically used to structure database contents in LCA software, among other purposes. (Note: This entry is NOT required for the identification of a Life cycle model, but it should nevertheless be avoided to use identical names for Life cycle model data sets in the same class. The ILCD classifications are defined in the ILCDClassifications.xml file, for common use.)"""
-    common_classification: ClassificationInformationCommonClassificationOption0 | list[ClassificationInformationCommonClassificationItem] = Field(default=..., alias='common:classification', description='Optional statistical or other classification of the data set. Typically also used for structuring LCA databases.')
+    common_classification: Annotated[list[ClassificationInformationCommonClassificationItem], Field(min_length=1)] | ClassificationInformationCommonClassificationOption0 = Field(default=..., alias='common:classification', description='Optional statistical or other classification of the data set. Typically also used for structuring LCA databases.')
 
 class LifeCycleModelDataSetLifeCycleModelInformationDataSetInformation(TidasBaseModel):
     """General data set information, to identify the life cycle model, document a general comment about it, and to reference resulting aggregated process data sets that are based on this ife cycle model and to reference a potential background report."""
@@ -309,7 +309,7 @@ class ComplianceDeclarationsComplianceItem(TidasBaseModel):
 
 class LifeCycleModelDataSetModellingAndValidationComplianceDeclarations(TidasBaseModel):
     """One or more declarations of compliance to selected standards, schemes and other references, e.g. ISO 14040, ISO 14044, ILCD, EF, EN 15804, ..."""
-    compliance: ComplianceDeclarationsComplianceOption0 | list[ComplianceDeclarationsComplianceItem] = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
+    compliance: Annotated[list[ComplianceDeclarationsComplianceItem], Field(min_length=1)] | ComplianceDeclarationsComplianceOption0 = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class LifecyclemodelsLifeCycleModelDataSetModellingAndValidation(TidasBaseModel):

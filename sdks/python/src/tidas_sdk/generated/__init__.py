@@ -4907,6 +4907,16 @@ from .tidas_lifecyclemodels import LifecyclemodelsLifeCycleModelDataSetAdministr
 from .tidas_lifecyclemodels import LifecyclemodelsLifeCycleModelDataSet
 from .tidas_lifecyclemodels import Lifecyclemodels
 from .tidas_locations_category import LocationsCategory
+from .tidas_processes import Option0CommonMethodOption0
+from .tidas_processes import Option0CommonMethodItem
+from .tidas_processes import ProcessReviewCommonScopeOption0
+from .tidas_processes import ItemCommonMethodOption0
+from .tidas_processes import ItemCommonMethodItem
+from .tidas_processes import ProcessReviewCommonScopeItem
+from .tidas_processes import CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0
+from .tidas_processes import CommonDataQualityIndicatorsCommonDataQualityIndicatorItem
+from .tidas_processes import ProcessReviewCommonDataQualityIndicators
+from .tidas_processes import ProcessReview
 from .tidas_processes import ProcessInformationDataSetInformationName
 from .tidas_processes import ProcessInformationDataSetInformationComplementingProcesses
 from .tidas_processes import CommonClassItemOption0
@@ -4931,16 +4941,6 @@ from .tidas_processes import ProcessDataSetModellingAndValidationLCIMethodAndAll
 from .tidas_processes import ProcessDataSetModellingAndValidationDataSourcesTreatmentAndRepresentativeness
 from .tidas_processes import ModellingAndValidationCompletenessCompletenessElementaryFlows
 from .tidas_processes import ProcessDataSetModellingAndValidationCompleteness
-from .tidas_processes import Option0CommonMethodOption0
-from .tidas_processes import Option0CommonMethodItem
-from .tidas_processes import ReviewCommonScopeOption0
-from .tidas_processes import ItemCommonMethodOption0
-from .tidas_processes import ItemCommonMethodItem
-from .tidas_processes import ReviewCommonScopeItem
-from .tidas_processes import CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0
-from .tidas_processes import CommonDataQualityIndicatorsCommonDataQualityIndicatorItem
-from .tidas_processes import ValidationReviewCommonDataQualityIndicators
-from .tidas_processes import ModellingAndValidationValidationReview
 from .tidas_processes import ProcessDataSetModellingAndValidationValidation
 from .tidas_processes import ComplianceDeclarationsComplianceOption0
 from .tidas_processes import ComplianceDeclarationsComplianceItem
@@ -10746,6 +10746,16 @@ __all__ = [
     'LifecyclemodelsLifeCycleModelDataSet',
     'Lifecyclemodels',
     'LocationsCategory',
+    'Option0CommonMethodOption0',
+    'Option0CommonMethodItem',
+    'ProcessReviewCommonScopeOption0',
+    'ItemCommonMethodOption0',
+    'ItemCommonMethodItem',
+    'ProcessReviewCommonScopeItem',
+    'CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0',
+    'CommonDataQualityIndicatorsCommonDataQualityIndicatorItem',
+    'ProcessReviewCommonDataQualityIndicators',
+    'ProcessReview',
     'ProcessInformationDataSetInformationName',
     'ProcessInformationDataSetInformationComplementingProcesses',
     'CommonClassItemOption0',
@@ -10770,16 +10780,6 @@ __all__ = [
     'ProcessDataSetModellingAndValidationDataSourcesTreatmentAndRepresentativeness',
     'ModellingAndValidationCompletenessCompletenessElementaryFlows',
     'ProcessDataSetModellingAndValidationCompleteness',
-    'Option0CommonMethodOption0',
-    'Option0CommonMethodItem',
-    'ReviewCommonScopeOption0',
-    'ItemCommonMethodOption0',
-    'ItemCommonMethodItem',
-    'ReviewCommonScopeItem',
-    'CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0',
-    'CommonDataQualityIndicatorsCommonDataQualityIndicatorItem',
-    'ValidationReviewCommonDataQualityIndicators',
-    'ModellingAndValidationValidationReview',
     'ProcessDataSetModellingAndValidationValidation',
     'ComplianceDeclarationsComplianceOption0',
     'ComplianceDeclarationsComplianceItem',

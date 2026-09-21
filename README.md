@@ -20,9 +20,9 @@ checkPaths:
   - sdks/python/**
   - scripts/ci/**
   - .nvmrc
-lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 aligns the formal spec 0.2.1 package-input and public-rule API pins, including the corrected Process Version definition; legacy mixed product policy remains separate."
+lastReviewedAt: "2026-09-21"
+lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
+lastReviewedNote: "Issue #146 qualifies the reviewed spec 0.2.2 candidate and generated Process review object-or-array models; formal package publication remains event-driven."
 ---
 
 # TIDAS SDKs
@@ -54,7 +54,7 @@ cd sdks/python && uv sync
 
 ### Upstream Tools
 
-`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and public methodologies are consumed from one separately versioned, content-addressed `tidas-spec` archive. The current package-input pin is the formal 0.2.1 release, which retains the optional Process/LCIA Method review-report reference and corrects the Process Version methodology. The public-rule API's separately verified index/schema pin is bound to this same published source. Product execution policy stays with its consumers; the former mixed `runtime_rulesets.json` and its schema are omitted from the SDK runtime projection without changing the upstream tools lock.
+`tidas-tools` remains the native Rust upstream for execution-oriented generation helpers, product profiles, runtime rulesets, taxonomies, optional methodologies, and standalone tooling behavior. Public schemas, the schema lock, and public methodologies are consumed from one separately versioned, content-addressed `tidas-spec` archive. The current package-input pin is the reviewed 0.2.2 candidate, which preserves singleton Process reviews and additionally accepts ordered non-empty review arrays. The public-rule API's separately verified index/schema pin is bound to this same candidate source. Product execution policy stays with its consumers; the former mixed `runtime_rulesets.json` and its schema are omitted from the SDK runtime projection without changing the upstream tools lock. Package versioning, tags, and publication wait for the canonical formal-release event.
 
 The TypeScript contracts entry point exposes `getTidasPublicRules(kind)` and `getTidasPublicRulesSchema()`. `getTidasPublicRules` returns an explicit `covered` or `not-covered` result with source identity; it never supplies severity, phase, blocker defaults, waivers, profiles, or action authorization. The former `getTidasRuntimeRuleset` compatibility API is removed; CLI owns the execution rules and AI context it derives from them.
 

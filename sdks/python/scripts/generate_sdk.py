@@ -680,7 +680,16 @@ class SchemaConverter:
             item_type = self._determine_type(
                 parent_path + (prop_name,), "item", item_schema
             )
-            return f"list[{item_type}]"
+            array_type = f"list[{item_type}]"
+            length_constraints: list[str] = []
+            if "minItems" in schema:
+                length_constraints.append(f"min_length={schema['minItems']!r}")
+            if "maxItems" in schema:
+                length_constraints.append(f"max_length={schema['maxItems']!r}")
+            if length_constraints:
+                self.typing_imports.add("Annotated")
+                return f"Annotated[{array_type}, Field({', '.join(length_constraints)})]"
+            return array_type
 
         if type_name == "object":
             if schema.get("properties"):
@@ -981,10 +990,6 @@ class SchemaConverter:
             pattern = schema["pattern"]
             if isinstance(pattern, str):
                 constraints["pattern"] = repr(pattern)
-        if "minItems" in schema:
-            constraints["min_items"] = repr(schema["minItems"])
-        if "maxItems" in schema:
-            constraints["max_items"] = repr(schema["maxItems"])
         if "multipleOf" in schema:
             constraints["multiple_of"] = repr(schema["multipleOf"])
 
