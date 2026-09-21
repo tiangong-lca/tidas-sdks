@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-21
-lastReviewedCommit: bdf9d4390870d1b8f3f0343f41a9f3ed4fd88381
-lastReviewedNote: "Reviewed Issue #152 required FTMultiLang validation tightening; registry, trusted-publishing, and release setup remain unchanged."
+lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
+lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; registry, trusted-publishing, and release setup remain unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
