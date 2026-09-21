@@ -10,6 +10,7 @@ import {
   AnnualSupplyOrProductionVolumeMultiLangSchema,
   CommonOtherSchema,
   FTMultiLangSchema,
+  RequiredFTMultiLangSchema,
   GISSchema,
   GlobalReferenceTypeSchema,
   Int6Schema,
@@ -348,7 +349,7 @@ export const ProcessesSchema = z.object({
               .min(1),
           ]),
         }),
-        'common:generalComment': FTMultiLangSchema,
+        'common:generalComment': RequiredFTMultiLangSchema,
         referenceToExternalDocumentation: GlobalReferenceTypeSchema.optional(),
         'common:other': CommonOtherSchema.optional(),
       }),
@@ -392,7 +393,7 @@ export const ProcessesSchema = z.object({
       }),
       technology: z
         .object({
-          technologyDescriptionAndIncludedProcesses: FTMultiLangSchema,
+          technologyDescriptionAndIncludedProcesses: RequiredFTMultiLangSchema,
           referenceToIncludedProcesses: GlobalReferenceTypeSchema.optional(),
           technologicalApplicability: FTMultiLangSchema.optional(),
           referenceToTechnologyPictogramme:
@@ -499,7 +500,7 @@ export const ProcessesSchema = z.object({
       }),
       dataSourcesTreatmentAndRepresentativeness: z
         .object({
-          dataCutOffAndCompletenessPrinciples: FTMultiLangSchema,
+          dataCutOffAndCompletenessPrinciples: RequiredFTMultiLangSchema,
           deviationsFromCutOffAndCompletenessPrinciples:
             FTMultiLangSchema.optional(),
           dataSelectionAndCombinationPrinciples: FTMultiLangSchema.optional(),
@@ -707,7 +708,7 @@ export const ProcessesSchema = z.object({
       'common:commissionerAndGoal': z.object({
         'common:referenceToCommissioner': GlobalReferenceTypeSchema,
         'common:project': StringMultiLangSchema.optional(),
-        'common:intendedApplications': FTMultiLangSchema,
+        'common:intendedApplications': RequiredFTMultiLangSchema,
         'common:other': CommonOtherSchema.optional(),
       }),
       dataGenerator: z

@@ -8,6 +8,7 @@ import {
 import {
   CommonOtherSchema,
   FTMultiLangSchema,
+  RequiredFTMultiLangSchema,
   GISSchema,
   GlobalReferenceTypeSchema,
   Int6Schema,
@@ -134,7 +135,7 @@ export const LciamethodsSchema = z.object({
       time: z.object({
         referenceYear: STMultiLangSchema,
         duration: STMultiLangSchema,
-        timeRepresentativenessDescription: FTMultiLangSchema,
+        timeRepresentativenessDescription: RequiredFTMultiLangSchema,
         'common:other': CommonOtherSchema.optional(),
       }),
       geography: z
@@ -173,7 +174,7 @@ export const LciamethodsSchema = z.object({
         .optional(),
       impactModel: z.object({
         modelName: STSchema,
-        modelDescription: FTMultiLangSchema,
+        modelDescription: RequiredFTMultiLangSchema,
         referenceToModelSource: GlobalReferenceTypeSchema.optional(),
         referenceToIncludedMethods: GlobalReferenceTypeSchema.optional(),
         consideredMechanisms: STMultiLangSchema.optional(),
@@ -521,7 +522,7 @@ export const LciamethodsSchema = z.object({
             ]),
             z.string(),
           ),
-          meaning: FTMultiLangSchema,
+          meaning: RequiredFTMultiLangSchema,
         }),
         'common:other': CommonOtherSchema.optional(),
       }),
