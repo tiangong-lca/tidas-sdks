@@ -547,6 +547,10 @@ function applyRequiredLocalizedTextSchemaOverrides(content: string): string {
       baseSchemaName: 'StringMultiLangSchema',
       requiredSchemaName: 'RequiredStringMultiLangSchema',
     },
+    {
+      baseSchemaName: 'FTMultiLangSchema',
+      requiredSchemaName: 'RequiredFTMultiLangSchema',
+    },
   ];
 
   for (const {

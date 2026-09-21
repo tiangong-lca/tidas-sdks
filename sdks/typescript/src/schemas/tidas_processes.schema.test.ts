@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { createProcess } from '../core/factories';
 import { ProcessesSchema } from './tidas_processes.schema';
 
 function exchangeLocationSchema() {
@@ -15,6 +16,11 @@ function processReviewSchema() {
 function processClassificationInformationSchema() {
   return (ProcessesSchema as any).shape.processDataSet.shape.processInformation
     .shape.dataSetInformation.shape.classificationInformation;
+}
+
+function processDataSetInformationShape() {
+  return (ProcessesSchema as any).shape.processDataSet.shape.processInformation
+    .shape.dataSetInformation.shape;
 }
 
 const localizedText = { '@xml:lang': 'en', '#text': 'Reviewed documentation' };
@@ -188,5 +194,38 @@ describe('process classification dependency schema', () => {
         0,
       ]);
     }
+  });
+});
+
+describe('process required general comment schema', () => {
+  it('rejects an empty required comment and accepts localized text', () => {
+    const shape = processDataSetInformationShape();
+
+    assert.strictEqual(
+      shape['common:generalComment'].safeParse([]).success,
+      false
+    );
+    assert.strictEqual(
+      shape['common:generalComment'].safeParse(localizedText).success,
+      true
+    );
+    assert.strictEqual(
+      shape['common:synonyms'].safeParse(undefined).success,
+      true
+    );
+  });
+
+  it('reports a missing comment after Process defaults materialize it as empty', () => {
+    const process = createProcess({} as any);
+    const result = process.validateEnhanced();
+
+    assert.strictEqual(result.success, false);
+    assert.ok(
+      result.validationIssues.some(
+        (issue) =>
+          issue.path.join('.') ===
+          'processDataSet.processInformation.dataSetInformation.common:generalComment'
+      )
+    );
   });
 });

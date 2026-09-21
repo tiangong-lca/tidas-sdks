@@ -7,6 +7,7 @@ import {
 import {
   CommonOtherSchema,
   FTMultiLangSchema,
+  RequiredFTMultiLangSchema,
   GlobalReferenceTypeSchema,
   LevelTypeSchema,
   MatVSchema,
@@ -604,7 +605,7 @@ export const LifecyclemodelsSchema = z.object({
       'common:commissionerAndGoal': z.object({
         'common:referenceToCommissioner': GlobalReferenceTypeSchema,
         'common:project': StringMultiLangSchema.optional(),
-        'common:intendedApplications': FTMultiLangSchema,
+        'common:intendedApplications': RequiredFTMultiLangSchema,
         'common:other': CommonOtherSchema.optional(),
       }),
       dataGenerator: z

@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "1da6350e733104a2cec165150dad9c0fc3ab5809"
-lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
+lastReviewedAt: 2026-09-21
+lastReviewedCommit: bdf9d4390870d1b8f3f0343f41a9f3ed4fd88381
+lastReviewedNote: "Reviewed Issue #152 required FTMultiLang validation tightening; registry, trusted-publishing, and release setup remain unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

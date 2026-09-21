@@ -1,8 +1,8 @@
 version: 1
 layout: repo
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "1da6350e733104a2cec165150dad9c0fc3ab5809"
-lastReviewedNote: "Issue #149 generalizes byte-identical candidate promotion without changing the existing catalog, ownership, routing or coverage."
+lastReviewedCommit: "bdf9d4390870d1b8f3f0343f41a9f3ed4fd88381"
+lastReviewedNote: "Reviewed Issue #152 required FTMultiLang validation tightening; catalog, ownership, routing, coverage, and release automation remain unchanged."
 
 catalog:
   repos:
