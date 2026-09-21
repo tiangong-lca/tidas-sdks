@@ -24,8 +24,8 @@ COMMIT = re.compile(r"^[0-9a-f]{40}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 
 # The SDK qualified this exact, explicitly non-release 0.2.0 candidate before
-# the public 0.2.0 archive was published. This is a one-time promotion, not a
-# general same-version rewrite rule.
+# the public 0.2.0 archive was published. Its packaged README changed before
+# publication, so it remains a one-time exception to the byte-identity rule.
 REVIEWED_CANDIDATE_020 = (
     PACKAGE,
     "0.2.0",
@@ -117,6 +117,29 @@ def event_identity(pin: dict) -> tuple[str, str, str, str, str]:
     )
 
 
+def is_identical_candidate_promotion(current: dict, event: dict) -> bool:
+    """Accept only a candidate-to-release provenance upgrade for identical bytes."""
+
+    source_commit = str(current.get("sourceCommit", ""))
+    version = str(current.get("version", ""))
+    archive_file = str(current.get("archiveFile", ""))
+    expected_candidate_url = (
+        f"https://raw.githubusercontent.com/tiangong-lca/tidas-spec/{source_commit}/"
+        f"release/{archive_file}"
+    )
+    return (
+        current.get("package") == event["package"]
+        and version == event["version"]
+        and COMMIT.fullmatch(source_commit) is not None
+        and current.get("sourceRef") == f"candidate/{source_commit}"
+        and archive_file == event["archiveFile"]
+        and current.get("archiveSha256") == event["archiveSha256"]
+        and current.get("manifestSha256") == event["manifestSha256"]
+        and current.get("releaseArchiveUrl") == expected_candidate_url
+        and "not a formal tidas-spec release" in str(current.get("note", ""))
+    )
+
+
 def apply_event(pin_path: Path, payload: dict) -> bool:
     event = validate_event(payload)
     current = json.loads(pin_path.read_text(encoding="utf-8"))
@@ -130,14 +153,17 @@ def apply_event(pin_path: Path, payload: dict) -> bool:
     if isinstance(current_version, str) and VERSION.fullmatch(current_version):
         if version_key(event["version"]) < version_key(current_version):
             raise SpecPinError(f"stale release event {event['version']} is older than pinned {current_version}")
-        reviewed_promotion = (
+        historical_reviewed_promotion = (
             current_identity == REVIEWED_CANDIDATE_020
             and incoming_identity == FORMAL_RELEASE_020
             and current.get("sourceRef") == "candidate/58dc72f5cb2d203a00388fec71d31091911f7dde"
             and current.get("releaseArchiveUrl") == "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/58dc72f5cb2d203a00388fec71d31091911f7dde/release/tiangong-lca-tidas-spec-0.2.0.tgz"
             and "not a formal tidas-spec release" in str(current.get("note", ""))
         )
-        if event["version"] == current_version and not reviewed_promotion:
+        identical_candidate_promotion = is_identical_candidate_promotion(current, event)
+        if event["version"] == current_version and not (
+            historical_reviewed_promotion or identical_candidate_promotion
+        ):
             raise SpecPinError("conflicting release identity for an already pinned version")
     updated = dict(current)
     updated.update({

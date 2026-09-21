@@ -1,8 +1,8 @@
 version: 1
 layout: repo
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
-lastReviewedNote: "Issue #146 reviews the Process review-cardinality SDK generation and candidate qualification; the existing catalog, ownership, routing and coverage remain unchanged."
+lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedNote: "Issue #149 generalizes byte-identical candidate promotion without changing the existing catalog, ownership, routing or coverage."
 
 catalog:
   repos:

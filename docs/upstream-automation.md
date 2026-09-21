@@ -20,8 +20,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
-lastReviewedNote: "Issue #146 qualifies reviewed spec 0.2.2 candidate generation without package versioning or tags; formal promotion remains owned by tidas_spec_released."
+lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedNote: "Issue #149 generalizes formal promotion for explicit reviewed candidates whose archive and manifest digests are unchanged; all other same-version conflicts remain closed."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -124,12 +124,14 @@ The specification release payload is strict and content-addressed:
 
 The eight release-identity fields plus `release_options` and optional `reason`
 stay within GitHub's ten-top-level-property limit. The receiver also accepts
-the older separate `packages` and bump fields during transition. The
-pre-publication 0.2.0 candidate at commit `58dc72f5` was qualified with the
-same schema asset digests as formal release `f71ed300`; its archive and
-manifest differ because the packaged README changed. The receiver allows only
-that exact reviewed candidate identity to promote to that exact formal release
-identity. Every other same-version identity conflict remains an error.
+the older separate `packages` and bump fields during transition. A same-version
+candidate promotion is accepted only when the current pin is explicitly marked
+as a non-release candidate and its archive and manifest digests exactly match
+the canonical formal release event. The pre-publication 0.2.0 candidate at
+commit `58dc72f5` remains one exact historical exception: it had the same schema
+asset digests as formal release `f71ed300`, but its archive and manifest differ
+because the packaged README changed. Every other same-version identity conflict
+remains an error.
 
 The existing tools dispatch payload remains:
 
@@ -177,7 +179,7 @@ Recommended responsibilities:
 7. run local parity checks:
    - `./scripts/ci/verify-typescript-package.sh`
    - `./scripts/ci/verify-python-package.sh`
-8. for `tidas_spec_released`, download and hash-check the notified archive before updating the exact spec pin; an exact replay is a no-op and a stale or same-version conflicting identity fails closed
+8. for `tidas_spec_released`, download and hash-check the notified archive before updating the exact spec pin; an exact replay is a no-op, an explicit byte-identical candidate may promote to formal release, and every other stale or same-version conflicting identity fails closed
 9. detect whether TypeScript and/or Python outputs changed, including a changed spec pin
 10. bump only the affected package version(s) to the next unpublished version in the target registry
     - TypeScript regeneration intentionally leaves reviewed package output uncommitted before version preparation. The filtered `pnpm version` command uses `--no-git-checks` solely for that dirty-tree precondition; it still makes no tag or commit, and the later package verification and PR review remain mandatory.
