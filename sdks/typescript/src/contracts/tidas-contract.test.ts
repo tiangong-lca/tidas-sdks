@@ -84,7 +84,7 @@ describe('TIDAS contract helpers', () => {
     );
   });
 
-  it('binds the public index to the exact reviewed 0.2.2 candidate source', () => {
+  it('binds the public index to the exact formal 0.2.2 release source', () => {
     const selection = getTidasPublicRules('flow');
     const indexPath = path.join(
       __dirname,
@@ -97,10 +97,10 @@ describe('TIDAS contract helpers', () => {
     assert.strictEqual(selection.source.index_sha256, digest);
     assert.strictEqual(
       selection.source.commit,
-      '8a9470a7dd4c074ae246bb9967b3bfae3e371e32'
+      '6729b882eec088494996c250afb9e97c60414f8f'
     );
     assert.strictEqual(selection.source.rules_version, '2026.09.20');
-    assert.strictEqual(selection.source.status, 'reviewed-candidate');
+    assert.strictEqual(selection.source.status, 'released');
   });
 
   it('keeps the Process Version public definition aligned with the shipped schema', () => {

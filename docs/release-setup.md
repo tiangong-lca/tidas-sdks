@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
-lastReviewedNote: "Issue #149 preserves release environments and Trusted Publishing while allowing an explicit byte-identical reviewed candidate to adopt formal release provenance."
+lastReviewedCommit: "1da6350e733104a2cec165150dad9c0fc3ab5809"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

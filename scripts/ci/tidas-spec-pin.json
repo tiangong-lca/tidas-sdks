@@ -3,8 +3,8 @@
   "package": "@tiangong-lca/tidas-spec",
   "version": "0.2.2",
   "sourceRepository": "https://github.com/tiangong-lca/tidas-spec.git",
-  "sourceCommit": "8a9470a7dd4c074ae246bb9967b3bfae3e371e32",
-  "sourceRef": "candidate/8a9470a7dd4c074ae246bb9967b3bfae3e371e32",
+  "sourceCommit": "6729b882eec088494996c250afb9e97c60414f8f",
+  "sourceRef": "v0.2.2",
   "importedFrom": {
     "repository": "https://github.com/tiangong-lca/tidas-toolkit",
     "commit": "9c0d8b1c8ceb1841074f5bc6de5fbb7fcc9318f5"
@@ -15,14 +15,5 @@
   "manifestPathInArchive": "package/spec-manifest.json",
   "manifestSha256": "620e2e389d91af7a774e92e1d7c67e282ccb910e0c2e9f9391926cbe1c5e5f09",
   "assetRootInPackage": "assets/tidas",
-  "releaseArchiveUrl": "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/8a9470a7dd4c074ae246bb9967b3bfae3e371e32/release/tiangong-lca-tidas-spec-0.2.2.tgz",
-  "repositoryAuthoredPaths": [
-    "assets/tidas/methodologies/tidas_processes.yaml",
-    "assets/tidas/schema.lock.json",
-    "assets/tidas/schemas/tidas_lciamethods.json",
-    "assets/tidas/schemas/tidas_processes.json",
-    "assets/tidas/schemas_zh/tidas_lciamethods.json",
-    "assets/tidas/schemas_zh/tidas_processes.json"
-  ],
-  "note": "Immutable reviewed candidate input for SDK qualification. archiveSha256 and manifestSha256 are the cryptographic identity; sourceCommit is the exact reviewed tidas-spec candidate revision merged by PR #25 as 6729b882eec088494996c250afb9e97c60414f8f. This candidate pin is not a formal tidas-spec release; package versioning, tags, and publication remain deferred to the canonical tidas_spec_released event."
+  "releaseArchiveUrl": "https://github.com/tiangong-lca/tidas-spec/releases/download/v0.2.2/tiangong-lca-tidas-spec-0.2.2.tgz"
 }

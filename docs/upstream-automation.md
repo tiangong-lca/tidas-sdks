@@ -20,8 +20,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
-lastReviewedNote: "Issue #149 generalizes formal promotion for explicit reviewed candidates whose archive and manifest digests are unchanged; all other same-version conflicts remain closed."
+lastReviewedCommit: "1da6350e733104a2cec165150dad9c0fc3ab5809"
+lastReviewedNote: "Reviewed generated SDK refresh from tiangong-lca/tidas-tools 4032198caa8654faf573c795434653113b85a331; generated package surfaces and current guidance remain aligned."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -35,7 +35,7 @@ This document describes the recommended cross-repository automation path for kee
 
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
-W9 public-rule development uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separately verified index/schema contract. W10S first qualified the optional Process/LCIA Method review-report reference against an exact 0.2.0 candidate archive. The package-input pin later advanced through a verified `tidas_spec_released` event to formal 0.2.1. Issue #146 qualifies the exact reviewed 0.2.2 candidate so Process review may be a singleton object or ordered non-empty array while package versioning and tags remain deferred until formal release. Source commit, archive, and manifest hashes stay explicit, and the public-rule API pin follows the same qualified source so a single SDK package cannot combine mismatched specification identities. Product-owned execution profiles and the legacy mixed ruleset retain their separate W11 disposition.
+W9 public-rule development uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separately verified index/schema contract. W10S first qualified the optional Process/LCIA Method review-report reference against an exact 0.2.0 candidate archive. The package-input pin later advanced through verified `tidas_spec_released` events to formal releases. Issue #146 qualified the exact reviewed 0.2.2 candidate so Process review may be a singleton object or ordered non-empty array; Issue #148 promotes both the package-input and public-rule pins to the byte-identical formal 0.2.2 release before publishing TypeScript 0.3.1. Source commit, archive, and manifest hashes stay explicit, and the public-rule API pin follows the same qualified source so a single SDK package cannot combine mismatched specification identities. Product-owned execution profiles and the legacy mixed ruleset retain their separate W11 disposition.
 
 The goal is:
 
