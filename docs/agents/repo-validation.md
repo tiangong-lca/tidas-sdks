@@ -29,8 +29,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
-lastReviewedNote: "Issue #146 requires both package gates, exact 0.2.2 candidate identity, singleton/multi-review positives, empty-array rejection, and indexed invalid-member evidence."
+lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedNote: "Issue #149 adds focused proof for reusable byte-identical candidate promotion while retaining stale and conflicting same-version rejection."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -74,7 +74,7 @@ Facts that matter:
   pin is immutable and advances in the same generated PR as the package assets;
   dispatch/manual automation must supply a full 40-character SHA
 - TypeScript and Python generation resolve `tidas-spec` as one verified archive: either a formal release or an explicitly reviewed, content-addressed candidate. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
-- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. The 0.2.0 candidate explicitly pins five repository-authored public paths and retains manifest/hash proof for the other 34 imports. `assembly-plan` overlays every public path from spec, compares unchanged overlaps byte-for-byte, and excludes explicitly authored paths from the tools-equality requirement. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays are accepted, while stale, malformed, partial, or same-version conflicting events fail closed.
+- `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. The 0.2.0 candidate explicitly pins five repository-authored public paths and retains manifest/hash proof for the other 34 imports. `assembly-plan` overlays every public path from spec, compares unchanged overlaps byte-for-byte, and excludes explicitly authored paths from the tools-equality requirement. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays and explicit byte-identical candidate promotions are accepted, while stale, malformed, partial, formally pinned, or byte-changing same-version events fail closed. The exact historical 0.2.0 promotion remains separately bounded.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds. The SDK copy has a

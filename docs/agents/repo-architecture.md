@@ -27,8 +27,8 @@ checkPaths:
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
-lastReviewedNote: "Issue #146 aligns the reviewed spec 0.2.2 candidate, generated Process review cardinality, and public-rule identity; repo topology and tag-driven publication remain unchanged."
+lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedNote: "Issue #149 keeps the same upstream and release topology while making byte-identical candidate-to-formal promotion reusable and fail closed."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

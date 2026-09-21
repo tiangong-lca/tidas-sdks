@@ -19,8 +19,8 @@ checkPaths:
   - package.json
   - .docpact/config.yaml
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
-lastReviewedNote: "Issue #146 qualifies reviewed spec 0.2.2 candidate inputs without package version, tag, registry, Trusted Publisher, or workflow changes; publication awaits the formal release event."
+lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedNote: "Issue #149 preserves release environments and Trusted Publishing while allowing an explicit byte-identical reviewed candidate to adopt formal release provenance."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -64,7 +64,7 @@ Operational preference:
 - keep `.github/workflows/ci.yml` as manual-dispatch only; ordinary pushes rely on the local pre-push gate
 - if a release-prep PR changes the machine-readable TypeScript validation contract, call that out explicitly so downstream consumers can review any UI or API mapping impact before tagging
 - before tagging a spec-driven SDK release, confirm the generated package-input pin and bundled W9 public-rule source identity both name the same released spec commit; compatibility-only runtime ruleset summaries remain separately governed
-- a reviewed candidate spec archive may be used for qualification without changing package versions or tags; only the canonical `tidas_spec_released` event may replace it with formal release identity and enter normal release preparation
+- a reviewed candidate spec archive may be used for qualification without changing package versions or tags; only the canonical `tidas_spec_released` event may replace it with formal release identity and enter normal release preparation, and a same-version promotion requires identical archive and manifest digests unless it is the exact retained 0.2.0 exception
 
 Required secrets:
 

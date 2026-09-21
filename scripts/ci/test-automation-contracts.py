@@ -201,8 +201,65 @@ class TidasSpecReleaseEventTests(unittest.TestCase):
             with self.assertRaises(update_tidas_spec_pin.SpecPinError):
                 update_tidas_spec_pin.apply_event(pin, conflicting)
 
-    def base_payload(self) -> dict:
-        version = "0.2.0"
+    def test_identical_candidate_promotes_to_formal_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            version = "0.2.2"
+            candidate_commit = "8" * 40
+            archive_sha = "a" * 64
+            manifest_sha = "b" * 64
+            archive_file = f"tiangong-lca-tidas-spec-{version}.tgz"
+            candidate = {
+                "pinVersion": 1,
+                "package": "@tiangong-lca/tidas-spec",
+                "version": version,
+                "sourceCommit": candidate_commit,
+                "sourceRef": f"candidate/{candidate_commit}",
+                "archiveFile": archive_file,
+                "archiveSha256": archive_sha,
+                "manifestSha256": manifest_sha,
+                "releaseArchiveUrl": (
+                    "https://raw.githubusercontent.com/tiangong-lca/tidas-spec/"
+                    f"{candidate_commit}/release/{archive_file}"
+                ),
+                "repositoryAuthoredPaths": ["assets/tidas/schema.lock.json"],
+                "note": "Immutable reviewed candidate input; this candidate pin is not a formal tidas-spec release.",
+            }
+            pin.write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
+            payload = self.base_payload(version=version)
+            payload.update({
+                "source_commit": "c" * 40,
+                "archive_sha256": archive_sha,
+                "manifest_sha256": manifest_sha,
+            })
+            payload["event_key"] = (
+                f"{payload['package']}@{version}:{archive_sha}:{manifest_sha}"
+            )
+
+            self.assertTrue(update_tidas_spec_pin.apply_event(pin, payload))
+            self.assertFalse(update_tidas_spec_pin.apply_event(pin, payload))
+            promoted = json.loads(pin.read_text(encoding="utf-8"))
+            self.assertEqual(promoted["sourceCommit"], "c" * 40)
+            self.assertEqual(promoted["sourceRef"], "v0.2.2")
+            self.assertNotIn("repositoryAuthoredPaths", promoted)
+            self.assertNotIn("note", promoted)
+
+    def test_identical_candidate_promotion_requires_candidate_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pin = Path(temp_dir) / "tidas-spec-pin.json"
+            self.write_pin(pin, version="0.2.2")
+            payload = self.base_payload(version="0.2.2")
+            current = json.loads(pin.read_text(encoding="utf-8"))
+            payload["archive_sha256"] = current["archiveSha256"]
+            payload["manifest_sha256"] = current["manifestSha256"]
+            payload["event_key"] = (
+                f"{payload['package']}@0.2.2:{payload['archive_sha256']}:"
+                f"{payload['manifest_sha256']}"
+            )
+            with self.assertRaises(update_tidas_spec_pin.SpecPinError):
+                update_tidas_spec_pin.apply_event(pin, payload)
+
+    def base_payload(self, version: str = "0.2.0") -> dict:
         archive_sha = "a" * 64
         manifest_sha = "b" * 64
         return {
