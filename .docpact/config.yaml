@@ -1,7 +1,7 @@
 version: 1
 layout: repo
 lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "dda5a9df8a528feb6f5227a1f32ca2df067b3980"
+lastReviewedCommit: "1da6350e733104a2cec165150dad9c0fc3ab5809"
 lastReviewedNote: "Issue #149 generalizes byte-identical candidate promotion without changing the existing catalog, ownership, routing or coverage."
 
 catalog:
