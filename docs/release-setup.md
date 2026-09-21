@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 aligns TypeScript 0.2.2 package inputs and the W9 public-rule API with released spec 0.2.1; existing tag, registry, Trusted Publisher and publish workflow prerequisites remain unchanged."
+lastReviewedAt: "2026-09-21"
+lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
+lastReviewedNote: "Issue #146 qualifies reviewed spec 0.2.2 candidate inputs without package version, tag, registry, Trusted Publisher, or workflow changes; publication awaits the formal release event."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

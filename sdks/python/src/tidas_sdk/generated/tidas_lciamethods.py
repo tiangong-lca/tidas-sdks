@@ -42,7 +42,7 @@ class CommonClassItemOption2(TidasBaseModel):
 
 class DataSetInformationClassificationInformationCommonClassification(TidasBaseModel):
     """Optional statistical or other classification of the data set. Typically also used for structuring LCA databases."""
-    common_class: list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2] = Field(default=..., alias='common:class')
+    common_class: Annotated[list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2], Field(max_length=3)] = Field(default=..., alias='common:class')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class LCIAMethodInformationDataSetInformationClassificationInformation(TidasBaseModel):
@@ -188,7 +188,7 @@ class ComplianceDeclarationsComplianceItem(TidasBaseModel):
 
 class LCIAMethodDataSetModellingAndValidationComplianceDeclarations(TidasBaseModel):
     """Statements on compliance of several data set aspects with compliance requirements as defined by the referenced compliance system (e.g. an EPD scheme, handbook of a national or international data network such as the ILCD, etc.)."""
-    compliance: ComplianceDeclarationsComplianceOption0 | list[ComplianceDeclarationsComplianceItem] = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
+    compliance: Annotated[list[ComplianceDeclarationsComplianceItem], Field(min_length=1)] | ComplianceDeclarationsComplianceOption0 = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class LciamethodsLCIAMethodDataSetModellingAndValidation(TidasBaseModel):

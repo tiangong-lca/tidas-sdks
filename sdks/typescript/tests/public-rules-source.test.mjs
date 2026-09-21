@@ -45,7 +45,7 @@ function verify({ assets, pin }) {
 }
 
 describe('public-rules source verification', () => {
-  it('uses the same published spec source as the package-input pin', () => {
+  it('uses the same qualified spec source as the package-input pin', () => {
     const publicPin = JSON.parse(readFileSync(sourcePin, 'utf8'));
     const packagePin = JSON.parse(
       readFileSync(
@@ -53,9 +53,14 @@ describe('public-rules source verification', () => {
         'utf8'
       )
     );
-    assert.strictEqual(publicPin.status, 'released');
+    assert.strictEqual(
+      publicPin.status,
+      packagePin.sourceRef.startsWith('candidate/')
+        ? 'reviewed-candidate'
+        : 'released'
+    );
     assert.strictEqual(publicPin.commit, packagePin.sourceCommit);
-    assert.strictEqual(packagePin.version, '0.2.1');
+    assert.strictEqual(packagePin.version, '0.2.2');
   });
   it('validates the bundled index against the bundled public schema', () => {
     const index = JSON.parse(

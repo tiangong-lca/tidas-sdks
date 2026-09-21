@@ -25,6 +25,165 @@ import type {
 } from './tidas_data_types';
 import type { LocationsCategory } from './tidas_locations_category';
 
+export interface ProcessReview {
+  '@type':
+    | 'Dependent internal review'
+    | 'Independent internal review'
+    | 'Independent external review'
+    | 'Accredited third party review'
+    | 'Independent review panel'
+    | 'Not reviewed';
+  /**
+   * Scope of review regarding which aspects and components of the data set was reviewed or verified. In case of aggregated e.g. LCI results also and on which level of detail (e.g. LCI results only, included unit processes, ...) the review / verification was performed.
+   */
+  'common:scope'?:
+    | {
+        '@name':
+          | 'Raw data'
+          | 'Unit process(es), single operation'
+          | 'Unit process(es), black box'
+          | 'LCI results or Partly terminated system'
+          | 'LCIA results'
+          | 'Documentation'
+          | 'Life cycle inventory methods'
+          | 'LCIA results calculation'
+          | 'Goal and scope definition';
+        'common:method':
+          | {
+              '@name':
+                | 'Validation of data sources'
+                | 'Sample tests on calculations'
+                | 'Energy balance'
+                | 'Element balance'
+                | 'Cross-check with other source'
+                | 'Cross-check with other data set'
+                | 'Expert judgement'
+                | 'Mass balance'
+                | 'Compliance with legal limits'
+                | 'Compliance with ISO 14040 to 14044'
+                | 'Documentation'
+                | 'Evidence collection by means of plant visits and/or interviews';
+            }
+          | {
+              '@name':
+                | 'Validation of data sources'
+                | 'Sample tests on calculations'
+                | 'Energy balance'
+                | 'Element balance'
+                | 'Cross-check with other source'
+                | 'Cross-check with other data set'
+                | 'Expert judgement'
+                | 'Mass balance'
+                | 'Compliance with legal limits'
+                | 'Compliance with ISO 14040 to 14044'
+                | 'Documentation'
+                | 'Evidence collection by means of plant visits and/or interviews';
+            }[];
+      }
+    | {
+        '@name':
+          | 'Raw data'
+          | 'Unit process(es), single operation'
+          | 'Unit process(es), black box'
+          | 'LCI results or Partly terminated system'
+          | 'LCIA results'
+          | 'Documentation'
+          | 'Life cycle inventory methods'
+          | 'LCIA results calculation'
+          | 'Goal and scope definition';
+        'common:method':
+          | {
+              '@name':
+                | 'Validation of data sources'
+                | 'Sample tests on calculations'
+                | 'Energy balance'
+                | 'Element balance'
+                | 'Cross-check with other source'
+                | 'Cross-check with other data set'
+                | 'Expert judgement'
+                | 'Mass balance'
+                | 'Compliance with legal limits'
+                | 'Compliance with ISO 14040 to 14044'
+                | 'Documentation'
+                | 'Evidence collection by means of plant visits and/or interviews';
+            }
+          | {
+              '@name':
+                | 'Validation of data sources'
+                | 'Sample tests on calculations'
+                | 'Energy balance'
+                | 'Element balance'
+                | 'Cross-check with other source'
+                | 'Cross-check with other data set'
+                | 'Expert judgement'
+                | 'Mass balance'
+                | 'Compliance with legal limits'
+                | 'Compliance with ISO 14040 to 14044'
+                | 'Documentation'
+                | 'Evidence collection by means of plant visits and/or interviews';
+            }[];
+      }[];
+  /**
+   * Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets.
+   */
+  'common:dataQualityIndicators'?: {
+    'common:dataQualityIndicator':
+      | {
+          '@name':
+            | 'Technological representativeness'
+            | 'Time representativeness'
+            | 'Geographical representativeness'
+            | 'Completeness'
+            | 'Precision'
+            | 'Methodological appropriateness and consistency'
+            | 'Overall quality';
+          '@value':
+            | 'Very good'
+            | 'Good'
+            | 'Fair'
+            | 'Poor'
+            | 'Very poor'
+            | 'Not evaluated / unknown'
+            | 'Not applicable';
+        }
+      | {
+          '@name':
+            | 'Technological representativeness'
+            | 'Time representativeness'
+            | 'Geographical representativeness'
+            | 'Completeness'
+            | 'Precision'
+            | 'Methodological appropriateness and consistency'
+            | 'Overall quality';
+          '@value':
+            | 'Very good'
+            | 'Good'
+            | 'Fair'
+            | 'Poor'
+            | 'Very poor'
+            | 'Not evaluated / unknown'
+            | 'Not applicable';
+        }[];
+  };
+  /**
+   * Summary of the review. All the following items should be explicitly addressed: Representativeness, completeness, and precision of Inputs and Outputs for the process in its documented location, technology and time i.e. both completeness of technical model (product, waste, and elementary flows) and completeness of coverage of the relevant problem fields (environmental, human health, resource use) for this specific good, service, or process. Plausibility of data. Correctness and appropriateness of the data set documentation. Appropriateness of system boundaries, cut-off rules, LCI modelling choices such as e.g. allocation, consistency of included processes and of LCI methodology. If the data set comprises pre-calculated LCIA results, the correspondence of the Input and Output elementary flows (including their geographical validity) with the applied LCIA method(s) should be addressed by the reviewer. An overall quality statement on the data set may be included here.
+   */
+  'common:reviewDetails'?: FTMultiLang;
+  /**
+   * "Contact data set" of reviewer. The full name of reviewer(s) and institution(s) as well as a contact address and/or email should be provided in that contact data set.
+   */
+  'common:referenceToNameOfReviewerAndInstitution'?: GlobalReferenceType;
+  /**
+   * Further information from the review process, especially comments received from third parties once the data set has been published or additional reviewer comments from an additional external review.
+   */
+  'common:otherReviewDetails'?: FTMultiLang;
+  /**
+   * "Source data set" of the complete review report.
+   */
+  'common:referenceToCompleteReviewReport'?: GlobalReferenceType;
+  'common:other'?: CommonOther;
+}
+
 export interface Processes {
   processDataSet: {
     '@xmlns:common': 'http://lca.jrc.it/ILCD/Common';
@@ -232,146 +391,7 @@ export interface Processes {
         'common:other'?: CommonOther;
       };
       validation: {
-        review: {
-          '@type':
-            | 'Dependent internal review'
-            | 'Independent internal review'
-            | 'Independent external review'
-            | 'Accredited third party review'
-            | 'Independent review panel'
-            | 'Not reviewed';
-          'common:scope'?:
-            | {
-                '@name':
-                  | 'Raw data'
-                  | 'Unit process(es), single operation'
-                  | 'Unit process(es), black box'
-                  | 'LCI results or Partly terminated system'
-                  | 'LCIA results'
-                  | 'Documentation'
-                  | 'Life cycle inventory methods'
-                  | 'LCIA results calculation'
-                  | 'Goal and scope definition';
-                'common:method':
-                  | {
-                      '@name':
-                        | 'Validation of data sources'
-                        | 'Sample tests on calculations'
-                        | 'Energy balance'
-                        | 'Element balance'
-                        | 'Cross-check with other source'
-                        | 'Cross-check with other data set'
-                        | 'Expert judgement'
-                        | 'Mass balance'
-                        | 'Compliance with legal limits'
-                        | 'Compliance with ISO 14040 to 14044'
-                        | 'Documentation'
-                        | 'Evidence collection by means of plant visits and/or interviews';
-                    }
-                  | {
-                      '@name':
-                        | 'Validation of data sources'
-                        | 'Sample tests on calculations'
-                        | 'Energy balance'
-                        | 'Element balance'
-                        | 'Cross-check with other source'
-                        | 'Cross-check with other data set'
-                        | 'Expert judgement'
-                        | 'Mass balance'
-                        | 'Compliance with legal limits'
-                        | 'Compliance with ISO 14040 to 14044'
-                        | 'Documentation'
-                        | 'Evidence collection by means of plant visits and/or interviews';
-                    }[];
-              }
-            | {
-                '@name':
-                  | 'Raw data'
-                  | 'Unit process(es), single operation'
-                  | 'Unit process(es), black box'
-                  | 'LCI results or Partly terminated system'
-                  | 'LCIA results'
-                  | 'Documentation'
-                  | 'Life cycle inventory methods'
-                  | 'LCIA results calculation'
-                  | 'Goal and scope definition';
-                'common:method':
-                  | {
-                      '@name':
-                        | 'Validation of data sources'
-                        | 'Sample tests on calculations'
-                        | 'Energy balance'
-                        | 'Element balance'
-                        | 'Cross-check with other source'
-                        | 'Cross-check with other data set'
-                        | 'Expert judgement'
-                        | 'Mass balance'
-                        | 'Compliance with legal limits'
-                        | 'Compliance with ISO 14040 to 14044'
-                        | 'Documentation'
-                        | 'Evidence collection by means of plant visits and/or interviews';
-                    }
-                  | {
-                      '@name':
-                        | 'Validation of data sources'
-                        | 'Sample tests on calculations'
-                        | 'Energy balance'
-                        | 'Element balance'
-                        | 'Cross-check with other source'
-                        | 'Cross-check with other data set'
-                        | 'Expert judgement'
-                        | 'Mass balance'
-                        | 'Compliance with legal limits'
-                        | 'Compliance with ISO 14040 to 14044'
-                        | 'Documentation'
-                        | 'Evidence collection by means of plant visits and/or interviews';
-                    }[];
-              }[];
-          'common:dataQualityIndicators'?: {
-            'common:dataQualityIndicator':
-              | {
-                  '@name':
-                    | 'Technological representativeness'
-                    | 'Time representativeness'
-                    | 'Geographical representativeness'
-                    | 'Completeness'
-                    | 'Precision'
-                    | 'Methodological appropriateness and consistency'
-                    | 'Overall quality';
-                  '@value':
-                    | 'Very good'
-                    | 'Good'
-                    | 'Fair'
-                    | 'Poor'
-                    | 'Very poor'
-                    | 'Not evaluated / unknown'
-                    | 'Not applicable';
-                }
-              | {
-                  '@name':
-                    | 'Technological representativeness'
-                    | 'Time representativeness'
-                    | 'Geographical representativeness'
-                    | 'Completeness'
-                    | 'Precision'
-                    | 'Methodological appropriateness and consistency'
-                    | 'Overall quality';
-                  '@value':
-                    | 'Very good'
-                    | 'Good'
-                    | 'Fair'
-                    | 'Poor'
-                    | 'Very poor'
-                    | 'Not evaluated / unknown'
-                    | 'Not applicable';
-                }[];
-          };
-          'common:reviewDetails'?: FTMultiLang;
-          'common:referenceToNameOfReviewerAndInstitution'?: GlobalReferenceType;
-          'common:otherReviewDetails'?: FTMultiLang;
-          'common:referenceToCompleteReviewReport'?: GlobalReferenceType;
-          'common:other'?: CommonOther;
-        };
+        review: ProcessReview | ProcessReview[];
         'common:other'?: CommonOther;
       };
       complianceDeclarations: {

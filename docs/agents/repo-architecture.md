@@ -26,9 +26,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: "2026-09-20"
-lastReviewedCommit: "9036e04436952123e685161d884770ad1a2f7557"
-lastReviewedNote: "Issue #143 aligns formal spec 0.2.1 package inputs and the public-rule index to one source; repo topology, tools-owned mixed ruleset and tag-driven publication remain unchanged."
+lastReviewedAt: "2026-09-21"
+lastReviewedCommit: "675b2afb93c6d6e581a49238cb1d6475b47c8c0b"
+lastReviewedNote: "Issue #146 aligns the reviewed spec 0.2.2 candidate, generated Process review cardinality, and public-rule identity; repo topology and tag-driven publication remain unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

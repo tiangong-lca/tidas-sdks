@@ -29,6 +29,49 @@ from .tidas_locations_category import LocationsCategory
 from datetime import datetime
 from pydantic import AfterValidator
 
+class Option0CommonMethodOption0(TidasBaseModel):
+    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
+
+class Option0CommonMethodItem(TidasBaseModel):
+    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
+
+class ProcessReviewCommonScopeOption0(TidasBaseModel):
+    name: Literal['Raw data', 'Unit process(es), single operation', 'Unit process(es), black box', 'LCI results or Partly terminated system', 'LCIA results', 'Documentation', 'Life cycle inventory methods', 'LCIA results calculation', 'Goal and scope definition'] = Field(default=..., alias='@name')
+    common_method: Option0CommonMethodOption0 | list[Option0CommonMethodItem] = Field(default=..., alias='common:method', description='Validation method(s) used in the respective "Scope of review".')
+
+class ItemCommonMethodOption0(TidasBaseModel):
+    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
+
+class ItemCommonMethodItem(TidasBaseModel):
+    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
+
+class ProcessReviewCommonScopeItem(TidasBaseModel):
+    name: Literal['Raw data', 'Unit process(es), single operation', 'Unit process(es), black box', 'LCI results or Partly terminated system', 'LCIA results', 'Documentation', 'Life cycle inventory methods', 'LCIA results calculation', 'Goal and scope definition'] = Field(default=..., alias='@name')
+    common_method: ItemCommonMethodOption0 | list[ItemCommonMethodItem] = Field(default=..., alias='common:method', description='Validation method(s) used in the respective "Scope of review".')
+
+class CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0(TidasBaseModel):
+    name: Literal['Technological representativeness', 'Time representativeness', 'Geographical representativeness', 'Completeness', 'Precision', 'Methodological appropriateness and consistency', 'Overall quality'] = Field(default=..., alias='@name')
+    value: Literal['Very good', 'Good', 'Fair', 'Poor', 'Very poor', 'Not evaluated / unknown', 'Not applicable'] = Field(default=..., alias='@value')
+
+class CommonDataQualityIndicatorsCommonDataQualityIndicatorItem(TidasBaseModel):
+    name: Literal['Technological representativeness', 'Time representativeness', 'Geographical representativeness', 'Completeness', 'Precision', 'Methodological appropriateness and consistency', 'Overall quality'] = Field(default=..., alias='@name')
+    value: Literal['Very good', 'Good', 'Fair', 'Poor', 'Very poor', 'Not evaluated / unknown', 'Not applicable'] = Field(default=..., alias='@value')
+
+class ProcessReviewCommonDataQualityIndicators(TidasBaseModel):
+    """Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets."""
+    common_data_quality_indicator: CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0 | list[CommonDataQualityIndicatorsCommonDataQualityIndicatorItem] = Field(default=..., alias='common:dataQualityIndicator', description='Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets.')
+
+class ProcessReview(TidasBaseModel):
+    """Type of review that has been performed regarding independency and type of review process."""
+    type: Literal['Dependent internal review', 'Independent internal review', 'Independent external review', 'Accredited third party review', 'Independent review panel', 'Not reviewed'] = Field(default=..., alias='@type')
+    common_scope: ProcessReviewCommonScopeOption0 | list[ProcessReviewCommonScopeItem] | None = Field(default=None, alias='common:scope', description='Scope of review regarding which aspects and components of the data set was reviewed or verified. In case of aggregated e.g. LCI results also and on which level of detail (e.g. LCI results only, included unit processes, ...) the review / verification was performed.')
+    common_data_quality_indicators: ProcessReviewCommonDataQualityIndicators | None = Field(default=None, alias='common:dataQualityIndicators', description='Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets.')
+    common_review_details: MultiLangList = Field(default_factory=MultiLangList, alias='common:reviewDetails', description='Summary of the review. All the following items should be explicitly addressed: Representativeness, completeness, and precision of Inputs and Outputs for the process in its documented location, technology and time i.e. both completeness of technical model (product, waste, and elementary flows) and completeness of coverage of the relevant problem fields (environmental, human health, resource use) for this specific good, service, or process. Plausibility of data. Correctness and appropriateness of the data set documentation. Appropriateness of system boundaries, cut-off rules, LCI modelling choices such as e.g. allocation, consistency of included processes and of LCI methodology. If the data set comprises pre-calculated LCIA results, the correspondence of the Input and Output elementary flows (including their geographical validity) with the applied LCIA method(s) should be addressed by the reviewer. An overall quality statement on the data set may be included here.')
+    common_reference_to_name_of_reviewer_and_institution: GlobalReferenceType | None = Field(default=None, alias='common:referenceToNameOfReviewerAndInstitution', description='"Contact data set" of reviewer. The full name of reviewer(s) and institution(s) as well as a contact address and/or email should be provided in that contact data set.')
+    common_other_review_details: MultiLangList = Field(default_factory=MultiLangList, alias='common:otherReviewDetails', description='Further information from the review process, especially comments received from third parties once the data set has been published or additional reviewer comments from an additional external review.')
+    common_reference_to_complete_review_report: GlobalReferenceType | None = Field(default=None, alias='common:referenceToCompleteReviewReport', description='"Source data set" of the complete review report.')
+    common_other: CommonOther | None = Field(default=None, alias='common:other')
+
 class ProcessInformationDataSetInformationName(TidasBaseModel):
     """General descriptive and specifying name of the process."""
     base_name: MultiLangList = Field(default=..., alias='baseName')
@@ -61,7 +104,7 @@ class CommonClassItemOption3(TidasBaseModel):
     text: str = Field(default=..., alias='#text')
 
 class ClassificationInformationCommonClassificationOption0(TidasBaseModel):
-    common_class: list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2 | CommonClassItemOption3] = Field(default_factory=list, alias='common:class', max_items=4)
+    common_class: Annotated[list[CommonClassItemOption0 | CommonClassItemOption1 | CommonClassItemOption2 | CommonClassItemOption3], Field(max_length=4)] = Field(default_factory=list, alias='common:class')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
     name: str | None = Field(default=None, alias='@name', description="Name of the classification system (e.g. CPC, ISIC, HS). Per ILCD this defaults to 'ILCD' when absent; set it explicitly for non-ILCD systems.")
     classes: str | None = Field(default=None, alias='@classes', description='Optional URL or identifier of the classification file/system.')
@@ -75,12 +118,12 @@ class ClassificationInformationCommonClassificationItem(TidasBaseModel):
     """One named classification system (e.g. CPC or HS). Used in the array form to let multiple systems coexist."""
     name: str = Field(default=..., alias='@name', description="Name of the classification system (e.g. CPC, ISIC, HS). Per ILCD this defaults to 'ILCD' when absent; set it explicitly for non-ILCD systems.")
     classes: str | None = Field(default=None, alias='@classes', description='Optional URL or identifier of the classification file/system.')
-    common_class: list[ItemCommonClassItem] = Field(default_factory=list, alias='common:class', min_items=1)
+    common_class: Annotated[list[ItemCommonClassItem], Field(min_length=1)] = Field(default_factory=list, alias='common:class')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class ProcessInformationDataSetInformationClassificationInformation(TidasBaseModel):
     """Hierarchical or flat classification of the good, service or function that is provided by this life cycle model; typically used to structure database contents in LCA software, among other purposes. (Note: This entry is NOT required for the identification of a Life cycle model, but it should nevertheless be avoided to use identical names for Life cycle model data sets in the same class. The ILCD classifications are defined in the ILCDClassifications.xml file, for common use.)"""
-    common_classification: ClassificationInformationCommonClassificationOption0 | list[ClassificationInformationCommonClassificationItem] = Field(default=..., alias='common:classification', description='Optional statistical or other classification of the data set. Typically also used for structuring LCA databases.')
+    common_classification: Annotated[list[ClassificationInformationCommonClassificationItem], Field(min_length=1)] | ClassificationInformationCommonClassificationOption0 = Field(default=..., alias='common:classification', description='Optional statistical or other classification of the data set. Typically also used for structuring LCA databases.')
 
 class ProcessDataSetProcessInformationDataSetInformation(TidasBaseModel):
     """General data set information. Section covers all single fields in the ISO/TS 14048 \"Process description\", which are not part of the other sub-sections. In ISO/TS 14048 no own sub-section is foreseen for these entries."""
@@ -200,52 +243,9 @@ class ProcessDataSetModellingAndValidationCompleteness(TidasBaseModel):
     completeness_other_problem_field: MultiLangList = Field(default_factory=MultiLangList, alias='completenessOtherProblemField', description='Completeness of coverage of elementary flows that contribute to other problem fields that are named here as free text, preferably using the same terminology as for the specified environmental problems.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
-class Option0CommonMethodOption0(TidasBaseModel):
-    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
-
-class Option0CommonMethodItem(TidasBaseModel):
-    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
-
-class ReviewCommonScopeOption0(TidasBaseModel):
-    name: Literal['Raw data', 'Unit process(es), single operation', 'Unit process(es), black box', 'LCI results or Partly terminated system', 'LCIA results', 'Documentation', 'Life cycle inventory methods', 'LCIA results calculation', 'Goal and scope definition'] = Field(default=..., alias='@name')
-    common_method: Option0CommonMethodOption0 | list[Option0CommonMethodItem] = Field(default=..., alias='common:method', description='Validation method(s) used in the respective "Scope of review".')
-
-class ItemCommonMethodOption0(TidasBaseModel):
-    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
-
-class ItemCommonMethodItem(TidasBaseModel):
-    name: Literal['Validation of data sources', 'Sample tests on calculations', 'Energy balance', 'Element balance', 'Cross-check with other source', 'Cross-check with other data set', 'Expert judgement', 'Mass balance', 'Compliance with legal limits', 'Compliance with ISO 14040 to 14044', 'Documentation', 'Evidence collection by means of plant visits and/or interviews'] = Field(default=..., alias='@name')
-
-class ReviewCommonScopeItem(TidasBaseModel):
-    name: Literal['Raw data', 'Unit process(es), single operation', 'Unit process(es), black box', 'LCI results or Partly terminated system', 'LCIA results', 'Documentation', 'Life cycle inventory methods', 'LCIA results calculation', 'Goal and scope definition'] = Field(default=..., alias='@name')
-    common_method: ItemCommonMethodOption0 | list[ItemCommonMethodItem] = Field(default=..., alias='common:method', description='Validation method(s) used in the respective "Scope of review".')
-
-class CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0(TidasBaseModel):
-    name: Literal['Technological representativeness', 'Time representativeness', 'Geographical representativeness', 'Completeness', 'Precision', 'Methodological appropriateness and consistency', 'Overall quality'] = Field(default=..., alias='@name')
-    value: Literal['Very good', 'Good', 'Fair', 'Poor', 'Very poor', 'Not evaluated / unknown', 'Not applicable'] = Field(default=..., alias='@value')
-
-class CommonDataQualityIndicatorsCommonDataQualityIndicatorItem(TidasBaseModel):
-    name: Literal['Technological representativeness', 'Time representativeness', 'Geographical representativeness', 'Completeness', 'Precision', 'Methodological appropriateness and consistency', 'Overall quality'] = Field(default=..., alias='@name')
-    value: Literal['Very good', 'Good', 'Fair', 'Poor', 'Very poor', 'Not evaluated / unknown', 'Not applicable'] = Field(default=..., alias='@value')
-
-class ValidationReviewCommonDataQualityIndicators(TidasBaseModel):
-    """Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets."""
-    common_data_quality_indicator: CommonDataQualityIndicatorsCommonDataQualityIndicatorOption0 | list[CommonDataQualityIndicatorsCommonDataQualityIndicatorItem] = Field(default=..., alias='common:dataQualityIndicator', description='Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets.')
-
-class ModellingAndValidationValidationReview(TidasBaseModel):
-    """Type of review that has been performed regarding independency and type of review process."""
-    type: Literal['Dependent internal review', 'Independent internal review', 'Independent external review', 'Accredited third party review', 'Independent review panel', 'Not reviewed'] = Field(default=..., alias='@type')
-    common_scope: ReviewCommonScopeOption0 | list[ReviewCommonScopeItem] | None = Field(default=None, alias='common:scope', description='Scope of review regarding which aspects and components of the data set was reviewed or verified. In case of aggregated e.g. LCI results also and on which level of detail (e.g. LCI results only, included unit processes, ...) the review / verification was performed.')
-    common_data_quality_indicators: ValidationReviewCommonDataQualityIndicators | None = Field(default=None, alias='common:dataQualityIndicators', description='Data quality indicators serve to provide the reviewed key information on the data set in a defined, computer-readable (and hence searchable) form. This serves to support LCA practitioners to identify/select the highest quality and most appropriate data sets.')
-    common_review_details: MultiLangList = Field(default_factory=MultiLangList, alias='common:reviewDetails', description='Summary of the review. All the following items should be explicitly addressed: Representativeness, completeness, and precision of Inputs and Outputs for the process in its documented location, technology and time i.e. both completeness of technical model (product, waste, and elementary flows) and completeness of coverage of the relevant problem fields (environmental, human health, resource use) for this specific good, service, or process. Plausibility of data. Correctness and appropriateness of the data set documentation. Appropriateness of system boundaries, cut-off rules, LCI modelling choices such as e.g. allocation, consistency of included processes and of LCI methodology. If the data set comprises pre-calculated LCIA results, the correspondence of the Input and Output elementary flows (including their geographical validity) with the applied LCIA method(s) should be addressed by the reviewer. An overall quality statement on the data set may be included here.')
-    common_reference_to_name_of_reviewer_and_institution: GlobalReferenceType | None = Field(default=None, alias='common:referenceToNameOfReviewerAndInstitution', description='"Contact data set" of reviewer. The full name of reviewer(s) and institution(s) as well as a contact address and/or email should be provided in that contact data set.')
-    common_other_review_details: MultiLangList = Field(default_factory=MultiLangList, alias='common:otherReviewDetails', description='Further information from the review process, especially comments received from third parties once the data set has been published or additional reviewer comments from an additional external review.')
-    common_reference_to_complete_review_report: GlobalReferenceType | None = Field(default=None, alias='common:referenceToCompleteReviewReport', description='"Source data set" of the complete review report.')
-    common_other: CommonOther | None = Field(default=None, alias='common:other')
-
 class ProcessDataSetModellingAndValidationValidation(TidasBaseModel):
     """Review information on LCIA method."""
-    review: ModellingAndValidationValidationReview = Field(default=..., alias='review', description='Type of review that has been performed regarding independency and type of review process.')
+    review: Annotated[list[ProcessReview], Field(min_length=1)] | ProcessReview = Field(default=..., alias='review', description='Type of review that has been performed regarding independency and type of review process.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class ComplianceDeclarationsComplianceOption0(TidasBaseModel):
@@ -270,7 +270,7 @@ class ComplianceDeclarationsComplianceItem(TidasBaseModel):
 
 class ProcessDataSetModellingAndValidationComplianceDeclarations(TidasBaseModel):
     """Statements on compliance of several data set aspects with compliance requirements as defined by the referenced compliance system (e.g. an EPD scheme, handbook of a national or international data network such as the ILCD, etc.)."""
-    compliance: ComplianceDeclarationsComplianceOption0 | list[ComplianceDeclarationsComplianceItem] = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
+    compliance: Annotated[list[ComplianceDeclarationsComplianceItem], Field(min_length=1)] | ComplianceDeclarationsComplianceOption0 = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class ProcessesProcessDataSetModellingAndValidation(TidasBaseModel):
@@ -385,7 +385,7 @@ class LCIAResultsLCIAResultItem(TidasBaseModel):
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class ProcessesProcessDataSetLCIAResults(TidasBaseModel):
-    lcia_result: LCIAResultsLCIAResultOption0 | list[LCIAResultsLCIAResultItem] | None = Field(default=None, alias='LCIAResult')
+    lcia_result: Annotated[list[LCIAResultsLCIAResultItem], Field(min_length=1)] | LCIAResultsLCIAResultOption0 | None = Field(default=None, alias='LCIAResult')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class ProcessesProcessDataSet(TidasBaseModel):

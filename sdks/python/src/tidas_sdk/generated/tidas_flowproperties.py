@@ -64,7 +64,7 @@ class ComplianceDeclarationsComplianceItem(TidasBaseModel):
 
 class FlowPropertyDataSetModellingAndValidationComplianceDeclarations(TidasBaseModel):
     """Statements on compliance of several data set aspects with compliance requirements as defined by the referenced compliance system (e.g. an EPD scheme, handbook of a national or international data network such as the ILCD, etc.)."""
-    compliance: ComplianceDeclarationsComplianceOption0 | list[ComplianceDeclarationsComplianceItem] = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
+    compliance: Annotated[list[ComplianceDeclarationsComplianceItem], Field(min_length=1)] | ComplianceDeclarationsComplianceOption0 = Field(default=..., alias='compliance', description='One compliance declaration. Multiple declarations may be provided.')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
 
 class FlowpropertiesFlowPropertyDataSetModellingAndValidation(TidasBaseModel):

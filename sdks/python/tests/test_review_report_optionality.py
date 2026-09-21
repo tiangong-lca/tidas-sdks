@@ -4,6 +4,12 @@ from typing import Any
 
 import pytest
 from jsonschema import Draft7Validator, RefResolver
+from pydantic import ValidationError
+
+from tidas_sdk.generated.tidas_processes import (
+    ProcessDataSetModellingAndValidationValidation,
+    ProcessReview,
+)
 
 
 SCHEMA_ROOT = Path(__file__).parents[1] / "src" / "tidas_sdk" / "schemas"
@@ -22,9 +28,20 @@ def _review_validator(dataset_type: str) -> Draft7Validator:
         ]["properties"]["validation"]["properties"]["review"]
     resolver = RefResolver.from_schema(
         schema,
-        store={"tidas_data_types.json": data_types},
+        store={
+            "tidas_data_types.json": data_types,
+            "/tidas_data_types.json": data_types,
+        },
     )
     return Draft7Validator(review, resolver=resolver)
+
+
+def _leaf_errors(errors):
+    for error in errors:
+        if error.context:
+            yield from _leaf_errors(error.context)
+        else:
+            yield error
 
 
 LOCALIZED_TEXT = {"@xml:lang": "en", "#text": "Reviewed documentation"}
@@ -80,7 +97,50 @@ def test_other_completed_review_fields_remain_required(dataset_type: str) -> Non
             {"@type": "Independent external review"}
         )
     )
-    messages = "\n".join(error.message for error in errors)
+    messages = "\n".join(error.message for error in _leaf_errors(errors))
+    for field in (
+        "common:scope",
+        "common:reviewDetails",
+        "common:referenceToNameOfReviewerAndInstitution",
+    ):
+        assert field in messages
+
+
+def test_process_review_accepts_singleton_and_ordered_non_empty_arrays() -> None:
+    first = {"@type": "Not reviewed"}
+    second = {"@type": "Not reviewed"}
+
+    singleton = ProcessDataSetModellingAndValidationValidation.model_validate(
+        {"review": first}
+    )
+    assert isinstance(singleton.review, ProcessReview)
+    assert singleton.review.type == "Not reviewed"
+
+    multiple = ProcessDataSetModellingAndValidationValidation.model_validate(
+        {"review": [first, second]}
+    )
+    assert isinstance(multiple.review, list)
+    assert [review.type for review in multiple.review] == [
+        "Not reviewed",
+        "Not reviewed",
+    ]
+
+    with pytest.raises(ValidationError):
+        ProcessDataSetModellingAndValidationValidation.model_validate({"review": []})
+
+
+def test_process_review_reports_invalid_second_item_at_index_one() -> None:
+    errors = list(
+        _review_validator("processes").iter_errors(
+            [
+                _review("processes"),
+                {"@type": "Independent external review"},
+            ]
+        )
+    )
+    paths = [list(error.absolute_path) for error in _leaf_errors(errors)]
+    messages = "\n".join(error.message for error in _leaf_errors(errors))
+    assert paths.count([1]) >= 3
     for field in (
         "common:scope",
         "common:reviewDetails",
