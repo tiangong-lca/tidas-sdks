@@ -13,6 +13,16 @@ function processReviewSchema() {
     .modellingAndValidation.shape.validation.shape.review;
 }
 
+function quantitativeReferenceSchema() {
+  return (ProcessesSchema as any).shape.processDataSet.shape.processInformation
+    .shape.quantitativeReference;
+}
+
+function lciMethodSchema() {
+  return (ProcessesSchema as any).shape.processDataSet.shape
+    .modellingAndValidation.shape.LCIMethodAndAllocation;
+}
+
 function processClassificationInformationSchema() {
   return (ProcessesSchema as any).shape.processDataSet.shape.processInformation
     .shape.dataSetInformation.shape.classificationInformation;
@@ -24,6 +34,45 @@ function processDataSetInformationShape() {
 }
 
 const localizedText = { '@xml:lang': 'en', '#text': 'Reviewed documentation' };
+
+describe('process quantitative reference schema', () => {
+  const basis = [
+    { '@xml:lang': 'en', '#text': '1 tonne unwashed raw coal' },
+    { '@xml:lang': 'zh', '#text': '1 吨未经洗选的原煤' },
+  ];
+
+  it('keeps an accounting basis without inventing a reference Flow', () => {
+    const schema = quantitativeReferenceSchema();
+    for (const type of ['Other parameter', 'Functional unit', 'Production period']) {
+      const result = schema.safeParse({ '@type': type, functionalUnitOrOther: basis });
+      assert.strictEqual(result.success, true, `${type}: ${JSON.stringify(result)}`);
+      if (result.success) {
+        assert.strictEqual(result.data.referenceToReferenceFlow, undefined);
+        assert.deepStrictEqual(result.data.functionalUnitOrOther, basis);
+      }
+      assert.strictEqual(schema.safeParse({ '@type': type }).success, false);
+    }
+  });
+
+  it('still requires a Flow reference for Reference flow(s)', () => {
+    const schema = quantitativeReferenceSchema();
+    assert.strictEqual(schema.safeParse({ '@type': 'Reference flow(s)' }).success, false);
+    assert.strictEqual(
+      schema.safeParse({ '@type': 'Reference flow(s)', referenceToReferenceFlow: '1' }).success,
+      true
+    );
+  });
+
+  it('permits an absent process type but validates a supplied one', () => {
+    const schema = lciMethodSchema();
+    assert.strictEqual(schema.safeParse({}).success, true);
+    assert.strictEqual(
+      schema.safeParse({ typeOfDataSet: 'Unit process, single operation' }).success,
+      true
+    );
+    assert.strictEqual(schema.safeParse({ typeOfDataSet: 'invented type' }).success, false);
+  });
+});
 const reference = (type: 'contact data set' | 'source data set') => ({
   '@type': type,
   '@refObjectId': type === 'contact data set'

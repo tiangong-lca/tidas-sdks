@@ -84,7 +84,7 @@ describe('TIDAS contract helpers', () => {
     );
   });
 
-  it('binds the public index to the exact formal 0.2.2 release source', () => {
+  it('binds the public index to the exact pinned formal release source', () => {
     const selection = getTidasPublicRules('flow');
     const indexPath = path.join(
       __dirname,
@@ -95,10 +95,13 @@ describe('TIDAS contract helpers', () => {
       .update(readFileSync(indexPath))
       .digest('hex');
     assert.strictEqual(selection.source.index_sha256, digest);
-    assert.strictEqual(
-      selection.source.commit,
-      '6729b882eec088494996c250afb9e97c60414f8f'
+    const packagePin = JSON.parse(
+      readFileSync(
+        path.join(__dirname, '../../../../scripts/ci/tidas-spec-pin.json'),
+        'utf8'
+      )
     );
+    assert.strictEqual(selection.source.commit, packagePin.sourceCommit);
     assert.strictEqual(selection.source.rules_version, '2026.09.20');
     assert.strictEqual(selection.source.status, 'released');
   });

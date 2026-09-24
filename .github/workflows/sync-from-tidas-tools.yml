@@ -232,13 +232,14 @@ jobs:
           SPEC_MANIFEST_SHA256: ${{ steps.request.outputs.spec_manifest_sha256 }}
         run: |
           set -euo pipefail
-          python3 ./scripts/ci/update-tidas-spec-pin.py --event-file "$EVENT_PATH"
           archive="$RUNNER_TEMP/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["client_payload"]["archive_file"])' "$EVENT_PATH")"
           curl --fail --silent --show-error --location --retry 3 "$SPEC_ARCHIVE_URL" --output "$archive"
           test "$(shasum -a 256 "$archive" | awk '{print $1}')" = "$SPEC_ARCHIVE_SHA256"
           manifest="$RUNNER_TEMP/tidas-spec-manifest.json"
           tar -xOf "$archive" package/spec-manifest.json > "$manifest"
           test "$(shasum -a 256 "$manifest" | awk '{print $1}')" = "$SPEC_MANIFEST_SHA256"
+          python3 ./scripts/ci/update-tidas-spec-pin.py --event-file "$EVENT_PATH"
+          python3 ./scripts/ci/update-tidas-public-rules-pin.py --archive "$archive"
           echo "TIDAS_SPEC_ARCHIVE_PATH=$archive" >> "$GITHUB_ENV"
 
       - name: Set up pnpm and Node.js

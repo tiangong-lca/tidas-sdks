@@ -241,7 +241,7 @@ export interface Processes {
           | 'Functional unit'
           | 'Other parameter'
           | 'Production period';
-        referenceToReferenceFlow: Int6;
+        referenceToReferenceFlow?: Int6;
         functionalUnitOrOther?: StringMultiLang;
         'common:other'?: CommonOther;
       };
@@ -294,7 +294,7 @@ export interface Processes {
     };
     modellingAndValidation: {
       LCIMethodAndAllocation: {
-        typeOfDataSet:
+        typeOfDataSet?:
           | 'Unit process, single operation'
           | 'Unit process, black box'
           | 'LCI result'

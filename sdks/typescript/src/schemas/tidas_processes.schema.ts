@@ -353,20 +353,36 @@ export const ProcessesSchema = z.object({
         referenceToExternalDocumentation: GlobalReferenceTypeSchema.optional(),
         'common:other': CommonOtherSchema.optional(),
       }),
-      quantitativeReference: z.object({
-        '@type': z.intersection(
-          z.union([
-            z.literal('Reference flow(s)'),
+      quantitativeReference: withJsonSchemaConditional(
+        withJsonSchemaConditional(
+          z.object({
+            '@type': z.intersection(
+              z.union([
+                z.literal('Reference flow(s)'),
+                z.literal('Functional unit'),
+                z.literal('Other parameter'),
+                z.literal('Production period'),
+              ]),
+              z.string(),
+            ),
+            referenceToReferenceFlow: Int6Schema.optional(),
+            functionalUnitOrOther: StringMultiLangSchema.optional(),
+            'common:other': CommonOtherSchema.optional(),
+          }),
+          z.object({ '@type': z.literal('Reference flow(s)') }),
+          z.object({ referenceToReferenceFlow: z.unknown() }),
+          undefined,
+        ),
+        z.object({
+          '@type': z.union([
             z.literal('Functional unit'),
             z.literal('Other parameter'),
             z.literal('Production period'),
           ]),
-          z.string(),
-        ),
-        referenceToReferenceFlow: Int6Schema,
-        functionalUnitOrOther: StringMultiLangSchema.optional(),
-        'common:other': CommonOtherSchema.optional(),
-      }),
+        }),
+        z.object({ functionalUnitOrOther: z.unknown() }),
+        undefined,
+      ),
       time: z.object({
         'common:referenceYear': YearSchema,
         'common:dataSetValidUntil': YearSchema.optional(),
@@ -437,16 +453,18 @@ export const ProcessesSchema = z.object({
     }),
     modellingAndValidation: z.object({
       LCIMethodAndAllocation: z.object({
-        typeOfDataSet: z.intersection(
-          z.union([
-            z.literal('Unit process, single operation'),
-            z.literal('Unit process, black box'),
-            z.literal('LCI result'),
-            z.literal('Partly terminated system'),
-            z.literal('Avoided product system'),
-          ]),
-          z.string(),
-        ),
+        typeOfDataSet: z
+          .intersection(
+            z.union([
+              z.literal('Unit process, single operation'),
+              z.literal('Unit process, black box'),
+              z.literal('LCI result'),
+              z.literal('Partly terminated system'),
+              z.literal('Avoided product system'),
+            ]),
+            z.string(),
+          )
+          .optional(),
         LCIMethodPrinciple: z
           .intersection(
             z.union([
