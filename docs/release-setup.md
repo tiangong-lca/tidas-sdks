@@ -18,9 +18,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-21
-lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; registry, trusted-publishing, and release setup remain unchanged."
+lastReviewedAt: 2026-09-24
+lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
+lastReviewedNote: "Reviewed SDK #156: exact tidas-spec 0.2.3 generated release prep retains existing npm/PyPI trusted publishers and tag workflow; no registry setup changes."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

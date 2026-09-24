@@ -31,9 +31,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-21
-lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; package ownership, generation flow, and delivery guidance remain unchanged."
+lastReviewedAt: 2026-09-24
+lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
+lastReviewedNote: "Reviewed SDK #156: exact tidas-spec 0.2.3 adoption updates generated Process validators and both source pins; SDK ownership and tag-driven publication boundaries remain unchanged."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md
@@ -104,6 +104,7 @@ Keep these entry-level facts in `AGENTS.md`. Use `README.md`, `docs/agents/repo-
   - `./scripts/ci/generate-python-sdk.sh`
 - the default upstream generation pin is the exact `tidas-tools` commit declared by `TIDAS_TOOLS_SHA`; moving branch tips are not valid generation inputs
 - the public specification pin is the exact archive and manifest identity declared by `scripts/ci/tidas-spec-pin.json`; generation and verification must use the same verified archive for schemas, the schema lock, and the public methodologies. A reviewed candidate may additionally pin its repository-authored public paths; a formal release derives those paths from the hash-verified manifest.
+- a formal spec event advances the package-input pin and the separate public-rule source pin from that same hash-verified archive before TypeScript verification; unchanged rule bytes still receive the new exact source identity, while a changed digest is copied only from the verified archive.
 - `.github/workflows/sync-from-tidas-tools.yml` accepts both `tidas_tools_changed` and `tidas_spec_released`. A spec event must carry the canonical package/version/source/archive/manifest identity and stable `event_key`; package and bump choices are grouped in `release_options` within GitHub's dispatch limit. Exact replays are no-ops. A reviewed non-release candidate may become the same-version formal release only when its archive and manifest digests are identical and its candidate provenance is explicit; the exact historical 0.2.0 promotion remains a narrow exception because its packaged README changed. Every other stale or same-version conflict fails closed. The workflow updates the spec pin only from that event and never treats a branch tip as a release input.
 - release tags:
   - `typescript-v<version>`

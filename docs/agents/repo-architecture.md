@@ -26,9 +26,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-21
-lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; repository shape, upstream flow, and release topology remain unchanged."
+lastReviewedAt: 2026-09-24
+lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
+lastReviewedNote: "Reviewed SDK #156: spec archive and public-rule source identities advance together for generated Process validators; package topology and release ownership remain unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -80,6 +80,7 @@ Important consequences:
 - `scripts/ci/tidas-spec-assets.mjs` verifies the pinned public specification archive, its manifest, source evidence, and the exact public subset before exposing an asset root
 - `scripts/ci/tidas-tools-assets.mjs` validates the execution-oriented Rust asset lock and derives runtime roots from catalog entries rather than package-layout assumptions
 - `scripts/ci/lib/tidas-spec-source.sh` resolves one verified spec archive for the whole generation/verification process; schemas, the schema lock, and public `flows`/`processes` methodologies never fall back to `tidas-tools`
+- a `tidas_spec_released` event refreshes the package-input pin and public-rule source identity from that same verified archive before regenerating TypeScript and Python; the public-rule index/schema bytes are copied from the archive even if their digests are unchanged
 - `scripts/ci/lib/typescript-dependencies.sh` gives clean generation and verification runs the same `pnpm install --frozen-lockfile` dependency graph from the root `pnpm-lock.yaml`
 - TypeScript runtime assets are assembled from two verified inputs: all 39 public paths come from one exact `tidas-spec` archive, while product profiles, newer runtime profiles, taxonomies, and optional methodologies remain catalog-selected `tidas-tools` inputs. The SDK lock is a byte-verifiable projection of the immutable upstream `asset-lock.v1.json` that omits only the former mixed `runtime_rulesets.json` and its schema. For the reviewed 0.2.0 candidate, 34 public paths remain byte-identical imports and five repository-authored paths (the Process/LCIA Method schemas in both languages plus the derived schema lock) are explicitly pinned and overlaid from spec.
 - `getTidasPublicRules` is the versioned public-definition boundary and returns explicit covered/not-covered results; the former `getTidasRuntimeRuleset` compatibility boundary is removed, and consumer execution policy is not a public specification source
