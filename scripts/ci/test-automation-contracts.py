@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -12,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tarfile
 import unittest
 from pathlib import Path
 
@@ -41,6 +43,84 @@ update_tidas_tools_pin = load_script(
 update_tidas_spec_pin = load_script(
     "update_tidas_spec_pin", "update-tidas-spec-pin.py"
 )
+update_tidas_public_rules_pin = load_script(
+    "update_tidas_public_rules_pin", "update-tidas-public-rules-pin.py"
+)
+
+
+class PublicRulesReleasePinTests(unittest.TestCase):
+    def test_exact_archive_updates_rule_identity_and_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            pin_path = root / update_tidas_public_rules_pin.SPEC_PIN
+            rules_path = root / update_tidas_public_rules_pin.RULES_PIN
+            assets = root / update_tidas_public_rules_pin.ASSET_ROOT
+            pin_path.parent.mkdir(parents=True)
+            assets.mkdir(parents=True)
+            old_index = b'{"schema_version":1,"rules_version":"old"}\n'
+            old_schema = b'{"type":"object"}\n'
+            (assets / "public-rules.v1.json").write_bytes(old_index)
+            (assets / "public-rules.v1.schema.json").write_bytes(old_schema)
+            (assets / "public-rules.source.v1.json").write_text('{}\n')
+            rules_path.write_text(json.dumps({
+                "schema_version": "tidas.public-rules-source.v1",
+                "repository": "https://github.com/tiangong-lca/tidas-spec.git",
+                "commit": "a" * 40,
+                "rules_version": "old",
+                "assets": {
+                    "index": {"path": update_tidas_public_rules_pin.RULES["index"], "sha256": hashlib.sha256(old_index).hexdigest()},
+                    "schema": {"path": update_tidas_public_rules_pin.RULES["schema"], "sha256": hashlib.sha256(old_schema).hexdigest()},
+                },
+                "status": "released",
+            }))
+
+            index = b'{"schema_version":1,"rules_version":"2026.09.20"}\n'
+            schema = b'{"type":"object","required":["rules"]}\n'
+            files = {
+                update_tidas_public_rules_pin.RULES["index"]: index,
+                update_tidas_public_rules_pin.RULES["schema"]: schema,
+            }
+            manifest = json.dumps({
+                "package": {"name": "@tiangong-lca/tidas-spec", "version": "0.2.3"},
+                "files": [
+                    {"path": path, "sha256": hashlib.sha256(data).hexdigest()}
+                    for path, data in files.items()
+                ],
+            }).encode()
+            archive = root / "tiangong-lca-tidas-spec-0.2.3.tgz"
+            with tarfile.open(archive, "w:gz") as tar:
+                for path, data in {"spec-manifest.json": manifest, **files}.items():
+                    info = tarfile.TarInfo(f"package/{path}")
+                    info.size = len(data)
+                    tar.addfile(info, io.BytesIO(data))
+            pin_path.write_text(json.dumps({
+                "package": "@tiangong-lca/tidas-spec",
+                "version": "0.2.3",
+                "sourceRef": "v0.2.3",
+                "sourceCommit": "b" * 40,
+                "archiveFile": archive.name,
+                "archiveSha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+                "manifestSha256": hashlib.sha256(manifest).hexdigest(),
+            }))
+
+            self.assertTrue(update_tidas_public_rules_pin.update_public_rules(root, archive))
+            self.assertFalse(update_tidas_public_rules_pin.update_public_rules(root, archive))
+            updated = json.loads(rules_path.read_text())
+            self.assertEqual(updated["commit"], "b" * 40)
+            self.assertEqual(updated["rules_version"], "2026.09.20")
+            self.assertEqual((assets / "public-rules.v1.json").read_bytes(), index)
+            self.assertEqual((assets / "public-rules.v1.schema.json").read_bytes(), schema)
+            identity = json.loads((assets / "public-rules.source.v1.json").read_text())
+            self.assertEqual(identity["commit"], "b" * 40)
+            self.assertEqual(identity["index_sha256"], hashlib.sha256(index).hexdigest())
+            (assets / "public-rules.v1.json").write_bytes(b"tampered")
+            with self.assertRaisesRegex(update_tidas_public_rules_pin.PublicRulesPinError, "has drifted"):
+                update_tidas_public_rules_pin.update_public_rules(root, archive)
+            (assets / "public-rules.v1.json").write_bytes(index)
+            archive.write_bytes(archive.read_bytes() + b"tampered")
+            with self.assertRaisesRegex(update_tidas_public_rules_pin.PublicRulesPinError, "digest conflicts"):
+                update_tidas_public_rules_pin.update_public_rules(root, archive)
+
 
 
 class ReleaseDetectionTests(unittest.TestCase):
@@ -387,6 +467,7 @@ class PnpmWorkflowContractTests(unittest.TestCase):
         sync = self.workflow_text("sync-from-tidas-tools.yml")
         self.assertIn("- tidas_spec_released", sync)
         self.assertIn("update-tidas-spec-pin.py", sync)
+        self.assertIn("update-tidas-public-rules-pin.py", sync)
         self.assertIn("TIDAS_SPEC_ARCHIVE_PATH", sync)
         self.assertIn("spec_archive_sha256", sync)
         self.assertIn("event_key", sync)

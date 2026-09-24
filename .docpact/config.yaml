@@ -1,8 +1,8 @@
 version: 1
 layout: repo
-lastReviewedAt: "2026-09-21"
-lastReviewedCommit: "12bd59b3062033148db53a3438d16e75c8ca87eb"
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; catalog, ownership, routing, coverage, and release automation remain unchanged."
+lastReviewedAt: "2026-09-24"
+lastReviewedCommit: "04b6ac2c9566ba0209cebfe4cc56b6eef5a56845"
+lastReviewedNote: "Reviewed SDK #156: archive-bound pin refresh and Python Process model-validator generation stay in existing generation/package routes. Generated TS/Python surfaces retain their owners; no catalog or coverage change."
 
 catalog:
   repos:

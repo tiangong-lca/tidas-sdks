@@ -60,7 +60,8 @@ describe('public-rules source verification', () => {
         : 'released'
     );
     assert.strictEqual(publicPin.commit, packagePin.sourceCommit);
-    assert.strictEqual(packagePin.version, '0.2.2');
+    assert.match(packagePin.version, /^\d+\.\d+\.\d+$/u);
+    assert.strictEqual(packagePin.sourceRef, `v${packagePin.version}`);
   });
   it('validates the bundled index against the bundled public schema', () => {
     const index = JSON.parse(

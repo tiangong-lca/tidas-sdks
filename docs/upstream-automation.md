@@ -19,9 +19,9 @@ checkPaths:
   - .nvmrc
   - package.json
   - .docpact/config.yaml
-lastReviewedAt: 2026-09-21
-lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; upstream dispatch, generation, versioning, and release automation remain unchanged."
+lastReviewedAt: 2026-09-24
+lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
+lastReviewedNote: "Reviewed SDK #156: tidas_spec_released refreshes both pins from one verified archive before generated TypeScript and Python validation; Python Process model conditions follow the public schema. Tag/publish ownership is unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml
@@ -36,6 +36,14 @@ This document describes the recommended cross-repository automation path for kee
 The checked-in workflows implement this flow. Repository secrets and external registry bindings still require live verification; their existence is not proved by this document. Publication remains owned by the existing tag-driven SDK workflow.
 
 W9 public-rule development uses `scripts/ci/tidas-public-rules-pin.json` and `sdks/typescript/scripts/sync-public-rules.ts` as a separately verified index/schema contract. W10S first qualified the optional Process/LCIA Method review-report reference against an exact 0.2.0 candidate archive. The package-input pin later advanced through verified `tidas_spec_released` events to formal releases. Issue #146 qualified the exact reviewed 0.2.2 candidate so Process review may be a singleton object or ordered non-empty array; Issue #148 promotes both the package-input and public-rule pins to the byte-identical formal 0.2.2 release before publishing TypeScript 0.3.1. Source commit, archive, and manifest hashes stay explicit, and the public-rule API pin follows the same qualified source so a single SDK package cannot combine mismatched specification identities. Product-owned execution profiles and the legacy mixed ruleset retain their separate W11 disposition.
+
+Issue #156 adopts the 0.2.3 Process reference rules. The formal spec event
+updates both pins from one verified archive before package verification. The
+index and schema bytes may be unchanged while their source commit advances;
+that exact identity still belongs in the TypeScript package. The initial
+0.2.3 auto-sync failed when only the package-input pin advanced and the
+public-rule source remained at 0.2.2; this workflow now fails closed on archive
+or bundled-byte drift and refreshes both together.
 
 The goal is:
 
@@ -179,7 +187,7 @@ Recommended responsibilities:
 7. run local parity checks:
    - `./scripts/ci/verify-typescript-package.sh`
    - `./scripts/ci/verify-python-package.sh`
-8. for `tidas_spec_released`, download and hash-check the notified archive before updating the exact spec pin; an exact replay is a no-op, an explicit byte-identical candidate may promote to formal release, and every other stale or same-version conflicting identity fails closed
+8. for `tidas_spec_released`, validate the event, download and hash-check the notified archive, and refresh the exact package-input and public-rule pins/bytes from it before TypeScript verification; an exact replay is a no-op, an explicit byte-identical candidate may promote to formal release, and every other stale or same-version conflicting identity fails closed
 9. detect whether TypeScript and/or Python outputs changed, including a changed spec pin
 10. bump only the affected package version(s) to the next unpublished version in the target registry
     - TypeScript regeneration intentionally leaves reviewed package output uncommitted before version preparation. The filtered `pnpm version` command uses `--no-git-checks` solely for that dirty-tree precondition; it still makes no tag or commit, and the later package verification and PR review remain mandatory.

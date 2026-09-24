@@ -28,9 +28,9 @@ checkPaths:
   - scripts/docpact
   - scripts/docpact-gate.sh
   - scripts/install-git-hooks.sh
-lastReviewedAt: 2026-09-21
-lastReviewedCommit: 12bd59b3062033148db53a3438d16e75c8ca87eb
-lastReviewedNote: "Reviewed Issue #154 TypeScript 0.4.0 release preparation; the existing TypeScript verification and PR proof requirements remain sufficient."
+lastReviewedAt: 2026-09-24
+lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
+lastReviewedNote: "Reviewed SDK #156: exact-archive public-rule pin, conditional Process schema and bilingual non-flow tests are covered by both canonical package verifiers and automation regressions."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml
@@ -75,6 +75,7 @@ Facts that matter:
   dispatch/manual automation must supply a full 40-character SHA
 - TypeScript and Python generation resolve `tidas-spec` as one verified archive: either a formal release or an explicitly reviewed, content-addressed candidate. Set `TIDAS_SPEC_ARCHIVE_PATH` for an explicit archive, use the sibling `tidas-spec/release/` archive in `auto` mode, or let the helper download the exact `releaseArchiveUrl` from `scripts/ci/tidas-spec-pin.json`.
 - `scripts/ci/tidas-spec-assets.mjs verify` validates the archive SHA-256, manifest SHA-256, complete package inventory, source evidence, and the reviewed 39-file public subset before extraction. The 0.2.0 candidate explicitly pins five repository-authored public paths and retains manifest/hash proof for the other 34 imports. `assembly-plan` overlays every public path from spec, compares unchanged overlaps byte-for-byte, and excludes explicitly authored paths from the tools-equality requirement. A `tidas_spec_released` event is first validated by `update-tidas-spec-pin.py`; exact replays and explicit byte-identical candidate promotions are accepted, while stale, malformed, partial, formally pinned, or byte-changing same-version events fail closed. The exact historical 0.2.0 promotion remains separately bounded.
+- `update-tidas-public-rules-pin.py` checks the same pinned archive and manifest, verifies the rule index/schema digests and existing bundled bytes, then updates both the source pin and TypeScript assets. Its exact replay is a no-op; a stale bundle or altered archive fails before package verification. A spec-driven refresh must prove the package-input and public-rule identities agree, even when the public-rule bytes are unchanged.
 - `scripts/ci/tidas-tools-assets.mjs` validates the Rust
   `assets/asset-lock.v1.json`, all catalog entry hashes/sizes, and the packaged
   TypeScript runtime copy before generation succeeds. The SDK copy has a
@@ -111,6 +112,12 @@ Facts that matter:
   whenever `@type` is not `Not reviewed`; the complete-review-report reference
   is optional, but a supplied reference must still satisfy `GlobalReferenceType`.
   Taxonomy dependency tests must prove both valid and invalid locked classification cases.
+- Process quantitative-reference validation follows the pinned public schema:
+  `Reference flow(s)` requires a Flow ID; `Other parameter`, `Functional unit`,
+  and `Production period` require language-tagged `functionalUnitOrOther` and
+  need no Flow ID. An omitted `typeOfDataSet` remains allowed; a supplied value
+  still uses the enum. TypeScript Zod, the Python-shipped JSON Schema, and the
+  generated Python Pydantic reference model prove the conditional requirement.
 - Validation changes that correct historical under-validation require an
   explicit compatibility/version decision. Issue #101 uses `0.2.0`, not a
   patch, so `^0.1.x` consumers opt in deliberately.
