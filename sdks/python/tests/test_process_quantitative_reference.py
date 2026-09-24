@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 
 from jsonschema import Draft7Validator, RefResolver
+from pydantic import ValidationError
+import pytest
 
 from tidas_sdk.core.multilang import MultiLangList
 from tidas_sdk.generated.tidas_processes import (
@@ -43,11 +45,19 @@ def test_non_flow_basis_is_typed_and_schema_valid_without_reference_flow() -> No
         )
         assert model.reference_to_reference_flow is None
         assert len(model.functional_unit_or_other) == 2
+        with pytest.raises(ValidationError, match="requires functionalUnitOrOther"):
+            ProcessDataSetProcessInformationQuantitativeReference.model_validate(
+                {"@type": kind}
+            )
 
 
 def test_flow_reference_remains_required_and_process_type_is_optional() -> None:
     reference = _field_validator("quantitativeReference")
     assert not reference.is_valid({"@type": "Reference flow(s)"})
+    with pytest.raises(ValidationError, match="requires referenceToReferenceFlow"):
+        ProcessDataSetProcessInformationQuantitativeReference.model_validate(
+            {"@type": "Reference flow(s)"}
+        )
     assert reference.is_valid({"@type": "Reference flow(s)", "referenceToReferenceFlow": "1"})
     process_type = _field_validator("LCIMethodAndAllocation")
     assert process_type.is_valid({})

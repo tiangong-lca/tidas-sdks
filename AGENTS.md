@@ -33,7 +33,7 @@ checkPaths:
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-24
 lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
-lastReviewedNote: "Reviewed SDK #156: exact tidas-spec 0.2.3 adoption updates generated Process validators and both source pins; SDK ownership and tag-driven publication boundaries remain unchanged."
+lastReviewedNote: "Reviewed SDK #156: exact tidas-spec 0.2.3 adoption and Python generator validation keep Process quantitative-reference conditions aligned across Zod, shipped JSON Schema and Pydantic; ownership and tag-driven publication remain unchanged."
 related:
   - .docpact/config.yaml
   - docs/agents/repo-validation.md

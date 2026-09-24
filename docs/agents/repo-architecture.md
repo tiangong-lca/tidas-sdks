@@ -28,7 +28,7 @@ checkPaths:
   - scripts/install-git-hooks.sh
 lastReviewedAt: 2026-09-24
 lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
-lastReviewedNote: "Reviewed SDK #156: spec archive and public-rule source identities advance together for generated Process validators; package topology and release ownership remain unchanged."
+lastReviewedNote: "Reviewed SDK #156: spec/public-rule identities advance together and the Python generator adds a Process quantitative-reference Pydantic validator; package topology and release ownership remain unchanged."
 related:
   - ../../AGENTS.md
   - ../../.docpact/config.yaml

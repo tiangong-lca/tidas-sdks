@@ -2,7 +2,7 @@ version: 1
 layout: repo
 lastReviewedAt: "2026-09-24"
 lastReviewedCommit: "04b6ac2c9566ba0209cebfe4cc56b6eef5a56845"
-lastReviewedNote: "Reviewed SDK #156: the exact spec event and public-rule pin refresh stay in the existing generation/release route; generated TS/Python Process surfaces retain their owners. No catalog or coverage change."
+lastReviewedNote: "Reviewed SDK #156: archive-bound pin refresh and Python Process model-validator generation stay in existing generation/package routes. Generated TS/Python surfaces retain their owners; no catalog or coverage change."
 
 catalog:
   repos:

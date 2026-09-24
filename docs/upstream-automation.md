@@ -21,7 +21,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-24
 lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
-lastReviewedNote: "Reviewed SDK #156: tidas_spec_released refreshes the package-input and public-rule pins from one verified archive before TypeScript qualification; tag/publish ownership is unchanged."
+lastReviewedNote: "Reviewed SDK #156: tidas_spec_released refreshes both pins from one verified archive before generated TypeScript and Python validation; Python Process model conditions follow the public schema. Tag/publish ownership is unchanged."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

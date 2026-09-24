@@ -44,6 +44,7 @@ FLOW_NAME_CONDITIONAL_FIELDS = {
 }
 FLOW_NAME_MODEL_NAME = "FlowInformationDataSetInformationName"
 FLOW_DATA_SET_MODEL_NAME = "FlowsFlowDataSet"
+PROCESS_REFERENCE_MODEL_NAME = "ProcessDataSetProcessInformationQuantitativeReference"
 
 
 @dataclass
@@ -152,6 +153,9 @@ class SchemaGenerator:
         needs_flow_name_condition_validator = any(
             model.name == FLOW_DATA_SET_MODEL_NAME for model in artifact.models
         )
+        needs_process_reference_validator = any(
+            model.name == PROCESS_REFERENCE_MODEL_NAME for model in artifact.models
+        )
         lines = [
             '"""',
             "Auto generated file. DO NOT EDIT.",
@@ -171,7 +175,11 @@ class SchemaGenerator:
             lines.append("")
 
         pydantic_imports = ["Field"]
-        if needs_localized_text_validators or needs_flow_name_condition_validator:
+        if (
+            needs_localized_text_validators
+            or needs_flow_name_condition_validator
+            or needs_process_reference_validator
+        ):
             pydantic_imports.append("model_validator")
         lines.append(f"from pydantic import {', '.join(pydantic_imports)}")
         lines.append("from tidas_sdk.core.base import TidasBaseModel")
@@ -263,6 +271,12 @@ class SchemaGenerator:
         if flow_name_validator_lines:
             lines.append("")
             lines.extend(flow_name_validator_lines)
+        process_reference_validator_lines = cls._render_process_reference_validator(
+            model.name
+        )
+        if process_reference_validator_lines:
+            lines.append("")
+            lines.extend(process_reference_validator_lines)
 
         return lines
 
@@ -305,6 +319,22 @@ class SchemaGenerator:
             "                'Flow name requires ' + ', '.join(missing)",
             "                + ' for Product, Waste, and Other flows'",
             "            )",
+            "        return self",
+        ]
+
+    @staticmethod
+    def _render_process_reference_validator(model_name: str) -> list[str]:
+        if model_name != PROCESS_REFERENCE_MODEL_NAME:
+            return []
+
+        return [
+            "    @model_validator(mode='after')",
+            f"    def _validate_quantitative_reference(self) -> '{model_name}':",
+            "        if self.type == 'Reference flow(s)':",
+            "            if self.reference_to_reference_flow is None:",
+            "                raise ValueError('Reference flow(s) requires referenceToReferenceFlow')",
+            "        elif not self.functional_unit_or_other:",
+            "            raise ValueError(f'{self.type} requires functionalUnitOrOther')",
             "        return self",
         ]
 

@@ -116,9 +116,8 @@ Facts that matter:
   `Reference flow(s)` requires a Flow ID; `Other parameter`, `Functional unit`,
   and `Production period` require language-tagged `functionalUnitOrOther` and
   need no Flow ID. An omitted `typeOfDataSet` remains allowed; a supplied value
-  still uses the enum. TypeScript Zod and the Python-shipped JSON Schema prove
-  the conditional requirement, while Python generated models retain the valid
-  typed shape.
+  still uses the enum. TypeScript Zod, the Python-shipped JSON Schema, and the
+  generated Python Pydantic reference model prove the conditional requirement.
 - Validation changes that correct historical under-validation require an
   explicit compatibility/version decision. Issue #101 uses `0.2.0`, not a
   patch, so `^0.1.x` consumers opt in deliberately.

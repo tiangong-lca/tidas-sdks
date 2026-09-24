@@ -20,7 +20,7 @@ checkPaths:
   - .docpact/config.yaml
 lastReviewedAt: 2026-09-24
 lastReviewedCommit: 04b6ac2c9566ba0209cebfe4cc56b6eef5a56845
-lastReviewedNote: "Reviewed SDK #156: exact tidas-spec 0.2.3 generated release prep retains existing npm/PyPI trusted publishers and tag workflow; no registry setup changes."
+lastReviewedNote: "Reviewed SDK #156: exact 0.2.3 generated Process validation, including Python Pydantic conditions, retains existing npm/PyPI trusted publishers and tag workflow; no registry setup changes."
 related:
   - ../AGENTS.md
   - ../.docpact/config.yaml

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from tidas_sdk.core.base import TidasBaseModel
 from tidas_sdk.core.multilang import MultiLangList
 
@@ -143,6 +143,15 @@ class ProcessDataSetProcessInformationQuantitativeReference(TidasBaseModel):
     reference_to_reference_flow: Int6 | None = Field(default=None, alias='referenceToReferenceFlow')
     functional_unit_or_other: MultiLangList = Field(default_factory=MultiLangList, alias='functionalUnitOrOther')
     common_other: CommonOther | None = Field(default=None, alias='common:other')
+
+    @model_validator(mode='after')
+    def _validate_quantitative_reference(self) -> 'ProcessDataSetProcessInformationQuantitativeReference':
+        if self.type == 'Reference flow(s)':
+            if self.reference_to_reference_flow is None:
+                raise ValueError('Reference flow(s) requires referenceToReferenceFlow')
+        elif not self.functional_unit_or_other:
+            raise ValueError(f'{self.type} requires functionalUnitOrOther')
+        return self
 
 class ProcessDataSetProcessInformationTime(TidasBaseModel):
     common_reference_year: Year = Field(default=..., alias='common:referenceYear', description='Reference year when the emission is assumed to take place, i.e. the start year of the time period for which the impact is modelled. For time-independent models "time independent" should be stated.')
