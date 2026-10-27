@@ -99,9 +99,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
+    "@types/node": "^24.19.2",
     "dotenv": "^17.4.2",
-    "oxlint": "^1.88.0",
+    "oxlint": "^1.89.0",
     "oxlint-tsgolint": "^7.0.2004",
     "prettier": "^3.9.10",
     "tsx": "^4.23.15",
